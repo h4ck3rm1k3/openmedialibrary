@@ -1,0 +1,9 @@
+env
+*.pyc
+*.gz
+*.swp
+*.min.js
+static/oxjs
+*~
+*.db
+._*

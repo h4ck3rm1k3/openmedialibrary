@@ -1,0 +1,19 @@
+Open Media Library
+
+== Install ==
+
+ soon
+
+== Development ==
+
+mkdir client
+cd client
+git clone https://git.0x2620.org/openmedialibrary.git
+git clone https://git.0x2620.org/openmedialibrary_platform.git platform
+ln -s openmedialibrary/ctl ctl
+./ctl update_static
+./ctl db upgrade
+./ctl setup
+
+# and start it
+./ctl debug

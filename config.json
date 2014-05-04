@@ -1,0 +1,366 @@
+{
+    "coverRatio": 0.75,
+    "itemKeys": [
+        {
+            "id": "*",
+            "title": "All",
+            "type": "text",
+            "find": true
+        },
+        {
+            "id": "title",
+            "title": "Title",
+            "type": "string",
+            "autocomplete": true,
+            "columnRequired": true,
+            "columnWidth": 256,
+            "find": true,
+            "sort": true,
+            "sortType": "title"
+        },
+        {
+            "id": "author",
+            "title": "Author",
+            "type": ["string"],
+            "autocomplete": true,
+            "columnRequired": true,
+            "columnWidth": 192,
+            "filter": true,
+            "sort": true,
+            "sortType": "person"
+        },
+        {
+            "id": "edition",
+            "title": "Edition",
+            "type": "string",
+            "columnWidth": 128,
+            "find": true
+        },
+        {
+            "id": "publisher",
+            "title": "Publisher",
+            "type": "string",
+            "autocomplete": true,
+            "columnWidth": 128,
+            "filter": true,
+            "find": true,
+            "sort": true
+        },
+        {
+            "id": "place",
+            "title": "Place",
+            "type": ["string"],
+            "columnWidth": 128,
+            "sort": true
+        },
+        {
+            "id": "country",
+            "title": "Country",
+            "type": "string",
+            "columnWidth": 128,
+            "filter": true,
+            "find": true,
+            "sort": true
+        },
+        {
+            "id": "date",
+            "title": "Date",
+            "type": "string",
+            "columnWidth": 96,
+            "filter": true,
+            "filterMap": "(-?\\d+)",
+            "sort": true
+        },
+        {
+            "id": "language",
+            "title": "Language",
+            "type": "string",
+            "columnWidth": 128,
+            "filter": true,
+            "find": true,
+            "sort": true
+        },
+        {
+            "id": "pages",
+            "title": "Pages",
+            "type": "integer",
+            "columnWidth": 96,
+            "format": {"type": "unit", "args": ["pages"]},
+            "sort": true
+        },
+        {
+            "id": "classification",
+            "title": "Classification",
+            "type": "string",
+            "autocomplete": true,
+            "columnWidth": 192,
+            "find": true,
+            "filter": true,
+            "sort": true
+        },
+        {
+            "id": "description",
+            "title": "Description",
+            "type": "text",
+            "find": true
+        },
+        {
+            "id": "extension",
+            "title": "Extension",
+            "type": "string",
+            "columnWidth": 80,
+            "sort": true
+        },
+        {
+            "id": "size",
+            "title": "Size",
+            "type": "integer",
+            "columnWidth": 64,
+            "format": {"type": "value", "args": ["B"]},
+            "sort": true
+        },
+        {
+            "id": "created",
+            "title": "First Seen",
+            "type": "date",
+            "columnWidth": 144,
+            "format": {"type": "date", "args": ["%Y-%m-%d %H:%M:%S"]},
+            "sort": true
+        },
+        {
+            "id": "added",
+            "title": "Date Added",
+            "type": "date",
+            "columnWidth": 144,
+            "format": {"type": "date", "args": ["%Y-%m-%d %H:%M:%S"]},
+            "sort": true
+        },
+        {
+            "id": "modified",
+            "title": "Last Modified",
+            "type": "date",
+            "columnWidth": 144,
+            "format": {"type": "date", "args": ["%Y-%m-%d %H:%M:%S"]},
+            "sort": true
+        },
+        {
+            "id": "accessed",
+            "title": "Last Read",
+            "type": "date",
+            "columnWidth": 144,
+            "format": {"type": "date", "args": ["%Y-%m-%d %H:%M:%S"]},
+            "sort": true
+        },
+        {
+            "id": "timesaccessed",
+            "title": "Times Accessed",
+            "type": "integer",
+            "columnWidth": 64,
+            "format": {"type": "number", "args": []},
+            "sort": true
+        },
+        {
+            "id": "mediastate",
+            "title": "Media State",
+            "type": "string",
+            "find": true,
+            "sort": true
+        },
+        {
+            "id": "transferadded",
+            "title": "Added",
+            "type": "date",
+            "format": {"type": "date", "args": ["%Y-%m-%d %H:%M:%S"]},
+            "sort": true
+        },
+        {
+            "id": "transferprogress",
+            "title": "Progress",
+            "type": "float",
+            "format": {"type": "percent", "args": [1, 0]},
+            "sort": true
+        },
+        {
+            "id": "id",
+            "title": "ID",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "isbn10",
+            "title": "ISBN-10",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "isbn13",
+            "title": "ISBN-13",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "lccn",
+            "title": "LCCN",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "olid",
+            "title": "OLID",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "oclc",
+            "title": "OCLC",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "mainid",
+            "title": "Main ID",
+            "type": "string"
+        },
+        {
+            "id": "random",
+            "title": "Random",
+            "type": "integer",
+            "sort": true
+        }
+    ],
+    "itemViews": [
+        {"id": "info", "title": "Info"},
+        {"id": "book", "title": "Book"}
+    ],
+    "lists": [
+        {"title": "Reading List"},
+        {"title": "1968", "query": {
+            "conditions": [{"key": "*", "operator": "=", "value": "1968"}],
+            "operator": "&"
+        }}
+    ],
+    "listViews": [
+        {"id": "list", "title": "List"},
+        {"id": "grid", "title": "Grid"}
+    ],
+    "locales": ["en", "ar", "hi"],
+    "pages": [
+        {"id": "welcome", "title": "Welcome"},
+        {"id": "app", "title": "Application", "parts": [
+            {"id": "about", "title": "About Open Media Library"},
+            {"id": "faq", "title": "Frequently Asked Questions"},
+            {"id": "terms", "title": "Terms and Conditions"},
+            {"id": "development", "title": "Software Development"},
+            {"id": "contact", "title": "Send Feedback"},
+            {"id": "update", "title": "Software Update"}
+        ]},
+        {"id": "preferences", "title": "Preferences", "parts": [
+            {"id": "account", "title": "Account"},
+            {"id": "library", "title": "Library"},
+            {"id": "peering", "title": "Peering"},
+            {"id": "network", "title": "Network"},
+            {"id": "appearance", "title": "Appearance"},
+            {"id": "extensions", "title": "Extensions"},
+            {"id": "advanced", "title": "Advanced"}
+        ]},
+        {"id": "users", "title": "Users"},
+        {"id": "devices", "title": "Devices"},
+        {"id": "notifications", "title": "Notifications"},
+        {"id": "transfers", "title": "Transfers"},
+        {"id": "gettingstarted", "title": "Getting Started"},
+        {"id": "help", "title": "Help", "parts": [
+            {"id": "introduction", "title": "Introduction"},
+            {"id": "accounts", "title": "Accounts"},
+            {"id": "navigaion", "title": "Navigation"},
+            {"id": "views", "title": "Views"},
+            {"id": "lists", "title": "Lists"}
+        ]},
+        {"id": "documentation", "title": "Documentation"}
+    ],
+    "themes": ["oxlight", "oxmedium", "oxdark"],
+    "totals": [
+        {"id": "items"},
+        {"id": "size"}
+    ],
+    "user": {
+        "preferences": {
+            "acceptMessage": "",
+            "contact": "",
+            "downloadRate": null,
+            "extensions": "",
+            "importPath": "~/Documents/Open Media Library/Import/",
+            "libraryPath": "~/Documents/Open Media Library/",
+            "receivedRequests": "notify",
+            "rejectMessage": "",
+            "sendDiagnostics": false,
+            "sendRequests": "manually",
+            "uploadRate": null,
+            "username": ""
+        },
+        "ui": {
+            "fileInfo": "extension",
+            "filters": [
+                {"id": "author", "sort": [{"key": "items", "operator": "-"}]},
+                {"id": "publisher", "sort": [{"key": "items", "operator": "-"}]},
+                {"id": "date", "sort": [{"key": "name", "operator": "-"}]},
+                {"id": "language", "sort": [{"key": "items", "operator": "-"}]},
+                {"id": "classification", "sort": [{"key": "items", "operator": "-"}]}
+            ],
+            "filtersSize": 176,
+            "find": {"conditions": [], "operator": "&"},
+            "icons": "cover",
+            "item": "",
+            "itemView": "info",
+            "listColumns": ["title", "author", "publisher", "date"],
+            "listColumnWidth": {},
+            "lists": {},
+            "listSelection": [],
+            "listSort": [
+                {"key": "author", "operator": "+"},
+                {"key": "date", "operator": "+"},
+                {"key": "title", "operator": "+"}
+            ],
+            "listView": "grid",
+            "locale": "en",
+            "mediaState": {},
+            "page": "welcome",
+            "part": {
+                "app": "about",
+                "preferences": "account",
+                "help": "introduction"
+            },
+            "section": "books",
+            "showBrowser": true,
+            "showDebugMenu": false,
+            "showFileInfo": true,
+            "showFolder": {},
+            "showFilters": true,
+            "showInfo": true,
+            "showSection": {
+                "notifications": {
+                    "received": true,
+                    "sent": true
+                },
+                "transfers": {
+                    "active": true,
+                    "queued": true
+                },
+                "users": {
+                    "peers": true,
+                    "pending": true,
+                    "others": true
+                }
+            },
+            "showSidebar": true,
+            "sidebarSize": 256,
+            "theme": "oxlight",
+            "usersSelection": []
+        }
+    }
+}

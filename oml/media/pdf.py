@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
+
+import sys
+import tempfile
+import subprocess
+import os
+import shutil
+from glob import glob
+
+from pyPdf import PdfFileReader
+import stdnum.isbn
+
+import settings
+from utils import normalize_isbn, find_isbns
+
+def cover(pdf):
+    if sys.platform == 'darwin':
+        return ql_cover(pdf)
+    else:
+        return page(pdf, 1)
+
+def ql_cover(pdf):
+        tmp = tempfile.mkdtemp()
+        cmd = [
+            'qlmanage',
+            '-t',
+            '-s',
+            '1024',
+            '-o',
+            tmp,
+            pdf
+        ]
+        p = subprocess.Popen(cmd)
+        p.wait()
+        image = glob('%s/*' % tmp)[0]
+        with open(image, 'rb') as fd:
+            data = fd.read()
+        shutil.rmtree(tmp)
+        return data
+
+
+def page(pdf, page):
+    image = tempfile.mkstemp('.jpg')[1]
+    cmd = [
+        'gs', '-q',
+        '-dBATCH', '-dSAFER', '-dNOPAUSE', '-dNOPROMPT',
+        '-dMaxBitmap=500000000',
+        '-dAlignToPixels=0', '-dGridFitTT=2',
+        '-sDEVICE=jpeg', '-dTextAlphaBits=4', '-dGraphicsAlphaBits=4',
+        '-r72',
+        '-dUseCropBox',
+        '-dFirstPage=%d' % page,
+        '-dLastPage=%d' % page,
+        '-sOutputFile=%s' % image,
+        pdf
+    ]
+    p = subprocess.Popen(cmd)
+    p.wait()
+    with open(image, 'rb') as fd:
+        data = fd.read()
+    os.unlink(image)
+    return data
+
+def info(pdf):
+    data = {}
+    with open(pdf, 'rb') as fd:
+        try:
+            pdfreader = PdfFileReader(fd)
+            info = pdfreader.getDocumentInfo()
+            if info:
+                for key in info:
+                    if info[key]:
+                        data[key[1:].lower()] = info[key]
+            xmp =pdfreader.getXmpMetadata()
+            if xmp:
+                for key in dir(xmp):
+                    if key.startswith('dc_'):
+                        value = getattr(xmp, key)
+                        if isinstance(value, dict) and 'x-default' in value:
+                            value = value['x-default']
+                        elif isinstance(value, list):
+                            value = [v.strip() for v in value if v.strip()]
+                        _key = key[3:]
+                        if value and _key not in data:
+                            data[_key] = value
+        except:
+            print 'FAILED TO PARSE', pdf
+            import traceback
+            print traceback.print_exc()
+
+        if 'identifier' in data:
+            value = normalize_isbn(data['identifier'])
+            if stdnum.isbn.is_valid(value):
+                data['isbn'] = value
+                del data['identifier']
+    '''
+    cmd = ['pdfinfo', pdf]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    for line in stdout.strip().split('\n'):
+        parts = line.split(':')
+        key = parts[0].lower().strip()
+        if key:
+            data[key] = ':'.join(parts[1:]).strip()
+    for key in data.keys():
+        if not data[key]:
+            del data[key]
+    '''
+    text = extract_text(pdf)
+    data['textsize'] = len(text)
+    if settings.server['extract_text']:
+        if not 'isbn' in data:
+            isbn = extract_isbn(text)
+            if isbn:
+                data['isbn'] = isbn
+    return data
+
+'''
+    #possbile alternative with gs
+    tmp = tempfile.mkstemp('.txt')[1]
+    cmd = ['gs', '-dBATCH', '-dNOPAUSE', '-sDEVICE=txtwrite', '-dFirstPage=3', '-dLastPage=5', '-sOutputFile=%s'%tmp, pdf]
+
+'''
+def extract_text(pdf):
+    if sys.platform == 'darwin':
+        cmd = ['/usr/bin/mdimport' '-d2', pdf]
+    else:
+        cmd = ['pdftotext', pdf, '-']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if sys.platform == 'darwin':
+        stdout = stderr.split('kMDItemTextContent = "')[-1].split('\n')[0][:-2]
+    return stdout.strip()
+
+def extract_isbn(text):
+    isbns = find_isbns(text)
+    if isbns:
+        return isbns[0]

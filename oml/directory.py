@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+
+# DHT placeholder
+
+import requests
+import ed25519
+import json
+import settings
+
+base = settings.server['directory_service']
+
+def get(vk):
+    id = vk.to_ascii(encoding='base64')
+    url ='%s/%s' % (base, id)
+    r = requests.get(url)
+    sig = r.headers.get('X-Ed25519-Signature')
+    data = r.content
+    if sig and data:
+        vk = ed25519.VerifyingKey(id, encoding='base64')
+        try:
+            vk.verify(sig, data, encoding='base64')
+            data = json.loads(data)
+        except ed25519.BadSignatureError:
+            print 'invalid signature'
+            data = None
+    return data
+
+def put(sk, data):
+    id = sk.get_verifying_key().to_ascii(encoding='base64')
+    data = json.dumps(data)
+    sig = sk.sign(data, encoding='base64')
+    url ='%s/%s' % (base, id)
+    headers = {
+        'X-Ed25519-Signature': sig
+    }
+    try:
+        r = requests.put(url, data, headers=headers)
+    except:
+        import traceback
+        print 'directory.put failed:', data
+        traceback.print_exc()
+        return False
+    return r.status_code == 200
