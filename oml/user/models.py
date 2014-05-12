@@ -59,7 +59,7 @@ class User(db.Model):
         return j
 
     def check_online(self):
-        return state.nodes.check_online(self.id)
+        return state.nodes and state.nodes.check_online(self.id)
 
     def lists_json(self):
         return [l.json() for l in self.lists.order_by('position')]
@@ -158,25 +158,39 @@ class List(db.Model):
         from item.models import Item
         for item_id in items:
             i = Item.get(item_id)
-            self.items.add(i)
+            self.items.append(i)
+            i.update()
         db.session.add(self)
         db.session.commit()
+        for item_id in items:
+            i = Item.get(item_id)
+            i.update_lists()
+        db.session.commit()
+        if self.user_id == settings.USER_ID:
+            Changelog.record(self.user, 'addlistitems', self.name, items)
 
     def remove_items(self, items):
         from item.models import Item
         for item_id in items:
             i = Item.get(item_id)
             self.items.remove(i)
+            i.update()
         db.session.add(self)
         db.session.commit()
+        for item_id in items:
+            i = Item.get(item_id)
+            i.update_lists()
+        db.session.commit()
+        if self.user_id == settings.USER_ID:
+            Changelog.record(self.user, 'removelistitems', self.name, items)
 
     def remove(self):
         if not self._query:
             for i in self.items:
                 self.items.remove(i)
         if not self._query:
-            print 'record change: removelist', self.user, self.name
-            Changelog.record(self.user, 'removelist', self.name)
+            if self.user_id == settings.USER_ID:
+                Changelog.record(self.user, 'removelist', self.name)
         db.session.delete(self)
         db.session.commit()
 
@@ -184,9 +198,20 @@ class List(db.Model):
     def public_id(self):
         id = ''
         if self.user_id != settings.USER_ID:
-            id += self.user_id
-        id = '%s:%s' % (id, self.name)
+            id += self.user.nickname
+        id = u'%s:%s' % (id, self.name)
         return id
+
+    @property
+    def find_id(self):
+        id = ''
+        if self.user_id != settings.USER_ID:
+            id += self.user_id
+        id = u'%s:%s' % (id, self.id)
+        return id
+    
+    def __repr__(self):
+        return self.public_id.encode('utf-8')
 
     def items_count(self):
         from item.models import Item
@@ -199,6 +224,7 @@ class List(db.Model):
     def json(self):
         r = {
             'id': self.public_id,
+            'user': self.user.nickname if self.user_id != settings.USER_ID else settings.preferences['username'],
             'name': self.name,
             'index': self.position,
             'items': self.items_count(),

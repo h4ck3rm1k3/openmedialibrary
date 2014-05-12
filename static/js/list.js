@@ -63,6 +63,8 @@ oml.ui.list = function() {
                 }
             });
 
+    oml.enableDragAndDrop(that);
+
     return that;
 
 };

@@ -453,12 +453,12 @@ oml.ui.usersDialog = function() {
             })
             .bindEvent({
                 select: function(data) {
-                    $lists.forEach(function($element) {
-                        if ($element != $list) {
-                            $element.options({selected: []});
-                        }
-                    });
-                    renderUser(Ox.getObjectById(users, data.ids[0]));
+                    if (data.ids.length) {
+                        selectItem($list);
+                        renderUser(Ox.getObjectById(users, data.ids[0]));
+                    } else {
+                        renderUser();
+                    }
                 }
             });
 

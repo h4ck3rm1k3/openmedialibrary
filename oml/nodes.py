@@ -19,6 +19,7 @@ from changelog import Changelog
 
 import directory
 from websocket import trigger_event
+from localnodes import LocalNodes
 
 ENCODING='base64'
 
@@ -26,8 +27,9 @@ class Node(object):
     online = False
     download_speed = 0
 
-    def __init__(self, app, user):
-        self._app = app
+    def __init__(self, nodes, user):
+        self._nodes = nodes
+        self._app = nodes._app
         self.user_id = user.id
         key = str(user.id)
         self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
@@ -35,10 +37,15 @@ class Node(object):
 
     @property
     def url(self):
-        if ':' in self.host:
-            url = 'http://[%s]:%s' % (self.host, self.port)
+        local = self.get_local()
+        if local:
+            url = 'http://[%s]:%s' % (local['host'], local['port'])
+            print 'using local peer discovery to access node', url
         else:
-            url = 'http://%s:%s' % (self.host, self.port)
+            if ':' in self.host:
+                url = 'http://[%s]:%s' % (self.host, self.port)
+            else:
+                url = 'http://%s:%s' % (self.host, self.port)
         return url
 
     def resolve_host(self):
@@ -50,6 +57,11 @@ class Node(object):
         else:
             self.host = None
             self.port = 9851
+
+    def get_local(self):
+        if self._nodes and self._nodes._local:
+            return self._nodes._local.get(self.user_id)
+        return None
 
     def request(self, action, *args):
         if not self.host:
@@ -211,6 +223,7 @@ class Nodes(Thread):
         self._app = app
         self._q = Queue()
         self._running = True
+        self._local = LocalNodes(app)
         Thread.__init__(self)
         self.daemon = True
         self.start()
@@ -238,7 +251,7 @@ class Nodes(Thread):
     def _add_node(self, user_id):
         if user_id not in self._nodes:
             from user.models import User
-            self._nodes[user_id] = Node(self._app, User.get_or_create(user_id))
+            self._nodes[user_id] = Node(self, User.get_or_create(user_id))
         else:
             self._nodes[user_id].online = True
             trigger_event('status', {

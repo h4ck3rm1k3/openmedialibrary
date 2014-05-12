@@ -162,7 +162,40 @@ oml.ui.infoView = function() {
     }
 
     function renderMediaButton(data) {
-        return data.mediastate == 'transferring'
+        return data.mediastate == 'unavailable'
+            ? Ox.FormElementGroup({
+                elements: [
+                    Ox.Button({
+                        title: Ox._('Download Book'),
+                        width: 112
+                    })
+                    .bindEvent({
+                        click: function() {
+                            data.mediastate = 'transferring';
+                            that.update(data, $data);
+                            oml.api.download({id: ui.item}, function(result) {
+                                // ...
+                            });
+                        }
+                    }),
+                    Ox.MenuButton({
+                        items: [
+                            {id: '', title: Ox._('Library')}
+                        ],
+                        overlap: 'left',
+                        title: 'list',
+                        tooltip: Ox._('Download Book to a List'),
+                        type: 'image'
+                    })
+                    .bindEvent({
+                        click: function() {
+                            // ...
+                        }
+                    })
+                ],
+                float: 'right'
+            })
+            : data.mediastate == 'transferring'
             ? Ox.FormElementGroup({
                 elements: [
                     Ox.Button({
@@ -192,29 +225,13 @@ oml.ui.infoView = function() {
                 ],
                 float: 'right'
             })
-            .css({
-                marginTop: '8px'
-            })
             : Ox.Button({
-                title: Ox._(
-                    data.mediastate == 'available' ? 'Read Book' : 'Download Book'
-                ),
+                title: Ox._('Read Book'),
                 width: 128
-            })
-            .css({
-                marginTop: '8px'
             })
             .bindEvent({
                 click: function() {
-                    if (data.mediastate == 'available') {
-                        oml.UI.set({itemView: 'book'});
-                    } else {
-                        data.mediastate = 'transferring';
-                        that.update(data, $data);
-                        oml.api.download({id: ui.item}, function(result) {
-                            // ...
-                        });
-                    }
+                    oml.UI.set({itemView: 'book'});
                 }
             });
     }
@@ -339,10 +356,50 @@ oml.ui.infoView = function() {
 
                 } else if ($element == $data) {
 
+                    $mediaButton = renderMediaButton(data)
+                        .appendTo($data);
+
+                    $('<div>')
+                        .addClass('OxSelectable')
+                        .css({
+                            marginTop: '8px',
+                        })
+                        .text(
+                            [
+                                data.extension.toUpperCase(),
+                                Ox.formatValue(data.size, 'B')
+                            ].join(', ')
+                        )
+                        .appendTo($data);
+
+                    ['accessed', 'modified', 'added', 'created'].forEach(function(id) {
+                        var title;
+                        if (data[id]) {
+                            title = Ox.getObjectById(oml.config.itemKeys, id).title;
+                            $('<div>')
+                                .css({
+                                    marginTop: '8px',
+                                    fontWeight: 'bold'
+                                })
+                                .text(title)
+                                .appendTo($data);
+                            Ox.EditableContent({
+                                    editable: false,
+                                    format: function(value) {
+                                        return value ? Ox.formatDate(value, '%b %e, %Y') : '';
+                                    },
+                                    placeholder: Ox._('unknown'),
+                                    value: data[id] || ''
+                                })
+                                .appendTo($data);
+                        }
+                    });
+
                     Ox.Button({
                             title: Ox._('Identify Book...'),
                             width: 128
                         })
+                        .css({marginTop: '16px'})
                         .bindEvent({
                             click: function() {
                                 identify(data);
@@ -383,42 +440,6 @@ oml.ui.infoView = function() {
                             })
                             .appendTo($data);
 
-                    });
-
-                    $mediaButton = renderMediaButton(data)
-                        .appendTo($data);
-
-                    $('<div>')
-                        .addClass('OxSelectable')
-                        .css({
-                            marginTop: '8px',
-                        })
-                        .text(
-                            [
-                                data.extension.toUpperCase(),
-                                Ox.formatValue(data.size, 'B')
-                            ].join(', ')
-                        )
-                        .appendTo($data);
-
-                    ['accessed', 'modified', 'added', 'created'].forEach(function(id) {
-                        var title = Ox.getObjectById(oml.config.itemKeys, id).title;
-                        $('<div>')
-                            .css({
-                                marginTop: '8px',
-                                fontWeight: 'bold'
-                            })
-                            .text(title)
-                            .appendTo($data);
-                        Ox.EditableContent({
-                                editable: false,
-                                format: function(value) {
-                                    return value ? Ox.formatDate(value, '%b %e, %Y') : '';
-                                },
-                                placeholder: Ox._('unknown'),
-                                value: data[id] || ''
-                            })
-                            .appendTo($data);
                     });
 
                     $('<div>').css({height: '16px'}).appendTo($data);

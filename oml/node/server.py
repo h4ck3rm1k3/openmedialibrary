@@ -107,11 +107,8 @@ def start(app):
         (r"/get/(.*)", ShareHandler, dict(app=app)),
         (r".*", NodeHandler, dict(app=app)),
     ])
-
-    #tr = WSGIContainer(node_app)
-    #http_server= HTTPServer(tr)
     http_server.listen(settings.server['node_port'], settings.server['node_address'])
-    host = utils.get_public_ipv4()
+    host = utils.get_public_ipv6()
     state.online = directory.put(settings.sk, {
         'host': host,
         'port': settings.server['node_port']

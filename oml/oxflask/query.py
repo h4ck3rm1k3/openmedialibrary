@@ -144,6 +144,8 @@ class Parser(object):
                 l = self._list.query.filter_by(user_id=p.id, name=name).first()
             else:
                 l = None
+            if l:
+                v = l.find_id
             if l and l._query:
                 data = l._query
                 q = self.parse_conditions(data.get('conditions', []),

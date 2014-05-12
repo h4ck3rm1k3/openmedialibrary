@@ -58,200 +58,187 @@ oml.ui.folders = function() {
     oml.$ui.libraryList = [];
     oml.$ui.folderList = [];
 
-    oml.api.getUsers(function(result) {
+    oml.getUsersAndLists(function(users, lists) {
 
-        var peers = result.data.users.filter(function(user) {
-            return user.peered;
-        });
+        Ox.print('GOT USERS AND LISTS', users, lists);
 
-        oml.api.getLists(function(result) {
+        users.forEach(function(user, index) {
 
-            Ox.print('GOT LISTS', result.data);
+            var $content,
+                items = lists.filter(function(list) {
+                    return list.user == user.nickname
+                        && list.type != 'library';
+                }),
+                libraryId = (!index ? '' : user.nickname) + ':'
 
-            var users = [
-                    {
-                        id: oml.user.id,
-                        nickname: oml.user.preferences.username,
-                        online: oml.user.online
-                    }
-                ].concat(peers),
+            userIndex[user.nickname] = index;
 
-                lists = result.data.lists;
-
-            users.forEach(function(user, index) {
-
-                var $content,
-                    libraryId = (!index ? '' : user.nickname) + ':';
-
-                userIndex[user.nickname] = index;
-
-                oml.$ui.folder[index] = Ox.CollapsePanel({
-                        collapsed: false,
-                        extras: [
-                            oml.ui.statusIcon(
-                                !oml.user.online ? 'unknown'
-                                : user.online ? 'connected'
-                                : 'disconnected'
-                            ),
-                            {},
-                            Ox.Button({
-                                style: 'symbol',
-                                title: 'info',
-                                tooltip: Ox._(!index ? 'Preferences' : 'Profile'),
-                                type: 'image'
-                            })
-                            .bindEvent({
-                                click: function() {
-                                    if (!index) {
-                                        oml.UI.set({
-                                            page: 'preferences',
-                                            'part.preferences': 'account'
-                                        });
-                                    } else {
-                                        oml.UI.set({page: 'users'})
-                                    }
+            oml.$ui.folder[index] = Ox.CollapsePanel({
+                    collapsed: false,
+                    extras: [
+                        oml.ui.statusIcon(
+                            !oml.user.online ? 'unknown'
+                            : user.online ? 'connected'
+                            : 'disconnected'
+                        ),
+                        {},
+                        Ox.Button({
+                            style: 'symbol',
+                            title: 'info',
+                            tooltip: Ox._(!index ? 'Preferences' : 'Profile'),
+                            type: 'image'
+                        })
+                        .bindEvent({
+                            click: function() {
+                                if (!index) {
+                                    oml.UI.set({
+                                        page: 'preferences',
+                                        'part.preferences': 'account'
+                                    });
+                                } else {
+                                    oml.UI.set({page: 'users'})
                                 }
-                            })
-                        ],
-                        title: Ox.encodeHTMLEntities(user.nickname)
-                    })
-                    .css({
-                        width: ui.sidebarSize
+                            }
+                        })
+                    ],
+                    title: Ox.encodeHTMLEntities(user.nickname)
+                })
+                .css({
+                    width: ui.sidebarSize
+                })
+                .bindEvent({
+                    toggle: function(data) {
+                        oml.UI.set('showFolder.' + user.nickname, !data.collapsed);
+                    }
+                })
+                .bindEvent(
+                    'oml_showfolder.' + user.nickname.toLowerCase(),
+                    function(data) {
+                        oml.$ui.folder[index].options({collapsed: !data.value});
+                    }
+                )
+                .appendTo(that);
+
+            $content = oml.$ui.folder[index].$content
+                .css({
+                    height: (1 + items.length) * 16 + 'px'
+                });
+
+            $lists.push(
+                oml.$ui.libraryList[index] = oml.ui.folderList({
+                        items: [
+                            {
+                                id: libraryId,
+                                name: Ox._('Library'),
+                                type: 'library',
+                                items: -1
+                            }
+                        ]
                     })
                     .bindEvent({
-                        toggle: function(data) {
-                            oml.UI.set('showFolder.' + user.nickname, !data.collapsed);
+                        add: function() {
+                            !index && oml.addList();
+                        },
+                        load: function() {
+                            oml.api.find({
+                                query: getFind(libraryId)
+                            }, function(result) {
+                                oml.$ui.libraryList[index].value(
+                                    libraryId, 'items', result.data.items
+                                );
+                            });
+                        },
+                        open: function() {
+                            oml.$ui.listDialog = oml.ui.listDialog().open();
+                        },
+                        select: function(data) {
+                            oml.UI.set({find: getFind(data.ids[0])});
+                        },
+                        selectnext: function() {
+                            oml.UI.set({find: getFind(lists[user.id][0].id)});
+                        },
+                        selectprevious: function() {
+                            var userId = !index ? null : users[index - 1].id,
+                                set = {
+                                    find: getFind(
+                                        !index
+                                        ? ''
+                                        : Ox.last(lists[userId]).id
+                                    )
+                                };
+                            if (userId) {
+                                Ox.extend(set, 'showFolder.' + userId, true);
+                            }
+                            oml.UI.set(set);
                         }
                     })
-                    .bindEvent(
-                        'oml_showfolder.' + user.nickname.toLowerCase(),
-                        function(data) {
-                            oml.$ui.folder[index].options({collapsed: !data.value});
-                        }
-                    )
-                    .appendTo(that);
+                    .appendTo($content)
+            );
 
-                $content = oml.$ui.folder[index].$content
-                    .css({
-                        height: (1 + lists[user.id].length) * 16 + 'px'
-                    });
-
-                $lists.push(
-                    oml.$ui.libraryList[index] = oml.ui.folderList({
-                            items: [
-                                {
-                                    id: libraryId,
-                                    name: Ox._('Library'),
-                                    type: 'library',
-                                    items: -1
-                                }
-                            ]
-                        })
-                        .bindEvent({
-                            add: function() {
-                                !index && oml.addList();
-                            },
-                            load: function() {
-                                oml.api.find({
-                                    query: getFind(libraryId)
-                                }, function(result) {
-                                    oml.$ui.libraryList[index].value(
-                                        libraryId, 'items', result.data.items
-                                    );
-                                });
-                            },
-                            open: function() {
-                                oml.$ui.listDialog = oml.ui.listDialog().open();
-                            },
-                            select: function(data) {
-                                oml.UI.set({find: getFind(data.ids[0])});
-                            },
-                            selectnext: function() {
-                                oml.UI.set({find: getFind(lists[user.id][0].id)});
-                            },
-                            selectprevious: function() {
-                                var userId = !index ? null : users[index - 1].id,
-                                    set = {
-                                        find: getFind(
-                                            !index
-                                            ? ''
-                                            : Ox.last(lists[userId]).id
-                                        )
-                                    };
-                                if (userId) {
-                                    Ox.extend(set, 'showFolder.' + userId, true);
-                                }
-                                oml.UI.set(set);
-                            }
-                        })
-                        .appendTo($content)
-                );
-
-                $lists.push(
-                    oml.$ui.folderList[index] = oml.ui.folderList({
-                            draggable: !!index,
-                            items: lists[user.id],
-                            sortable: true
-                        })
-                        .bindEvent({
-                            add: function() {
-                                !index && oml.addList();
-                            },
-                            'delete': function() {
-                                !index && oml.deleteList();
-                            },
-                            key_control_d: function() {
-                                oml.addList(ui._list);
-                            },
-                            load: function() {
+            $lists.push(
+                oml.$ui.folderList[index] = oml.ui.folderList({
+                        draggable: !!index,
+                        items: items,
+                        sortable: true
+                    })
+                    .bindEvent({
+                        add: function() {
+                            !index && oml.addList();
+                        },
+                        'delete': function() {
+                            !index && oml.deleteList();
+                        },
+                        key_control_d: function() {
+                            oml.addList(ui._list);
+                        },
+                        load: function() {
+                            // ...
+                        },
+                        move: function(data) {
+                            lists[user.id] = data.ids.map(function(listId) {
+                                return Ox.getObjectById(lists[user.id], listId);
+                            });
+                            oml.api.sortLists({
+                                ids: data.ids,
+                                user: user.id
+                            }, function(result) {
                                 // ...
-                            },
-                            move: function(data) {
-                                lists[user.id] = data.ids.map(function(listId) {
-                                    return Ox.getObjectById(lists[user.id], listId);
-                                });
-                                oml.api.sortLists({
-                                    ids: data.ids,
-                                    user: user.id
-                                }, function(result) {
-                                    // ...
-                                });
-                            },
-                            open: function() {
-                                oml.ui.listDialog().open();
-                            },
-                            select: function(data) {
-                                oml.UI.set({find: getFind(data.ids[0])});
-                            },
-                            selectnext: function() {
-                                if (index < users.length - 1) {
-                                    oml.UI.set(Ox.extend(
-                                        {find: getFind(users[index + 1].nickname + ':')},
-                                        'showFolder.' + users[index + 1].nickname,
-                                        true
-                                    ));
-                                }
-                            },
-                            selectprevious: function() {
-                                oml.UI.set({find: getFind(libraryId)});
+                            });
+                        },
+                        open: function() {
+                            oml.ui.listDialog().open();
+                        },
+                        select: function(data) {
+                            oml.UI.set({find: getFind(data.ids[0])});
+                        },
+                        selectnext: function() {
+                            if (index < users.length - 1) {
+                                oml.UI.set(Ox.extend(
+                                    {find: getFind(users[index + 1].nickname + ':')},
+                                    'showFolder.' + users[index + 1].nickname,
+                                    true
+                                ));
                             }
-                        })
-                        .bindEvent(function(data, event) {
-                            if (!index) {
-                                Ox.print('LIST EVENT', event, data);
-                            }
-                        })
-                        .css({height: lists[user.id].length * 16 + 'px'})
-                        .appendTo($content)
-                );
+                        },
+                        selectprevious: function() {
+                            oml.UI.set({find: getFind(libraryId)});
+                        }
+                    })
+                    .bindEvent(function(data, event) {
+                        if (!index) {
+                            Ox.print('LIST EVENT', event, data);
+                        }
+                    })
+                    .css({height: items.length * 16 + 'px'})
+                    .appendTo($content)
+            );
 
-                oml.$ui.folderList[index].$body.css({top: '16px'});
-
-            });
-
-            selectList();
+            oml.$ui.folderList[index].$body.css({top: '16px'});
 
         });
+
+        selectList();
+
     });
 
     function getFind(list) {

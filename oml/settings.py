@@ -38,7 +38,7 @@ server_defaults = {
     'port': 9842,
     'address': '127.0.0.1',
     'node_port': 9851,
-    'node_address': '::',
+    'node_address': '',
     'extract_text': True,
     'directory_service': 'http://[2a01:4f8:120:3201::3]:25519',
     'lookup_service': 'http://data.openmedialibrary.com',

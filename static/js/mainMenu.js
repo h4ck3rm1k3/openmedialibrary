@@ -46,151 +46,8 @@ oml.ui.mainMenu = function() {
                         }
                     ]
                 },
-                {
-                    id: 'listMenu',
-                    title: Ox._('List'),
-                    items: [
-                        {
-                            id: 'newlist',
-                            title: Ox._('New List'),
-                            keyboard: 'control n'
-                        },
-                        {
-                            id: 'newlistfromselection',
-                            title: Ox._('New List from Selection'),
-                            keyboard: 'shift control n',
-                            disabled: true
-                        },
-                        {
-                            id: 'newsmartlist',
-                            title: Ox._('New Smart List'),
-                            keyboard: 'alt control n'
-                        },
-                        {
-                            id: 'newsmartlistfromresults',
-                            title: Ox._('New Smart List from Results'),
-                            keyboard: 'shift alt control n',
-                            disabled: true
-                        },
-                        {},
-                        {
-                            id: 'duplicatelist',
-                            title: Ox._('Duplicate List'),
-                            keyboard: 'control d',
-                            disabled: true
-                        },
-                        {
-                            id: 'editlist',
-                            title: Ox._('Edit List...'),
-                            keyboard: 'return',
-                            disabled: true
-                        },
-                        {
-                            id: 'deletelist',
-                            title: Ox._('Delete List...'),
-                            keyboard: 'delete',
-                            disabled: true
-                        }
-                    ]
-                },
-                {
-                    id: 'editMenu',
-                    title: Ox._('Edit'),
-                    items: [
-                        {
-                            id: 'importitems',
-                            title: Ox._('Import Books...')
-                        },
-                        {
-                            id: 'exportitems',
-                            title: Ox._('Export Books...')
-                        },
-                        {},
-                        {
-                            id: 'download',
-                            title: Ox._('Download Items'),
-                            disabled: true,
-                            keyboard: 'control d'
-                        },
-                        {},
-                        {
-                            id: 'selectall',
-                            title: Ox._('Select All'),
-                            keyboard: 'control a'
-                        },
-                        {
-                            id: 'selectnone',
-                            title: Ox._('Select None'),
-                            keyboard: 'shift control a'
-                        },
-                        {
-                            id: 'invertselection',
-                            title: Ox._('Invert Selection'),
-                            keyboard: 'alt control a'
-                        },
-                        {},
-                        {
-                            id: 'cut',
-                            title: Ox._('Cut Items'),
-                            disabled: true,
-                            keyboard: 'control x'
-                        },
-                        {
-                            id: 'cutadd',
-                            title: Ox._('Cut and Add to Clipboard'),
-                            disabled: true,
-                            keyboard: 'shift control x'
-                        },
-                        {
-                            id: 'copy',
-                            title: Ox._('Copy Items'),
-                            disabled: true,
-                            keyboard: 'control c'
-                        },
-                        {
-                            id: 'copyadd',
-                            title: Ox._('Copy and Add to Clipboard'),
-                            disabled: true,
-                            keyboard: 'shift control c'
-                        },
-                        {
-                            id: 'paste',
-                            title: Ox._('Paste Items'),
-                            disabled: true,
-                            keyboard: 'control v'
-                        },
-                        {
-                            id: 'clearclipboard',
-                            title: Ox._('Clear Clipboard'),
-                            disabled: true
-                        },
-                        {},
-                        {
-                            id: 'delete',
-                            title: Ox._('Delete Items from List'),
-                            disabled: true,
-                            keyboard: 'delete'
-                        },
-                        {},
-                        {
-                            id: 'undo',
-                            title: Ox._('Undo'),
-                            disabled: true,
-                            keyboard: 'control z'
-                        },
-                        {
-                            id: 'redo',
-                            title: Ox._('Redo'),
-                            disabled: true,
-                            keyboard: 'shift control z'
-                        },
-                        {
-                            id: 'clearhistory',
-                            title: Ox._('Clear History'),
-                            disabled: true,
-                        }
-                    ]
-                },
+                getListMenu(),
+                getEditMenu(),
                 {
                     id: 'viewMenu',
                     title: Ox._('View'),
@@ -529,6 +386,9 @@ oml.ui.mainMenu = function() {
                 oml.UI.set({showSidebar: !ui.showSidebar});
             },
             oml_find: function() {
+                that.replaceMenu('listMenu', getListMenu());
+                that.replaceMenu('editMenu', getEditMenu());
+                /*
                 var action = Ox.startsWith(ui._list, ':') && ui._list != ':'
                     ? 'enableItem' : 'disableItem';
                 that[
@@ -537,12 +397,16 @@ oml.ui.mainMenu = function() {
                 ]('duplicatelist');
                 that[action]('editlist');
                 that[action]('deletelist');
+                */
             },
             oml_item: function(data) {
                 if (!!data.value != !!data.previousValue) {
                     that[data.value ? 'disableItem' : 'enableItem']('showfilters');
                     that[data.value ? 'enableItem' : 'disableItem']('showbrowser');
                 }
+            },
+            oml_listselection: function(data) {
+                that.replaceMenu('editMenu', getEditMenu());
             },
             oml_showbrowser: function(data) {
                 that.setItemTitle('showbrowser', Ox._((data.value ? 'Hide' : 'Show') + ' Browser'));
@@ -559,9 +423,205 @@ oml.ui.mainMenu = function() {
             },
         });
 
-    function getItemMenu() {
-        // ...
+    function getEditMenu() {
+        var listData = oml.getListData(),
+            username = oml.user.preferences.username,
+            selectionItems = ui.listSelection.length,
+            selectionItemName = (
+                selectionItems > 1 ? Ox.formatNumber(selectionItems) + ' ' : ''
+            ) + Ox._(clipboardItems == 1 ? 'Book' : 'Books'),
+            clipboardItems = oml.clipboard.items(),
+            clipboardType = oml.clipboard.type(),
+            clipboardItemName = !clipboardItems ? ''
+                : (
+                    clipboardItems > 1 ? Ox.formatNumber(clipboardItems) + ' ' : ''
+                ) + Ox._(clipboardItems == 1 ? 'Book' : 'Books'),
+            canSelect = !ui.item,
+            canCopy = canSelect && selectionItems,
+            canCut = canCopy && listData.editable,
+            canPaste = listData.editable && clipboardItems,
+            canAdd = canCopy && clipboardItems && clipboardItemType == ui.section,
+            canDownload = listData.user != username && selectionItems,
+            historyItems = oml.history.items(),
+            undoText = oml.history.undoText(),
+            redoText = oml.history.redoText();
+        return {
+            id: 'editMenu',
+            title: Ox._('Edit'),
+            items: [
+                {
+                    id: 'importitems',
+                    title: Ox._('Import Books...')
+                },
+                {
+                    id: 'exportitems',
+                    title: Ox._('Export Books...')
+                },
+                {},
+                {
+                    id: 'download',
+                    title: Ox._('Download {0}', [selectionItemName]),
+                    disabled: !canDownload,
+                    keyboard: 'control d'
+                },
+                {},
+                {
+                    id: 'selectall',
+                    title: Ox._('Select All'),
+                    disabled: !canSelect,
+                    keyboard: 'control a'
+                },
+                {
+                    id: 'selectnone',
+                    title: Ox._('Select None'),
+                    disabled: !canSelect,
+                    keyboard: 'shift control a'
+                },
+                {
+                    id: 'invertselection',
+                    title: Ox._('Invert Selection'),
+                    disabled: !canSelect,
+                    keyboard: 'alt control a'
+                },
+                {},
+                {
+                    id: 'cut',
+                    title: Ox._('Cut {0}', [selectionItemName]),
+                    disabled: !canCut,
+                    keyboard: 'control x'
+                },
+                {
+                    id: 'cutadd',
+                    title: Ox._('Cut and Add to Clipboard'),
+                    disabled: !canCut || !canAdd,
+                    keyboard: 'shift control x'
+                },
+                {
+                    id: 'copy',
+                    title: Ox._('Copy {0}', [selectionItemName]),
+                    disabled: !canCopy,
+                    keyboard: 'control c'
+                },
+                {
+                    id: 'copyadd',
+                    title: Ox._('Copy and Add to Clipboard'),
+                    disabled: !canCopy || !canAdd,
+                    keyboard: 'shift control c'
+                },
+                {
+                    id: 'paste',
+                    title: !clipboardItems ? Ox._('Paste') : Ox._('Paste {0}', [clipboardItemName]),
+                    disabled: !canPaste,
+                    keyboard: 'control v'
+                },
+                {
+                    id: 'clearclipboard',
+                    title: Ox._('Clear Clipboard'),
+                    disabled: !clipboardItems
+                },
+                {},
+                {
+                    id: 'delete',
+                    title: Ox._('Delete {0} from List', [selectionItemName]),
+                    disabled: !canCut,
+                    keyboard: 'delete'
+                },
+                {},
+                {
+                    id: 'undo',
+                    title: undoText ? Ox._('Undo {0}', [undoText]) : Ox._('Undo'),
+                    disabled: !undoText,
+                    keyboard: 'control z'
+                },
+                {
+                    id: 'redo',
+                    title: redoText ? Ox._('Redo {0}', [redoText]) : Ox._('Redo'),
+                    disabled: !redoText,
+                    keyboard: 'shift control z'
+                },
+                {
+                    id: 'clearhistory',
+                    title: Ox._('Clear History'),
+                    disabled: !historyItems,
+                }
+            ]
+        };
     }
+
+    function getListMenu() {
+        var isLibraries = !ui._list,
+            isLibrary = Ox.endsWith(ui._list, ':'),
+            isList = !isLibraries && !isLibrary,
+            isOwnList = ui._list[0] == ':';
+        return {
+            id: 'listMenu',
+            title: Ox._('List'),
+            items: [
+                {
+                    id: 'libraries',
+                    title: Ox._('All Libraries'),
+                    keyboard: 'shift control w'
+                },
+                {
+                    id: 'library',
+                    title: Ox._('This Library'),
+                    disabled: isLibraries,
+                    keyboard: isLibrary ? 'control w' : ''
+                },
+                {
+                    id: 'list',
+                    title: Ox._('This List'),
+                    disabled: isLibrary,
+                    keyboard: isLibrary ? '' : 'control w'
+                },
+                {},
+                {
+                    id: 'newlist',
+                    title: Ox._('New List'),
+                    keyboard: 'control n'
+                },
+                {
+                    id: 'newlistfromselection',
+                    title: Ox._('New List from Selection'),
+                    keyboard: 'shift control n',
+                    disabled: !ui.listSelection.length
+                },
+                {
+                    id: 'newsmartlist',
+                    title: Ox._('New Smart List'),
+                    keyboard: 'alt control n'
+                },
+                {
+                    id: 'newsmartlistfromresults',
+                    title: Ox._('New Smart List from Results'),
+                    keyboard: 'shift alt control n'
+                },
+                {},
+                {
+                    id: 'duplicatelist',
+                    title: Ox._('Duplicate List'),
+                    disabled: !isList
+                },
+                {
+                    id: 'editlist',
+                    title: Ox._('Edit List...'),
+                    keyboard: 'return',
+                    disabled: !isOwnList
+                },
+                {
+                    id: 'deletelist',
+                    title: Ox._('Delete List...'),
+                    keyboard: 'delete',
+                    disabled: !isOwnList
+                }
+            ]
+        };
+    }
+
+    that.update = function() {
+        return that.updateMenu('listMenu', getListMenu())
+            .updateMenu('editMenu', getEditMenu());
+    };
 
     return that;
 

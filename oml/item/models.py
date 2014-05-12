@@ -233,6 +233,12 @@ class Item(db.Model):
             else:
                 f.value = '%s:' % p.id
             db.session.add(f)
+        for l in self.lists:
+            f = Find()
+            f.item_id = self.id
+            f.key = 'list'
+            f.value = l.find_id
+            db.session.add(f)
 
     def update(self):
         users = map(str, list(self.users))

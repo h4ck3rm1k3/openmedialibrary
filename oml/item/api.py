@@ -6,7 +6,6 @@ from flask import json
 from oxflask.api import actions
 from oxflask.shortcuts import returns_json
 
-from oml import utils
 import query
 
 import models
@@ -118,6 +117,8 @@ def edit(request):
     if item and keys and item.json()['mediastate'] == 'available':
         key = keys[0]
         print 'update mainid', key, data[key]
+        if key in ('isbn10', 'isbn13'):
+            data[key] = utils.normalize_isbn(data[key])
         item.update_mainid(key, data[key])
         response = item.json()
     else:

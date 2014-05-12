@@ -20,8 +20,8 @@ class Changelog(db.Model):
         editlist              name {name: newname}
         orderlists            [name, name, name]
         removelist            name
-        additemtolist         listname itemid
-        removeitemfromlist    listname itemid
+        addlistitems          listname [ids]
+        removelistitems       listname [ids]
         editusername          username
         editcontact           string
         addpeer               peerid peername
@@ -182,24 +182,17 @@ class Changelog(db.Model):
             l.remove()
         return True
 
-    def action_addlistitem(self, user, timestamp, name, itemid):
-        from item.models import Item
+    def action_addlistitems(self, user, timestamp, name, ids):
         from user.models import List
-        l = List.get(user.id, name)
-        i = Item.get(itemid)
-        if l and i:
-            i.lists.append(l)
-            i.update()
+        l = List.get_or_create(user.id, name)
+        l.add_items(ids)
         return True
 
-    def action_removelistitem(self, user, timestamp, name, itemid):
-        from item.models import Item
+    def action_removelistitem(self, user, timestamp, name, ids):
         from user.models import List
         l = List.get(user.id, name)
-        i = Item.get(itemid)
-        if l and i:
-            i.lists.remove(l)
-            i.update()
+        if l:
+            l.remove_items(ids)
         return True
 
     def action_editusername(self, user, timestamp, username):

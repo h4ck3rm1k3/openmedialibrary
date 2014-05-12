@@ -8,8 +8,8 @@ oml.ui.gridView = function() {
             defaultRatio: oml.config.coverRatio,
             draggable: true,
             item: function(data, sort, size) {
-                var color = oml.getFileTypeColor(data).map(function(rgb) {
-                        return rgb.concat(0.8)
+                var color = oml.getFileInfoColor(ui.fileInfo, data).map(function(rgb) {
+                        return rgb.concat(0.8);
                     }),
                     ratio = data.coverRatio || oml.config.coverRatio,
                     width = Math.round(ratio >= 1 ? size : size * ratio),
@@ -20,6 +20,9 @@ oml.ui.gridView = function() {
                         ? (data.author || '') : data[sortKey]
                     );
                 size = size || 128;
+                Ox.print('WTF', '-webkit-linear-gradient(top, ' + color.slice(2).map(function(rgba) {
+                    return 'rgba(' + rgba.join(', ') + ')';
+                }).join(', ') + ')');
                 return {
                     extra: ui.showFileInfo ? $('<div>')
                         .css({
@@ -27,12 +30,14 @@ oml.ui.gridView = function() {
                             height: Math.round(size / 12.8) + 'px',
                             borderWidth: Math.round(size / 64) + 'px 0',
                             borderStyle: 'solid',
-                            borderColor: 'rgba(' + color[1].join(', ') + ')',
+                            borderColor: 'rgba(' + color[2].join(', ') + ')',
                             margin: Math.round(size / 18) + 'px ' + Math.round(width / 3) + 'px',
                             fontSize: Math.round(size / 16) + 'px',
                             textAlign: 'center',
-                            color: 'rgba(' + color[1].join(', ') + ')',
-                            backgroundColor: 'rgba(' + color[0].join(', ') + ')',
+                            color: 'rgba(' + color[2].join(', ') + ')',
+                            backgroundImage: '-webkit-linear-gradient(top, ' + color.slice(0, 2).map(function(rgba) {
+                                return 'rgba(' + rgba.join(', ') + ')';
+                            }).join(', ') + ')',
                             WebkitTransform: 'rotate(45deg)'
                         })
                         .html(
@@ -54,8 +59,8 @@ oml.ui.gridView = function() {
                 }), callback);
             },
             keys: [
-                'author', 'coverRatio', 'extension',
-                'id', 'size', 'textsize', 'title'
+                'author', 'coverRatio', 'extension', 'id',
+                'mediastate', 'size', 'textsize', 'title'
             ],
             selected: ui.listSelection,
             size: 128,

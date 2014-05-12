@@ -84,9 +84,9 @@ actions.register(getUsers)
 
 @returns_json
 def getLists(request):
-    lists = {}
+    lists = []
     for u in models.User.query.filter((models.User.peered==True)|(models.User.id==settings.USER_ID)):
-        lists[u.id] = u.lists_json()
+        lists += u.lists_json()
     return {
         'lists': lists
     }
@@ -132,28 +132,24 @@ def editList(request):
 actions.register(editList, cache=False)
 
 @returns_json
-def addListItem(request):
+def addListItems(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    l = models.List.get_or_create(data['id'])
-    i = Item.get(data['item'])
-    if l and i:
-        l.items.append(i)
-        models.db.session.add(l)
-        i.update()
+    l = models.List.get_or_create(data['list'])
+    if l:
+        l.add_items(data['items'])
+        return l.json()
     return {}
-actions.register(addListItem, cache=False)
+actions.register(addListItems, cache=False)
 
 @returns_json
-def removeListItem(request):
+def removeListItems(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    l = models.List.get(data['id'])
-    i = Item.get(data['item'])
-    if l and i:
-        l.items.remove(i)
-        models.db.session.add(l)
-        i.update()
+    l = models.List.get(data['list'])
+    if l:
+        l.remove_items(data['items'])
+        return l.json()
     return {}
-actions.register(removeListItem, cache=False)
+actions.register(removeListItems, cache=False)
 
 @returns_json
 def sortLists(request):

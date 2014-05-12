@@ -29,7 +29,7 @@ oml.ui.leftPanel = function() {
             resize: function(data) {
                 ui.sidebarSize = data.size;
                 oml.resizeListFolders();
-                that.size(2, data.size);
+                that.size(2, oml.getInfoHeight());
                 if (!ui.showInfo) {
                     that.css({bottom: -data.size + 'px'});
                 }

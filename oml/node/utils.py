@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+
 import socket
-import requests
-from urlparse import urlparse
 
 def get_public_ipv6():
     host = ('2a01:4f8:120:3201::3', 25519)
