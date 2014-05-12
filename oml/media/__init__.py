@@ -1,12 +1,23 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
+
+import base64
+import hashlib
+import os
+
+import ox
+
 import pdf
 import epub
 import txt
-import os
-import base64
-import ox
 
-def get_id(f):
-    return base64.b32encode(ox.sha1sum(f).decode('hex'))
+def get_id(f=None, data=None):
+    if data:
+        return base64.b32encode(hashlib.sha1(data).digest())
+    else:
+        return base64.b32encode(ox.sha1sum(f).decode('hex'))
+
 
 def metadata(f):
     ext = f.split('.')[-1]

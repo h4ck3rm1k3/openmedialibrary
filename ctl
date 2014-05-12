@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-HOST="127.0.0.1:9842"
+HOST="[::1]:9842"
 NAME="openmedialibrary"
 PID="/tmp/$NAME.pid"
 

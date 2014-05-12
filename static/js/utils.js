@@ -2,10 +2,13 @@ oml.addList = function() {
     // addList(isSmart, isFrom) or addList(list) [=dupicate]
     var args = arguments,
         isDuplicate = args.length == 1,
-        isSmart, isFrom, list, listData, data;
+        isSmart, isFrom, list, listData, data,
+        username = oml.user.preferences.username;
     oml.api.getLists(function(result) {
         var lists = result.data.lists,
-            listNames = lists[oml.user.id].map(function(list) {
+            listNames = lists.filter(function(list) {
+                return list.user = username;
+            }).map(function(list) {
                 return list.name;
             }),
             query;
@@ -102,38 +105,6 @@ oml.clearFilters = function() {
         return !Ox.contains(indices, index);
     });
     oml.UI.set({find: find});
-};
-
-oml.deleteList = function() {
-    var ui = oml.user.ui;
-    oml.ui.confirmDialog({
-        buttons: [
-            Ox.Button({
-                title: Ox._('No, Keep List')
-            }),
-            Ox.Button({
-                title: Ox._('Yes, Delete List')
-            })
-        ],
-        content: Ox._('Are you sure you want to delete this list?'),
-        title: Ox._('Delete List')
-    }, function() {
-        oml.api.removeList({
-            id: ui._list
-        }, function() {
-            oml.UI.set({
-                find: {
-                    conditions: [{
-                        key: 'list',
-                        operator: '==',
-                        value: ':'
-                    }],
-                    operator: '&'
-                }
-            });
-            oml.updateLists();
-        });
-    });
 };
 
 (function() {
@@ -415,9 +386,11 @@ oml.enableDragAndDrop = function($list, canMove) {
                             operator: '&'
                         }
                     }, function(result) {
+                        /* FIXME
                         oml.$ui.folderList[drag.target.folder].value(
                             drag.target.id, 'items', result.data.items
                         );
+                        */
                         cleanup(250);
                     });
                     drag.action == 'move' && oml.reloadList();
@@ -885,7 +858,9 @@ oml.updateLists = function(callback) {
     // FIXME: can this go somewhere else?
     Ox.Request.clearCache('getLists');
     oml.api.getLists(function(result) {
-        var items = result.data.lists[oml.user.id];
+        var items = result.data.lists.filter(function(list) {
+            return list.user == oml.user.preferences.username;
+        });
         oml.$ui.folderList[0].options({
                 items: items
             })

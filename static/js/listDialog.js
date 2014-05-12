@@ -53,7 +53,9 @@ oml.ui.listDialog = function() {
         });
 
     oml.api.getLists(function(result) {
-        var lists = result.data.lists[oml.user.id],
+        var lists = result.data.lists.filter(function(list) {
+                return list.user == oml.user.preferences.username;
+            }),
             listData = Ox.getObjectById(lists, list),
             listNames = lists.map(function(list) {
                 return list.name;

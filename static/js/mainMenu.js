@@ -4,6 +4,7 @@ oml.ui.mainMenu = function() {
 
     var ui = oml.user.ui,
         findState = oml.getFindState(ui.find),
+        fromMenu = false,
         appItems = Ox.getObjectById(oml.config.pages, 'app').parts,
 
         that = Ox.MainMenu({
@@ -227,7 +228,7 @@ oml.ui.mainMenu = function() {
                     title: Ox._('Find'),
                     items: [
                         {
-                            id: 'finditems',
+                            id: 'find',
                             title: Ox._('Find'),
                             items: [
                                 {
@@ -236,10 +237,12 @@ oml.ui.mainMenu = function() {
                                     min: 1,
                                     max: 1,
                                     items: oml.config.findKeys.map(function(key) {
+                                        var checked = key.id == findState.key;
                                         return {
                                             id: key.id,
-                                            checked: key.id == findState.key,
-                                            title: Ox._(key.title)
+                                            title: Ox._(key.title),
+                                            checked: checked,
+                                            keyboard: checked ? 'control f' : ''
                                         };
                                     })
                                 },
@@ -332,6 +335,30 @@ oml.ui.mainMenu = function() {
                     oml.UI.set({page: 'preferences'});
                 } else if (id == 'users') {
                     oml.UI.set({page: 'users'});
+                } else if (id == 'alllibraries') {
+                    if (!ui._list) {
+                        oml.UI.set({item: ''});
+                    } else {
+                        oml.UI.set({find: {
+                            conditions: [],
+                            operator: '&'
+                        }});
+                    }
+                } else if (id == 'thislibrary') {
+                    if (Ox.endsWith(ui._list, ':')) {
+                        oml.UI.set({item: ''});
+                    } else {
+                        oml.UI.set({find: {
+                            conditions: [{
+                                key: 'list',
+                                operator: '==',
+                                value: ui._list.split(':')[0] + ':'
+                            }],
+                            operator: '&'
+                        }});
+                    }
+                } else if (id == 'thislist') {
+                    oml.UI.set({item: ''});
                 } else if (Ox.contains([
                     'newlist', 'newlistfromselection',
                     'newsmartlist', 'newsmartlistfromresults'
@@ -342,7 +369,29 @@ oml.ui.mainMenu = function() {
                 } else if (id == 'editlist') {
                     oml.ui.listDialog.open();
                 } else if (id == 'deletelist') {
-                    oml.ui.deleteListDialog.open();
+                    oml.ui.deleteListDialog().open();
+                } else if (id == 'selectall') {
+                    oml.$ui.list.selectAll();
+                } else if (id == 'selectnone') {
+                    oml.UI.set({listSelection: []});
+                } else if (id == 'invertselection') {
+                    oml.$ui.list.invertSelection();
+                } else if (data.id == 'clearclipboard') {
+                    oml.clipboard.clear();
+                } else if (data.id == 'delete') {
+                    oml.doHistory('delete', ui.listSelection, ui._list, function() {
+                        oml.UI.set({listSelection: []});
+                        oml.reloadList();
+                    });
+                } else if (data.id == 'undo') {
+                    fromMenu = true;
+                    oml.undoHistory();
+                } else if (data.id == 'redo') {
+                    fromMenu = true;
+                    oml.redoHistory();
+                } else if (id == 'clearhistory') {
+                    fromMenu = true;
+                    oml.history.clear();
                 } else if (id == 'showsidebar') {
                     oml.UI.set({showSidebar: !ui.showSidebar});
                 } else if (id == 'showinfo') {
@@ -353,6 +402,13 @@ oml.ui.mainMenu = function() {
                     oml.UI.set({showBrowser: !ui.showBrowser});
                 } else if (id == 'transfers') {
                     oml.UI.set({page: 'transfers'});
+                } else if (id == 'debugmode') {
+                    if (oml.localStorage('enableDebugMode')) {
+                        oml.localStorage['delete']('enableDebugMode');
+                    } else {
+                        oml.localStorage('enableDebugMode', true);
+                    }
+                    window.location.reload();
                 } else {
                     Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
                 }
@@ -408,6 +464,12 @@ oml.ui.mainMenu = function() {
             oml_listselection: function(data) {
                 that.replaceMenu('editMenu', getEditMenu());
             },
+            oml_listsort: function(data) {
+                that.checkItem('sortMenu_sortitems_' + data.value[0].key);
+                that.checkItem('sortMenu_orderitems_' + (
+                    data.value[0].operator == '+' ? 'ascending' : 'descending')
+                );
+            },
             oml_showbrowser: function(data) {
                 that.setItemTitle('showbrowser', Ox._((data.value ? 'Hide' : 'Show') + ' Browser'));
             },
@@ -429,7 +491,7 @@ oml.ui.mainMenu = function() {
             selectionItems = ui.listSelection.length,
             selectionItemName = (
                 selectionItems > 1 ? Ox.formatNumber(selectionItems) + ' ' : ''
-            ) + Ox._(clipboardItems == 1 ? 'Book' : 'Books'),
+            ) + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
             clipboardItems = oml.clipboard.items(),
             clipboardType = oml.clipboard.type(),
             clipboardItemName = !clipboardItems ? ''
@@ -437,11 +499,12 @@ oml.ui.mainMenu = function() {
                     clipboardItems > 1 ? Ox.formatNumber(clipboardItems) + ' ' : ''
                 ) + Ox._(clipboardItems == 1 ? 'Book' : 'Books'),
             canSelect = !ui.item,
+            canDownload = listData.user != username && selectionItems,
             canCopy = canSelect && selectionItems,
             canCut = canCopy && listData.editable,
             canPaste = listData.editable && clipboardItems,
             canAdd = canCopy && clipboardItems && clipboardItemType == ui.section,
-            canDownload = listData.user != username && selectionItems,
+            canDelete = listData.user == username && selectionItems,
             historyItems = oml.history.items(),
             undoText = oml.history.undoText(),
             redoText = oml.history.redoText();
@@ -456,13 +519,6 @@ oml.ui.mainMenu = function() {
                 {
                     id: 'exportitems',
                     title: Ox._('Export Books...')
-                },
-                {},
-                {
-                    id: 'download',
-                    title: Ox._('Download {0}', [selectionItemName]),
-                    disabled: !canDownload,
-                    keyboard: 'control d'
                 },
                 {},
                 {
@@ -484,6 +540,12 @@ oml.ui.mainMenu = function() {
                     keyboard: 'alt control a'
                 },
                 {},
+                {
+                    id: 'download',
+                    title: Ox._('Download {0}', [selectionItemName]),
+                    disabled: !canDownload,
+                    keyboard: 'control d'
+                },
                 {
                     id: 'cut',
                     title: Ox._('Cut {0}', [selectionItemName]),
@@ -526,6 +588,12 @@ oml.ui.mainMenu = function() {
                     disabled: !canCut,
                     keyboard: 'delete'
                 },
+                {
+                    id: 'deletefromlibrary',
+                    title: Ox._('Delete {0} from Library...', [selectionItemName]),
+                    disabled: !canDelete,
+                    keyboard: 'shift delete'
+                },
                 {},
                 {
                     id: 'undo',
@@ -548,6 +616,10 @@ oml.ui.mainMenu = function() {
         };
     }
 
+    function getFindMenu() {
+        return ;
+    }
+
     function getListMenu() {
         var isLibraries = !ui._list,
             isLibrary = Ox.endsWith(ui._list, ':'),
@@ -556,50 +628,52 @@ oml.ui.mainMenu = function() {
         return {
             id: 'listMenu',
             title: Ox._('List'),
-            items: [
+            items: [].concat(!isLibraries || ui.item ? [
                 {
-                    id: 'libraries',
+                    id: 'alllibraries',
                     title: Ox._('All Libraries'),
                     keyboard: 'shift control w'
-                },
+                }
+            ] : []).concat(isList || (isLibrary && ui.item) ? [
                 {
-                    id: 'library',
+                    id: 'thislibrary',
                     title: Ox._('This Library'),
-                    disabled: isLibraries,
                     keyboard: isLibrary ? 'control w' : ''
-                },
+                }
+            ] : []).concat(isList && ui.item ? [
                 {
-                    id: 'list',
+                    id: 'thislist',
                     title: Ox._('This List'),
-                    disabled: isLibrary,
-                    keyboard: isLibrary ? '' : 'control w'
-                },
+                    keyboard: isList ? 'control w' : ''
+                }
+            ] : []).concat(!isLibraries || ui.item ? [
                 {},
+            ] : []).concat([
                 {
                     id: 'newlist',
-                    title: Ox._('New List'),
+                    title: Ox._('New List...'),
                     keyboard: 'control n'
                 },
                 {
                     id: 'newlistfromselection',
-                    title: Ox._('New List from Selection'),
+                    title: Ox._('New List from Selection...'),
                     keyboard: 'shift control n',
                     disabled: !ui.listSelection.length
                 },
                 {
                     id: 'newsmartlist',
-                    title: Ox._('New Smart List'),
+                    title: Ox._('New Smart List...'),
                     keyboard: 'alt control n'
                 },
                 {
                     id: 'newsmartlistfromresults',
-                    title: Ox._('New Smart List from Results'),
+                    title: Ox._('New Smart List from Results...'),
                     keyboard: 'shift alt control n'
                 },
                 {},
                 {
                     id: 'duplicatelist',
-                    title: Ox._('Duplicate List'),
+                    title: Ox._('Duplicate List...'),
                     disabled: !isList
                 },
                 {
@@ -614,13 +688,20 @@ oml.ui.mainMenu = function() {
                     keyboard: 'delete',
                     disabled: !isOwnList
                 }
-            ]
+            ])
         };
     }
 
-    that.update = function() {
-        return that.updateMenu('listMenu', getListMenu())
-            .updateMenu('editMenu', getEditMenu());
+    that.update = function(menu) {
+        (
+            menu ? Ox.makeArray(menu) : ['listMenu', 'editMenu']
+        ).forEach(function(menu) {
+            that.updateMenu(
+                menu,
+                menu == 'listMenu' ? getListMenu() : getEditMenu()
+            );
+        });
+        return that;
     };
 
     return that;

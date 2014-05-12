@@ -77,7 +77,7 @@ oml.ui.folders = function() {
                     collapsed: false,
                     extras: [
                         oml.ui.statusIcon(
-                            !oml.user.online ? 'unknown'
+                            !oml.user.online && index ? 'unknown'
                             : user.online ? 'connected'
                             : 'disconnected'
                         ),
@@ -179,14 +179,14 @@ oml.ui.folders = function() {
                 oml.$ui.folderList[index] = oml.ui.folderList({
                         draggable: !!index,
                         items: items,
-                        sortable: true
+                        sortable: !index
                     })
                     .bindEvent({
                         add: function() {
                             !index && oml.addList();
                         },
                         'delete': function() {
-                            !index && oml.deleteList();
+                            !index && oml.ui.deleteListDialog().open();
                         },
                         key_control_d: function() {
                             oml.addList(ui._list);
@@ -222,11 +222,6 @@ oml.ui.folders = function() {
                         },
                         selectprevious: function() {
                             oml.UI.set({find: getFind(libraryId)});
-                        }
-                    })
-                    .bindEvent(function(data, event) {
-                        if (!index) {
-                            Ox.print('LIST EVENT', event, data);
                         }
                     })
                     .css({height: items.length * 16 + 'px'})

@@ -172,11 +172,7 @@ def download(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     item = models.Item.get(data['id'])
     if item:
-        item.transferprogress = 0
-        item.transferadded = datetime.now()
-        p = models.User.get(settings.USER_ID)
-        if p not in item.users:
-            item.users.append(p)
+        item.queue_download()
         item.update()
         response = {'status': 'queued'}
     return response
@@ -190,9 +186,11 @@ def cancelDownload(request):
     if item:
         item.transferprogress = None
         item.transferadded = None
-        p = models.User.get(settings.USER_ID)
+        p = state.user()
         if p in item.users:
             item.users.remove(p)
+        for l in item.lists.filter_by(user_id=settings.USER_ID):
+            l.remove(item)
         item.update()
         response = {'status': 'cancelled'}
     return response

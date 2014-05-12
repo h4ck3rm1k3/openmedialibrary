@@ -37,11 +37,11 @@ oml.ui.findElement = function() {
                 .bindEvent({
                     change: function(data) {
                         if (data.value == 'advanced') {
+                            oml.$ui.mainMenu.checkItem('findMenu_find_' + previousFindKey);
                             that.updateElement();
-                            //oml.$ui.mainMenu.checkItem('findMenu_find_' + previousFindKey);
                             oml.$ui.filterDialog = oml.ui.filterDialog().open();
                         } else {
-                            //oml.$ui.mainMenu.checkItem('findMenu_find_' + data.value);
+                            oml.$ui.mainMenu.checkItem('findMenu_find_' + data.value);
                             oml.$ui.findInput.options({
                                 autocomplete: getAutocomplete(),
                                 placeholder: ''

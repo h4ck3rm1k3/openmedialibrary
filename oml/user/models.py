@@ -72,9 +72,11 @@ class User(db.Model):
                 self.info['username'] = username
 
             self.set_nickname(self.info.get('username', 'anonymous'))
+            Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
         else:
             self.peered = False
             self.nickname = None
+            self.save()
             for i in self.items:
                 i.users.remove(self)
                 if not i.users:
@@ -82,6 +84,8 @@ class User(db.Model):
                     db.session.delete(i)
                 else:
                     i.update_lists()
+            Changelog.query.filter_by(user_id=self.id).delete()
+            Changelog.record(state.user(), 'removepeer', self.id)
         self.save()
 
     def set_nickname(self, nickname):
@@ -159,6 +163,7 @@ class List(db.Model):
         for item_id in items:
             i = Item.get(item_id)
             self.items.append(i)
+            i.queue_download()
             i.update()
         db.session.add(self)
         db.session.commit()

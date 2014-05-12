@@ -169,12 +169,22 @@ class Node(object):
         r = self.request('rejectPeering', message)
         p = self.user
         p.update_peering(False)
+        self.go_online()
         return True
 
     def removePeering(self, message):
+        print 'remove peering!!!', self.user
         r = self.request('removePeering', message)
         p = self.user
         p.update_peering(False)
+        self.go_online()
+        return True
+
+    def cancelPeering(self, message):
+        r = self.request('cancelPeering', message)
+        p = self.user
+        p.update_peering(False)
+        self.go_online()
         return True
 
     def download(self, item):

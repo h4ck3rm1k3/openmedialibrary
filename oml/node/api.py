@@ -79,9 +79,18 @@ def api_rejectPeering(app, user_id, message):
 def api_removePeering(app, user_id, message):
     user = User.get(user_id)
     if user:
-        user.peered = False
         user.info['message'] = message
-        user.save()
-        trigger_event('peering', {'id': user.id, 'peered': user.peered})
+        user.update_peering(False)
+        trigger_event('peering', user.json())
+        return True
+    return False
+
+def api_cancelPeering(app, user_id, message):
+    user = User.get(user_id)
+    if user:
+        user.info['message'] = message
+        user.update_peering(False)
+        trigger_event('peering', user.json())
+        user.peered = False
         return True
     return False

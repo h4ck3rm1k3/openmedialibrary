@@ -27,7 +27,7 @@ class LocalNodes(Thread):
 
     _BROADCAST = "ff02::1"
     _PORT = 9851 
-    TTL = 2
+    TTL = 1
 
     def __init__(self, app):
         self._app = app

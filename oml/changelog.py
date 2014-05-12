@@ -188,7 +188,7 @@ class Changelog(db.Model):
         l.add_items(ids)
         return True
 
-    def action_removelistitem(self, user, timestamp, name, ids):
+    def action_removelistitems(self, user, timestamp, name, ids):
         from user.models import List
         l = List.get(user.id, name)
         if l:
@@ -205,7 +205,7 @@ class Changelog(db.Model):
         user.save()
         return True
 
-    def action_adduser(self, user, timestamp, peerid, username):
+    def action_addpeer(self, user, timestamp, peerid, username):
         from user.models import User
         if not 'users' in user.info:
             user.info['users'] = {}
@@ -215,7 +215,7 @@ class Changelog(db.Model):
         #fixme, add username to user?
         return True
 
-    def action_removeuser(self, user, timestamp, peerid):
+    def action_removepeer(self, user, timestamp, peerid):
         if 'users' in user.info and peerid in user.info['users']:
             del user.info['users'][peerid]
             user.save()

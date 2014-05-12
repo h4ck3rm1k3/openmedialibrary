@@ -20,9 +20,6 @@ oml.ui.gridView = function() {
                         ? (data.author || '') : data[sortKey]
                     );
                 size = size || 128;
-                Ox.print('WTF', '-webkit-linear-gradient(top, ' + color.slice(2).map(function(rgba) {
-                    return 'rgba(' + rgba.join(', ') + ')';
-                }).join(', ') + ')');
                 return {
                     extra: ui.showFileInfo ? $('<div>')
                         .css({

@@ -22,6 +22,7 @@ from person import get_sort_name
 import media
 from meta import scraper
 
+import state
 import utils
 
 from oxflask.db import MutableDict
@@ -204,8 +205,8 @@ class Item(db.Model):
             if key.get('find') or key.get('filter'):
                 value = self.json().get(key['id'], None)
                 if key.get('filterMap') and value:
-                    value = re.compile(key.get('filterMap')).findall(value)[0]
-                    print key['id'], value
+                    value = re.compile(key.get('filterMap')).findall(value)
+                    if value: value = value[0]
                 if value:
                     if isinstance(value, list):
                         Find.query.filter_by(item_id=self.id, key=key['id']).delete()
@@ -326,9 +327,20 @@ class Item(db.Model):
             print 'FIX UPDATE', mainid
         self.update()
 
+    def queue_download(self):
+        u = state.user()
+        if not u in self.users:
+            self.transferprogress = 0
+            self.transferadded = datetime.now()
+            self.users.append(u)
+
     def save_file(self, content):
-        p = User.get(settings.USER_ID)
+        u = state.user()
         f = File.get(self.id)
+        content_id = media.get_id(data=content)
+        if content_id != self.id:
+            print 'INVALID CONTENT', self.id, 'vs', content_id
+            return False
         if not f:
             path = 'Downloads/%s.%s' % (self.id, self.info['extension'])
             f = File.get_or_create(self.id, self.info, path=path)
@@ -337,11 +349,11 @@ class Item(db.Model):
                 ox.makedirs(os.path.dirname(path))
                 with open(path, 'wb') as fd:
                     fd.write(content)
-                if p not in self.users:
-                    self.users.append(p)
+                if u not in self.users:
+                    self.users.append(u)
                 self.transferprogress = 1
                 self.added = datetime.now()
-                Changelog.record(p, 'additem', self.id, self.info)
+                Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
                 trigger_event('transfer', {
                     'id': self.id, 'progress': 1

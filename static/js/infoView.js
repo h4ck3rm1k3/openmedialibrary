@@ -395,52 +395,56 @@ oml.ui.infoView = function() {
                         }
                     });
 
-                    Ox.Button({
-                            title: Ox._('Identify Book...'),
-                            width: 128
-                        })
-                        .css({marginTop: '16px'})
-                        .bindEvent({
-                            click: function() {
-                                identify(data);
-                            }
-                        })
-                        .appendTo($data);
+                    if (data.mediastate == 'available') {
 
-                    [
-                        'isbn10', 'isbn13', 'lccn', 'olid', 'oclc', 'mainid'
-                    ].forEach(function(id, index) {
-
-                        var title = Ox.getObjectById(oml.config.itemKeys, id).title,
-                            placeholder = id == 'mainid' ? 'none' : 'unknown';
-
-                        $('<div>')
-                            .css({
-                                marginTop: (index == 0 ? 10 : 6) + 'px',
-                                fontWeight: 'bold'
+                        Ox.Button({
+                                title: Ox._('Identify Book...'),
+                                width: 128
                             })
-                            .text(title)
-                            .appendTo($data);
-
-                        Ox.EditableContent({
-                                editable: true,
-                                format: function(value) {
-                                    return id == 'mainid'
-                                        ? Ox.getObjectById(oml.config.itemKeys, value).title
-                                        : value;
-                                },
-                                placeholder: placeholder,
-                                tooltip: Ox._('Doubleclick to edit'),
-                                value: data[id] || ''
-                            })
+                            .css({marginTop: '16px'})
                             .bindEvent({
-                                submit: function(data) {
-                                    editMetadata(id, data.value);
+                                click: function() {
+                                    identify(data);
                                 }
                             })
                             .appendTo($data);
 
-                    });
+                        [
+                            'isbn10', 'isbn13', 'lccn', 'olid', 'oclc', 'mainid'
+                        ].forEach(function(id, index) {
+
+                            var title = Ox.getObjectById(oml.config.itemKeys, id).title,
+                                placeholder = id == 'mainid' ? 'none' : 'unknown';
+
+                            $('<div>')
+                                .css({
+                                    marginTop: (index == 0 ? 10 : 6) + 'px',
+                                    fontWeight: 'bold'
+                                })
+                                .text(title)
+                                .appendTo($data);
+
+                            Ox.EditableContent({
+                                    editable: true,
+                                    format: function(value) {
+                                        return id == 'mainid'
+                                            ? Ox.getObjectById(oml.config.itemKeys, value).title
+                                            : value;
+                                    },
+                                    placeholder: placeholder,
+                                    tooltip: Ox._('Doubleclick to edit'),
+                                    value: data[id] || ''
+                                })
+                                .bindEvent({
+                                    submit: function(data) {
+                                        editMetadata(id, data.value);
+                                    }
+                                })
+                                .appendTo($data);
+
+                        });
+
+                    }
 
                     $('<div>').css({height: '16px'}).appendTo($data);
 
