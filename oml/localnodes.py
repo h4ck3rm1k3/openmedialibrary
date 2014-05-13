@@ -7,8 +7,9 @@ import json
 import struct
 from threading import Thread
 
-from settings import preferences, server, USER_ID
+from settings import preferences, server, USER_ID, sk
 from node.utils import get_public_ipv6
+from ed25519_utils import valid
 
 def can_connect(data):
     try:
@@ -43,12 +44,13 @@ class LocalNodes(Thread):
         ttl = struct.pack('@i', self.TTL)
         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl)
         message = json.dumps({
-            'id': USER_ID,
             'username': preferences.get('username', 'anonymous'),
             'host': self.host,
             'port': server['node_port'],
         })
-        s.sendto(message + '\0', (self._BROADCAST, self._PORT))
+        sig = sk.sign(message, encoding='base64')
+        packet = json.dumps([sig, USER_ID, message])
+        s.sendto(packet + '\0', (self._BROADCAST, self._PORT))
 
     def receive(self):
         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
@@ -61,7 +63,7 @@ class LocalNodes(Thread):
             data, addr = s.recvfrom(1024)
             while data[-1] == '\0':
                 data = data[:-1] # Strip trailing \0's
-            data = self.validate(data)
+            data = self.verify(data)
             if data:
                 if data['id'] not in self._nodes:
                     thread.start_new_thread(self.new_node, (data, ))
@@ -69,15 +71,20 @@ class LocalNodes(Thread):
                     print 'UPDATE NODE', data
                 self._nodes[data['id']] = data
 
-    def validate(self, data):
+    def verify(self, data):
         try:
-            data = json.loads(data)
+            packet = json.loads(data)
         except:
             return None
-        for key in ['id', 'username', 'host', 'port']:
-            if key not in data:
-                return None
-        return data
+        if len(packet) == 3:
+            sig, user_id, data = packet
+            if valid(user_id, data, sig):
+                message = json.loads(data)
+                message['id'] = user_id
+                for key in ['id', 'username', 'host', 'port']:
+                    if key not in message:
+                        return None
+                return message
 
     def get(self, user_id):
         if user_id in self._nodes:
