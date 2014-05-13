@@ -211,8 +211,10 @@ class Changelog(db.Model):
             user.info['users'] = {}
         user.info['users'][peerid] = username
         user.save()
-        User.get_or_create(peerid)
-        #fixme, add username to user?
+        peer = User.get_or_create(peerid)
+        if not 'username' in peer.info:
+            peer.info['username'] = username
+            peer.save()
         return True
 
     def action_removepeer(self, user, timestamp, peerid):

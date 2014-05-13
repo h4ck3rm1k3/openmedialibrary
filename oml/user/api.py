@@ -205,9 +205,9 @@ actions.register(rejectPeering, cache=False)
 @returns_json
 def removePeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    p = models.User.get_or_create(data['id'])
-    state.nodes.queue('add', p.id)
-    state.nodes.queue(p.id, 'removePeering', data.get('message', ''))
+    u = models.User.get_or_create(data['id'])
+    state.nodes.queue('add', u.id)
+    state.nodes.queue(u.id, 'removePeering', data.get('message', ''))
     return {}
 actions.register(removePeering, cache=False)
 

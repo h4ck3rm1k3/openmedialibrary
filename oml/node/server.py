@@ -46,7 +46,7 @@ class NodeHandler(tornado.web.RequestHandler):
             content = {}
             if valid(key, data, sig):
                 action, args = json.loads(data)
-                print 'action', action, args
+                print key, 'action', action, args
                 if action == 'ping':
                     content = {
                         'ip': request.remote_addr

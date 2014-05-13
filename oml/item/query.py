@@ -15,7 +15,7 @@ def parse(data):
     for key in ('keys', 'group', 'list', 'range', 'sort', 'query'):
         if key in data:
             query[key] = data[key]
-    print data
+    #print data
     query['qs'] = oxflask.query.Parser(models.Item).find(data)
     if 'query' in query and 'conditions' in query['query'] and query['query']['conditions']:
         conditions = query['query']['conditions']

@@ -41,6 +41,8 @@ class Node(object):
         if local:
             url = 'http://[%s]:%s' % (local['host'], local['port'])
             print 'using local peer discovery to access node', url
+        elif not self.host:
+            return None
         else:
             if ':' in self.host:
                 url = 'http://[%s]:%s' % (self.host, self.port)
@@ -48,7 +50,7 @@ class Node(object):
                 url = 'http://%s:%s' % (self.host, self.port)
         return url
 
-    def resolve_host(self):
+    def resolve(self):
         r = directory.get(self.vk)
         if r:
             self.host = r['host']
@@ -64,9 +66,13 @@ class Node(object):
         return None
 
     def request(self, action, *args):
-        if not self.host:
-            self.resolve_host()
-        if not self.host:
+        url = self.url
+        if not url:
+            self.resolve()
+        url = self.url
+        if not self.url:
+            print 'unable to find host', self.user_id
+            self.online = False
             return None
         content = json.dumps([action, args])
         sig = settings.sk.sign(content, encoding=ENCODING)
@@ -78,16 +84,18 @@ class Node(object):
             'X-Ed25519-Key': settings.USER_ID,
             'X-Ed25519-Signature': sig,
         }
-        r = requests.post(self.url, data=content, headers=headers)
+        r = requests.post(url, data=content, headers=headers)
         if r.status_code == 403:
             print 'REMOTE ENDED PEERING'
             if self.user.peered:
                 self.user.update_peering(False)
+                self.online = False
         data = r.content
         sig = r.headers.get('X-Ed25519-Signature')
         if sig and self._valid(data, sig):
             response = json.loads(data)
         else:
+            print 'invalid signature', data
             response = None
         return response
 
@@ -104,7 +112,7 @@ class Node(object):
         return user.models.User.get_or_create(self.user_id)
 
     def go_online(self):
-        self.resolve_host()
+        self.resolve()
         if self.user.peered:
             try:
                 self.online = False
@@ -166,25 +174,28 @@ class Node(object):
         return True
 
     def rejectPeering(self, message):
-        r = self.request('rejectPeering', message)
+        print 'reject peering!!!', self.user
         p = self.user
         p.update_peering(False)
-        self.go_online()
+        r = self.request('rejectPeering', message)
+        print 'reject peering!!!', r
+        self.online = False
         return True
 
     def removePeering(self, message):
         print 'remove peering!!!', self.user
-        r = self.request('removePeering', message)
         p = self.user
-        p.update_peering(False)
-        self.go_online()
+        if p.peered:
+            p.update_peering(False)
+            r = self.request('removePeering', message)
+        self.online = False
         return True
 
     def cancelPeering(self, message):
-        r = self.request('cancelPeering', message)
         p = self.user
         p.update_peering(False)
-        self.go_online()
+        self.online = False
+        r = self.request('cancelPeering', message)
         return True
 
     def download(self, item):
@@ -248,7 +259,6 @@ class Nodes(Thread):
         return id in self._nodes and self._nodes[id].download(item)
 
     def _call(self, target, action, *args):
-        print 'call', target, action, args
         if target == 'all':
             nodes = self._nodes.values()
         elif target == 'online':
@@ -262,12 +272,14 @@ class Nodes(Thread):
         if user_id not in self._nodes:
             from user.models import User
             self._nodes[user_id] = Node(self, User.get_or_create(user_id))
+        '''
         else:
             self._nodes[user_id].online = True
             trigger_event('status', {
                 'id': user_id,
                 'status': 'online'
             })
+        '''
 
     def run(self):
         with self._app.app_context():
@@ -277,7 +289,6 @@ class Nodes(Thread):
                     if args[0] == 'add':
                         self._add_node(args[1])
                     else:
-                        print 'next', args
                         self._call(*args)
 
     def join(self):

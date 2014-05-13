@@ -65,6 +65,7 @@ class User(db.Model):
         return [l.json() for l in self.lists.order_by('position')]
 
     def update_peering(self, peered, username=None):
+        was_peering = self.peered
         if peered:
             self.pending = ''
             self.peered = True
@@ -72,20 +73,23 @@ class User(db.Model):
                 self.info['username'] = username
 
             self.set_nickname(self.info.get('username', 'anonymous'))
-            Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
+            if not was_peering:
+                Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
         else:
+            self.pending = ''
             self.peered = False
             self.nickname = None
-            self.save()
+            List.query.filter_by(user_id=self.id).delete()
             for i in self.items:
                 i.users.remove(self)
                 if not i.users:
-                    print 'last user, remove'
                     db.session.delete(i)
                 else:
                     i.update_lists()
             Changelog.query.filter_by(user_id=self.id).delete()
-            Changelog.record(state.user(), 'removepeer', self.id)
+            self.save()
+            if was_peering:
+                Changelog.record(state.user(), 'removepeer', self.id)
         self.save()
 
     def set_nickname(self, nickname):
