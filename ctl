@@ -25,6 +25,9 @@ export PATH
 PYTHONPATH="$PLATFORM_ENV/lib/python2.7/site-packages:$SHARED_ENV/lib/python2.7/site-packages:$BASE/$NAME"
 export PYTHONPATH
 
+oxCACHE="$BASE/config/ox"
+export oxCACHE
+
 #must be called to update commands in $PATH
 hash -r 2>/dev/null
 

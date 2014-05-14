@@ -16,8 +16,11 @@ providers = [
     ('abebooks', 'isbn10')
 ]
 
-def find(title, author=None, publisher=None, year=None):
-    return []
+def find(title, author=None, publisher=None, date=None):
+    results = openlibrary.find(title=title, author=author, publisher=publisher, date=date)
+    for r in results:
+        r['mainid'] = 'olid'
+    return results
 
 def lookup(key, value):
     data = {key: value}
@@ -32,16 +35,16 @@ def lookup(key, value):
                     if not kv in ids:
                         ids.append(kv)
                         done = False
-    print ids
+    print 'lookup %s=%s =>' % ids[0], ids
     for k, v in ids:
         for provider, id in providers:
-            if id == k:
+            if id == k and provider not in provider_data:
                 provider_data[provider] = globals()[provider].lookup(v)
     for provider in sorted(
         provider_data.keys(),
         key=lambda x: -len(provider_data[x])
     ):
-        print provider, len(provider_data[provider])
+        print provider, len(provider_data[provider]), provider_data[provider].keys()
         for k_, v_ in provider_data[provider].iteritems():
             if not k_ in data:
                 data[k_] = v_

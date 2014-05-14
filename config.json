@@ -26,6 +26,7 @@
             "columnRequired": true,
             "columnWidth": 192,
             "filter": true,
+            "find": true,
             "sort": true,
             "sortType": "person"
         },

@@ -14,6 +14,8 @@ from changelog import Changelog
 import re
 import state
 
+import meta
+
 import utils
 
 @returns_json
@@ -108,7 +110,7 @@ actions.register(edit, cache=False)
 
 
 @returns_json
-def identify(request):
+def findMetadata(request):
     '''
         takes {
             title: string,
@@ -124,26 +126,22 @@ def identify(request):
     '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    response = {
-        'items': [
-            {
-                 u'title': u'Cinema',
-                 u'author': [u'Gilles Deleuze'],
-                 u'date': u'1986-10',
-                 u'publisher': u'University of Minnesota Press',
-                 u'isbn10': u'0816613990',
-            },
-            {
-                u'title': u'How to Change the World: Reflections on Marx and Marxism',
-                u'author': [u'Eric Hobsbawm'],
-                u'date': u'2011-09-06',
-                u'publisher': u'Yale University Press',
-                u'isbn13': u'9780300176162',
-            }
-        ]
-    }
+    print 'findMetadata', data
+    response['items'] = meta.find(**data)
     return response
-actions.register(identify)
+actions.register(findMetadata)
+
+@returns_json
+def getMetadata(request):
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    print 'getMetadata', data
+    key, value = data.iteritems().next()
+    if key in ('isbn10', 'isbn13'):
+        value = utils.normalize_isbn(value)
+    response = meta.lookup(key, value)
+    response['mainid'] = key
+    return response
+actions.register(getMetadata)
 
 @returns_json
 def download(request):

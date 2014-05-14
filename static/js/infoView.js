@@ -1,6 +1,6 @@
 'use strict';
 
-oml.ui.infoView = function() {
+oml.ui.infoView = function(identifyData) {
 
     var ui = oml.user.ui,
 
@@ -34,11 +34,14 @@ oml.ui.infoView = function() {
             .css({
                 position: 'absolute',
                 left: '288px',
-                right: '176px',
+                right: !identifyData ? '176px' : 16 + Ox.UI.SCROLLBAR_SIZE + 'px',
                 top: '16px'
             })
             .appendTo(that),
 
+        $data;
+
+    if (!identifyData) {
         $data = Ox.Element()
             .addClass('OxSelectable')
             .css({
@@ -48,6 +51,7 @@ oml.ui.infoView = function() {
                 width: '128px'
             })
             .appendTo(that);
+    }
 
     function formatLight(str) {
         return '<span class="OxLight">' + str + '</span>';
@@ -218,7 +222,9 @@ oml.ui.infoView = function() {
                 width = Math.round(ratio >= 1 ? size : size * ratio),
                 height = Math.round(ratio <= 1 ? size : size / ratio),
                 left = Math.floor((size - width) / 2),
-                src = '/' + data.id + '/cover256.jpg',
+                src = !identifyData
+                    ? '/' + data.id + '/cover256.jpg'
+                    : data.cover,
                 reflectionSize = Math.round(size / 2);
 
             $elements.forEach(function($element) {
@@ -334,6 +340,7 @@ oml.ui.infoView = function() {
                             .appendTo($info);
                     }
 
+                    $('<div>').css({height: '16px'}).appendTo($info);
 
                 } else if ($element == $data) {
 
@@ -424,7 +431,11 @@ oml.ui.infoView = function() {
 
     };
 
-    ui.item && that.update(ui.item);
+    if (!identifyData) {
+        ui.item && that.update(ui.item);
+    } else {
+        that.update(identifyData, [$cover, $info]);
+    }
 
     oml.bindEvent({
         transfer: function(data) {

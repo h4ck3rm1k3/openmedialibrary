@@ -1,6 +1,7 @@
 from ox.cache import read_url
-from ox import find_re, strip_tags
+from ox import find_re, strip_tags, decode_html
 import re
+import stdnum.isbn
 
 base = 'http://www.lookupbyisbn.com'
 
@@ -13,6 +14,9 @@ def get_ids(key, value):
         if m:
             asin = m[0].split('/')[-3]
             ids.append(('asin', asin))
+    if key == 'asin':
+        if stdnum.isbn.is_valid(value):
+            ids.append(('isbn10', value))
     if ids:
         print 'lookupbyisbn.get_ids', key, value
         print ids
@@ -43,10 +47,13 @@ def lookup(id):
             r[key] = int(r[key])
     desc = find_re(data, '<h2>Description:<\/h2>(.*?)<div ')
     desc = desc.replace('<br /><br />', ' ').replace('<br /> ', ' ').replace('<br />', ' ')
-    r['description'] = strip_tags(desc).strip()
+    r['description'] = desc
     if r['description'] == u'Description of this item is not available at this time.':
         r['description'] = ''
     r['cover'] = find_re(data, '<img src="(.*?)" alt="Book cover').replace('._SL160_', '')
+    for key in r:
+        if isinstance(r[key], basestring):
+            r[key] = decode_html(strip_tags(r[key])).strip()
     if 'author' in r and isinstance(r['author'], basestring):
         r['author'] = [r['author']]
     return r

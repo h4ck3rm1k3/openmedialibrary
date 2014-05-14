@@ -1,0 +1,9 @@
+Twisted
+simplejson
+ed25519
+Flask==0.10.1
+SQLAlchemy==0.9.4
+Flask-SQLAlchemy==1.0
+Flask-Script==2.0.3
+Flask-Migrate==1.2.0
+pyopenssl>=0.13.1
