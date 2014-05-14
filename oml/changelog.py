@@ -92,6 +92,14 @@ class Changelog(db.Model):
         _data = str(self.revision) + str(self.timestamp) + self.data
         return valid(self.user_id, _data, self.sig)
 
+    @classmethod
+    def _rebuild(cls):
+        for c in cls.query.filter_by(user_id=settings.USER_ID):
+            _data = str(c.revision) + str(c.timestamp) + c.data
+            c.sig = settings.sk.sign(_data, encoding='base64')
+            db.session.add(c)
+        db.session.commit()
+
     def json(self):
         return [self.revision, self.timestamp, self.sig, self.data]
 
@@ -123,7 +131,6 @@ class Changelog(db.Model):
             i = Item.get_or_create(itemid, info)
         i.users.append(user)
         i.update()
-        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_edititem(self, user, timestamp, itemid, meta):
@@ -138,7 +145,6 @@ class Changelog(db.Model):
         elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
             print 'new mapping', key, meta[key], 'currently', i.meta.get('mainid'), i.meta.get(i.meta.get('mainid'))
             i.update_mainid(key, meta[key])
-        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_removeitem(self, user, timestamp, itemid):
@@ -152,7 +158,6 @@ class Changelog(db.Model):
         else:
             db.session.delete(i)
             db.session.commit()
-        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_addlist(self, user, timestamp, name, query=None):

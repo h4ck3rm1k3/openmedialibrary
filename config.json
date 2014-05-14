@@ -164,6 +164,7 @@
             "id": "mediastate",
             "title": "Media State",
             "type": "string",
+            "find": true,
             "sort": true,
             "values": [
                 {"id": "available", "title": "Available"},

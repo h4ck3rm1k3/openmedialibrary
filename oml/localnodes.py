@@ -33,12 +33,16 @@ class LocalNodes(Thread):
     def __init__(self, app):
         self._app = app
         Thread.__init__(self)
+        if not server['localnode_discovery']:
+            return
         self.daemon = True
         self.start()
         self.host = get_public_ipv6()
         self.send()
 
     def send(self):
+        if not server['localnode_discovery']:
+            return
         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
 
         ttl = struct.pack('@i', self.TTL)

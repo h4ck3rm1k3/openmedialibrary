@@ -34,105 +34,32 @@ oml.ui.identifyDialog = function(data) {
 
         originalData = Ox.clone(data, true),
 
+        editedData,
+
+        $idInputs, $idButtons = {},
+
         $idForm = renderIdForm(data),
 
-        $preview = data.mainid
+        $idPreview = data.mainid
             ? oml.ui.infoView(data)
             : Ox.Element(),
 
         $idPanel = Ox.SplitPanel({
             elements: [
                 {element: Ox.Element().append($idForm), size: 96},
-                {element: $preview}
+                {element: $idPreview}
             ],
             orientation: 'vertical'
         }),
 
-        $titleForm = Ox.Element(),
+        $titleInputs, $titleButtons = {},
 
-        $inputs = keys.map(function(key, index) {
-            return Ox.Input({
-                    label: Ox._(key.title),
-                    labelWidth: 64,
-                    value: data[key.id],
-                    width: 360
-                })
-                .css({
-                    position: 'absolute',
-                    left: index < 2 ? '16px' : '392px',
-                    top: index % 2 == 0 ? '16px' : '40px'
-                })
-                .bindEvent({
-                    submit: function(data) {
-                        $findButton.triggerEvent('click');
-                    }
-                })
-                .appendTo($titleForm);
-        }),
-
-        $clearButton = Ox.Button({
-                title: Ox._('Clear'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '160px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    keys.forEach(function(key) {
-                        inputValue(key.id, '');
-                    });
-                    updateButtons();
-                }
-            })
-            .appendTo($titleForm),
-
-        $resetButton = Ox.Button({
-                disabled: true,
-                title: Ox._('Reset'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '88px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    keys.forEach(function(key) {
-                        inputValue(key.id, originalData[key.id]);
-                    });
-                    updateButtons();
-                }
-            })
-            .appendTo($titleForm),
-
-        $findButton = Ox.Button({
-                title: Ox._('Find'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '16px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    var data = {};
-                    keys.forEach(function(key) {
-                        data[key.id] = inputValue(key.id);
-                    });
-                    findMetadata(data);
-                }
-            })
-            .appendTo($titleForm),
+        $titleForm = renderTitleForm(),
 
         $titlePanel = Ox.SplitPanel({
             elements: [
                 {element: $titleForm, size: 96},
-                {element: renderResults([Ox.extend({index: '0'}, data)])}
+                {element: renderResults([])}
             ],
             orientation: 'vertical'
         }),
@@ -195,8 +122,16 @@ oml.ui.identifyDialog = function(data) {
                 })
                 .bindEvent({
                     click: function() {
-                        Ox.print('NOT IMPLEMENTED');
-                        that.close();
+                        var edit = Ox.extend(
+                            {id: data.id},
+                            $innerPanel.options('selected') == 'id'
+                                ? Ox.extend({}, 'foo', 'bar')
+                                : {olid: $list.value($list.options('selected'), 'olid')}
+                        );
+                        that.options({content: Ox.LoadingScreen().start()});
+                        oml.api.edit(edit, function() {
+                            that.close();
+                        });
                     }
                 })
             ],
@@ -212,11 +147,10 @@ oml.ui.identifyDialog = function(data) {
         $titlePanel.replaceElement(1, Ox.LoadingScreen().start());
         oml.api.findMetadata(data, function(result) {
             Ox.print('GOT RESULTS', result.data);
+            // FIXME: CONCAT HERE
             var items = result.data.items.map(function(item, index) {
-                    return Ox.extend({index: index.toString()}, item);
-                }).concat([
-                    Ox.extend({index: result.data.items.length.toString()}, data)
-                ]);
+                    return Ox.extend({index: (index + 1).toString()}, item);
+                });
             $titlePanel.replaceElement(1, renderResults(items));
         });
     }
@@ -226,19 +160,34 @@ oml.ui.identifyDialog = function(data) {
         oml.api.getMetadata(Ox.extend({}, key, value), function(result) {
             Ox.print('GOT RESULT', result.data);
             $idForm = renderIdForm(result.data);
-            $preview = oml.ui.infoView(result.data);
+            $idPreview = oml.ui.infoView(result.data);
             $idPanel
                 .replaceElement(0, $idForm)
-                .replaceElement(1, $preview);
+                .replaceElement(1, $idPreview);
         });
     }
 
-    function inputValue(key, value) {
-        // FIXME: UNELEGANT
-        Ox.print('INPUTVALUE', key, value)
-        var $input =  $inputs[[
-                'title', 'author', 'publisher', 'date'
-            ].indexOf(key)];
+    function idInputValues(key, values) {
+        Ox.print('WTF,', $idInputs);
+        var $input = $idInputs[ids.map(function(id) {
+                return id.id;
+            }).indexOf(key)];
+        if (Ox.isUndefined(values)) {
+            values = $input.options('elements').map(function($element) {
+                return $element.value();
+            });
+        } else {
+            $input.options('elements').forEach(function($element, index) {
+                $element.value(values[index]);
+            });
+        }
+        return values;    
+    }
+
+    function titleInputValue(key, value) {
+        var $input =  $titleInputs[keys.map(function(key) {
+                return key.id;
+            }).indexOf(key)];
         if (Ox.isUndefined(value)) {
             value = $input.value();
             if (key == 'author') {
@@ -263,136 +212,148 @@ oml.ui.identifyDialog = function(data) {
     }
 
     function renderIdForm(data) {
-        var $element = Ox.Element(),
-            $elements = ids.map(function(id, index) {
-                return Ox.FormElementGroup({
-                    elements: [
-                        Ox.Checkbox({
-                            overlap: 'right',
-                            title: Ox._(id.title),
-                            value: id.id == data.mainid,
-                            width: 80
-                        })
-                        .bindEvent({
-                            change: function(data) {
-                                var value = $elements[index].options('elements')[1].value()
-                                if (data.value) {
-                                    if (value) {
-                                        $elements.forEach(function($element, i) {
-                                            if (i != index) {
-                                                $elements[i].options('elements')[0].value(false);
-                                            }
-                                        });
-                                        getMetadata(id.id, value, function() {
-                                            // ...
-                                        });
-                                    } else {
-                                        this.value(false);
-                                    }
-                                } else {
-                                    this.value(true);
-                                }
-                            }
-                        }),
-                        Ox.Input({
-                            value: data[id.id] || '',
-                            width: 160
-                        })
-                        .bindEvent({
-                            submit: function(data) {
-                                if (data.value) {
-                                    $elements.forEach(function($element, i) {
-                                        $element.options('elements')[0].options({
-                                            disabled: true,
-                                            value: i == index
-                                        });
-                                        $element.options('elements')[1].options({
-                                            disabled: true
-                                        });
+        var $element = Ox.Element();
+        $idInputs = ids.map(function(id, index) {
+            return Ox.FormElementGroup({
+                elements: [
+                    Ox.Checkbox({
+                        overlap: 'right',
+                        title: Ox._(id.title),
+                        value: id.id == data.mainid,
+                        width: 80
+                    })
+                    .bindEvent({
+                        change: function(data) {
+                            var value = $idInputs[index].options('elements')[1].value();
+                            if (data.value) {
+                                if (value) {
+                                    editedData = Ox.extend({}, id.id, value);
+                                    $idInputs.forEach(function($input, i) {
+                                        if (i != index) {
+                                            $input.options('elements')[0].value(false);
+                                        }
                                     });
-                                    getMetadata(id.id, data.value, function() {
+                                    getMetadata(id.id, value, function() {
                                         // ...
                                     });
+                                } else {
+                                    this.value(false);
                                 }
+                            } else {
+                                this.value(true);
                             }
-                        })
-                    ],
-                    float: 'left'
-                })
-                .css({
-                    position: 'absolute',
-                    left: 16 + Math.floor(index / 2) * 248 + 'px',
-                    top: 16 + (index % 2) * 24 + 'px'
-                })
-                .appendTo($element);
-            }),
-            $resetButton = Ox.Button({
-                    disabled: true,
-                    title: Ox._('Reset'),
-                    width: 64
-                })
-                .css({
-                    position: 'absolute',
-                    right: '16px',
-                    top: '64px'
-                })
-                .bindEvent({
-                    click: function() {
-                        /*
-                        keys.forEach(function(key) {
-                            inputValue(key.id, originalData[key.id]);
-                        });
-                        updateButtons();
-                        */
-                    }
-                })
-                .appendTo($element);
-        return $element;
-        Ox.print('???', data.mainid)
-        return Ox.Form({
-                items: Ox.flatten(ids.map(function(id) {
-                    return [
-                        Ox.Checkbox({
-                                disabled: !data[id.id] || id.id == data.mainid,
-                                id: id.id + 'Checkbox',
-                                title: Ox._(id.title),
-                                value: id.id == data.mainid,
-                                width: 128
-                            })
-                            .bindEvent({
-                                change: function() {
-                                    getMetadata(id.id, data[id.id]);
-                                }
-                            }),
-                        Ox.Input({
-                                id: id.id + 'Input',
-                                value: data[id.id] || '',
-                                width: 128
-                            })
-                            .css({marginBottom: '16px'})
-                            .bindEvent({
-                                change: function(data) {
-                                    if (data.value) {
-                                        getMetadata(id.id, data.value, function() {
-                                            //...
-                                        });
-                                    } else {
-                                        Ox.print('this', this)
-                                    }
-                                }
-                            })
-                    ];
-                }))
+                        }
+                    }),
+                    Ox.Input({
+                        value: data[id.id] || '',
+                        width: 160
+                    })
+                    .bindEvent({
+                        submit: function(data) {
+                            if (data.value) {
+                                editedData = Ox.extend({}, id.id, data.value);
+                                $idInputs.forEach(function($input, i) {
+                                    $input.options('elements')[0].options({
+                                        disabled: true,
+                                        value: i == index
+                                    });
+                                    $input.options('elements')[1].options({
+                                        disabled: true
+                                    });
+                                });
+                                getMetadata(id.id, data.value, function() {
+                                    // ...
+                                });
+                            }
+                        }
+                    })
+                ],
+                float: 'left'
             })
-            .css({margin: '16px'});
-        return $form;
+            .css({
+                position: 'absolute',
+                left: 16 + Math.floor(index / 2) * 248 + 'px',
+                top: 16 + (index % 2) * 24 + 'px'
+            })
+            .appendTo($element);
+        });
+        $idButtons.clear = Ox.Button({
+                title: Ox._('Clear'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '160px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    ids.forEach(function(id) {
+                        idInputValues(id.id, [false, '']);
+                    });
+                    updateIdButtons();
+                }
+            })
+            .appendTo($element);
+        $idButtons.reset = Ox.Button({
+                disabled: true,
+                title: Ox._('Reset'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '88px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    ids.forEach(function(id) {
+                        idInputValues(id.id, [
+                            id.id == originalData.mainid,
+                            originalData[id.id]
+                        ]);
+                    });
+                    updateIdButtons();
+                }
+            })
+            .appendTo($element);
+        $idButtons.find = Ox.Button({
+                title: Ox._('Look Up'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '16px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    Ox.print('NOT IMPLEMENTED')
+                }
+            })
+            .appendTo($element);
+        return $element;
     }
 
     function renderResults(items) {
+        items = [Ox.extend({index: '0'}, data)].concat(items);
         Ox.print('LIST ITEMS::::', items);
         var $list = Ox.TableList({
-                columns: Ox.clone(keys, true),
+                columns: [{
+                    format: function(value, data) {
+                        return (data.title || '') + (
+                            data.author
+                                ? ' <span class="OxLight">'
+                                    + data.author.join(', ') + '</span>'
+                                : ''
+                        );
+                    },
+                    id: 'index',
+                    visible: true,
+                    width: 192 - Ox.UI.SCROLLBAR_SIZE
+                }],
                 items: items,
+                keys: ['author', 'title', 'olid'],
                 min: 1,
                 max: 1,
                 scrollbarVisible: true,
@@ -402,37 +363,137 @@ oml.ui.identifyDialog = function(data) {
             })
             .bindEvent({
                 select: function(data) {
-                    var index = data.ids[0];
-                    data = Ox.getObject(items, 'index', index);
-                    $results.replaceElement(1, Ox.LoadingScreen().start());
-                    Ox.print('OLID', data.olid);
-                    oml.api.getMetadata({olid: data.olid}, function(result) {
-                        Ox.print('#### GOT DATA', result.data);
-                        $results.replaceElement(1, oml.ui.infoView(result.data));
-                        that.options('buttons')[1].options({disabled: false});
-                    });
+                    var index = data.ids[0], olid;
+                    if (index == '0') {
+                        $results.replaceElement(1, oml.ui.infoView(data));
+                    } else {
+                        olid = $list.value(index, 'olid');
+                        editedData = {olid: olid};
+                        $results.replaceElement(1, Ox.LoadingScreen().start());
+                        oml.api.getMetadata({olid: olid}, function(result) {
+                            if (index == $list.options('selected')[0]) {
+                                $results.replaceElement(1, oml.ui.infoView(result.data));
+                                that.options('buttons')[1].options({disabled: false});
+                            }
+                        });
+                    }
+
                 }
             }),
             $results = Ox.SplitPanel({
                 elements: [
-                    {element: $list, size: 80},
+                    {element: $list, size: 192},
                     {element: oml.ui.infoView(items[0])}
                 ],
-                orientation: 'vertical'
+                orientation: 'horizontal'
             });
         return $results;
     }
 
-    function updateButtons() {
+    function renderTitleForm() {
+        var $element = Ox.Element();
+        $titleInputs = keys.map(function(key, index) {
+            return Ox.Input({
+                    label: Ox._(key.title),
+                    labelWidth: 64,
+                    value: data[key.id],
+                    width: 360
+                })
+                .css({
+                    position: 'absolute',
+                    left: index < 2 ? '16px' : '392px',
+                    top: index % 2 == 0 ? '16px' : '40px'
+                })
+                .bindEvent({
+                    submit: function(data) {
+                        $titleButtons.find.triggerEvent('click');
+                    }
+                })
+                .appendTo($element);
+        });
+        $titleButtons.clear = Ox.Button({
+                title: Ox._('Clear'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '160px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    keys.forEach(function(key) {
+                        titleInputValue(key.id, '');
+                    });
+                    updateTitleButtons();
+                }
+            })
+            .appendTo($element);
+        $titleButtons.reset = Ox.Button({
+                disabled: true,
+                title: Ox._('Reset'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '88px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    keys.forEach(function(key) {
+                        titleInputValue(key.id, originalData[key.id]);
+                    });
+                    updateTitleButtons();
+                }
+            })
+            .appendTo($element);
+        $titleButtons.find = Ox.Button({
+                title: Ox._('Find'),
+                width: 64
+            })
+            .css({
+                position: 'absolute',
+                right: '16px',
+                top: '64px'
+            })
+            .bindEvent({
+                click: function() {
+                    var data = {};
+                    keys.forEach(function(key) {
+                        data[key.id] = titleInputValue(key.id);
+                    });
+                    findMetadata(data);
+                }
+            })
+            .appendTo($element);
+        return $element;
+    }
+
+    function updateIdButtons() {
         var data = {}, empty, original;
-        keys.forEach(function(key) {
-            data[key.id] = inputValue(key.id);
+        ids.forEach(function(id) {
+            data[id.id] = idInputValues(id.id)[1];
         });
         empty = isEmpty(data);
         original = isOriginal(data);
-        $clearButton.options({disabled: empty});
-        $resetButton.options({disabled: original});
-        $findButton.options({disabled: empty});
+        $idButtons.clear.options({disabled: empty});
+        $idButtons.reset.options({disabled: original});
+        $idButtons.find.options({disabled: empty});
+        that.options('buttons')[1].options({disabled: original});
+    }
+
+    function updateTitleButtons() {
+        var data = {}, empty, original;
+        keys.forEach(function(key) {
+            data[key.id] = titleInputValue(key.id);
+        });
+        empty = isEmpty(data);
+        original = isOriginal(data);
+        $titleButtons.clear.options({disabled: empty});
+        $titleButtons.reset.options({disabled: original});
+        $titleButtons.find.options({disabled: empty});
+        that.options('buttons')[1].options({disabled: original});
     }
 
     return that;

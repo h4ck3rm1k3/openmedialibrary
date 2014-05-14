@@ -39,7 +39,9 @@ oml.ui.infoView = function(identifyData) {
             })
             .appendTo(that),
 
-        $data;
+        $data,
+
+        $image, $reflection, $reflectionImage;
 
     if (!identifyData) {
         $data = Ox.Element()
@@ -51,6 +53,13 @@ oml.ui.infoView = function(identifyData) {
                 width: '128px'
             })
             .appendTo(that);
+    }
+
+    function getImageSize(size, ratio) {
+        var width = Math.round(ratio >= 1 ? size : size * ratio),
+            height = Math.round(ratio <= 1 ? size : size / ratio),
+            left = Math.floor((size - width) / 2);
+        return {width: width, height: height, left: left};
     }
 
     function formatLight(str) {
@@ -83,6 +92,7 @@ oml.ui.infoView = function(identifyData) {
     }
 
     function renderMediaButton(data) {
+
         function getListItems() {
             var items = [];
             if (ui._lists) {
@@ -99,6 +109,7 @@ oml.ui.infoView = function(identifyData) {
             }
             return items;
         }
+
         function setListItems() {
             if ($element && ui._lists) {
                 $element.options({
@@ -196,6 +207,25 @@ oml.ui.infoView = function(identifyData) {
         return $element;
     }
 
+    function updateCover(size, ratio) {
+        var width = Math.round(ratio >= 1 ? size : size * ratio),
+            height = Math.round(ratio <= 1 ? size : size / ratio),
+            left = Math.floor((size - width) / 2);
+        $image.css({
+            left: left + 'px',
+            width: width + 'px',
+            height: height + 'px'
+        }).show();
+        $reflectionImage.css({
+            left: left + 'px',
+            width: width + 'px',
+            height: height + 'px'
+        });
+        $reflection.css({
+            top: height + 'px'
+        }).show();
+    }
+
     that.update = function(idOrData, $elements) {
 
         var data = Ox.isObject(idOrData) ? idOrData : null,
@@ -215,16 +245,13 @@ oml.ui.infoView = function(identifyData) {
             }
             Ox.print('BOOK DATA', data)
 
-            var $reflection, $mediaButton,
+            var $mediaButton,
                 isEditable = !data.mainid && data.mediastate == 'available',
-                ratio = data.coverRatio || 0.75,
-                size = 256,
-                width = Math.round(ratio >= 1 ? size : size * ratio),
-                height = Math.round(ratio <= 1 ? size : size / ratio),
-                left = Math.floor((size - width) / 2),
                 src = !identifyData
                     ? '/' + data.id + '/cover256.jpg'
                     : data.cover,
+                ratio = data.coverRatio || oml.config.coverRatio,
+                size = 256,
                 reflectionSize = Math.round(size / 2);
 
             $elements.forEach(function($element) {
@@ -233,34 +260,35 @@ oml.ui.infoView = function(identifyData) {
 
                 if ($element == $cover) {
 
-                    $('<img>')
+                    $image = $('<img>')
+                        .on({
+                            load: function() {
+                                var ratio = $image[0].width / $image[0].height;
+                                updateCover(size, ratio);
+                            }
+                        })
                         .attr({src: src})
                         .css({
-                            position: 'absolute',
-                            left: left + 'px',
-                            width: width + 'px',
-                            height: height + 'px'
+                            position: 'absolute'
                         })
+                        .hide()
                         .appendTo($cover);
 
                     $reflection = $('<div>')
                         .addClass('OxReflection')
                         .css({
                             position: 'absolute',
-                            top: height + 'px',
                             width: size + 'px',
                             height: reflectionSize + 'px',
                             overflow: 'hidden'
                         })
+                        .hide()
                         .appendTo($cover);
 
-                    $('<img>')
+                    $reflectionImage = $('<img>')
                         .attr({src: src})
                         .css({
-                            position: 'absolute',
-                            left: left + 'px',
-                            width: width + 'px',
-                            height: height + 'px'
+                            position: 'absolute'
                         })
                         .appendTo($reflection);
 
