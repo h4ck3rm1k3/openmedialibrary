@@ -37,7 +37,6 @@ def run():
     ]
 
     http_server = HTTPServer(Application(handlers, **options))
-
     http_server.listen(settings.server['port'], settings.server['address'])
     if PID:
         with open(PID, 'w') as pid:
@@ -56,4 +55,12 @@ def run():
                     state.nodes.queue('add', p.id)
         state.main.add_callback(add_users, app)
     state.main.add_callback(start_node)
+    if ':' in settings.server['address']:
+        host = '[%s]' % settings.server['address']
+    elif not settings.server['address']:
+        host = '[::1]'
+    else:
+        host = settings.server['address']
+    url = 'http://%s:%s/' % (host, settings.server['port'])
+    print 'open browser at %s' % url
     state.main.start()

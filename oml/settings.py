@@ -21,6 +21,8 @@ if not os.path.exists(config_dir):
 db_path = os.path.join(config_dir, 'openmedialibrary.db')
 covers_db_path = os.path.join(config_dir, 'covers.db')
 key_path = os.path.join(config_dir, 'node.key')
+ssl_cert_path = os.path.join(config_dir, 'node.ssl.crt')
+ssl_key_path = os.path.join(config_dir, 'node.ssl.key')
 
 db = SQLAlchemy()
 

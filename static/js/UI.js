@@ -9,6 +9,10 @@ oml.UI = (function() {
         return value.replace(/\./g, '\\.');
     };
 
+    that.getPrevious = function(key) {
+        return !key ? previousUI : previousUI[key];
+    };
+
     that.reset = function() {
         var ui = oml.user.ui;
         oml.api.resetUI({}, function() {

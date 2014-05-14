@@ -163,8 +163,12 @@
             "id": "mediastate",
             "title": "Media State",
             "type": "string",
-            "find": true,
-            "sort": true
+            "sort": true,
+            "values": [
+                {"id": "available", "title": "Available"},
+                {"id": "transferring", "title": "Transferring"},
+                {"id": "unavailable", "title": "Unavailable"}
+            ]
         },
         {
             "id": "transferadded",
@@ -197,6 +201,13 @@
         {
             "id": "isbn13",
             "title": "ISBN-13",
+            "type": "string",
+            "columnWidth": 96,
+            "sort": true
+        },
+        {
+            "id": "asin",
+            "title": "ASIN",
             "type": "string",
             "columnWidth": 96,
             "sort": true
@@ -360,6 +371,7 @@
             "showSidebar": true,
             "sidebarSize": 256,
             "theme": "oxlight",
+            "updateAdvancedFindResults": false,
             "usersSelection": []
         }
     }

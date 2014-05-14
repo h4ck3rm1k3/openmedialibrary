@@ -121,10 +121,8 @@ def editList(request):
     name = l.name
     if 'name' in data:
         l.name = data['name']
-        l.type = 'static'
     if 'query' in data:
         l._query = data['query']
-        l.type = 'smart'
     if l.type == 'static' and name != l.name:
         Changelog.record(state.user(), 'editlist', name, {'name': l.name})
     l.save()

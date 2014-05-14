@@ -36,12 +36,17 @@ oml.ui.findElement = function() {
                 })
                 .bindEvent({
                     change: function(data) {
+                        var menu = 'findMenu_finditems_' + data.value,
+                            previousMenu = 'findMenu_finditems_' + previousFindKey;
+                        oml.$ui.mainMenu.checkItem(menu);
+                        oml.$ui.mainMenu.setItemKeyboard(previousMenu, '');
+                        oml.$ui.mainMenu.setItemKeyboard(menu, 'control f');
                         if (data.value == 'advanced') {
-                            oml.$ui.mainMenu.checkItem('findMenu_find_' + previousFindKey);
+                            // FIXME: control f when advanced
                             that.updateElement();
-                            oml.$ui.filterDialog = oml.ui.filterDialog().open();
+                            oml.$ui.findDialog = oml.ui.findDialog().open();
                         } else {
-                            oml.$ui.mainMenu.checkItem('findMenu_find_' + data.value);
+
                             oml.$ui.findInput.options({
                                 autocomplete: getAutocomplete(),
                                 placeholder: ''
@@ -77,7 +82,7 @@ oml.ui.findElement = function() {
                                 hasPressedClear = false;
                             }
                             oml.$ui.findInput.blurInput();
-                            oml.$ui.filterDialog = oml.ui.filterDialog().open();
+                            oml.$ui.findDialog = oml.ui.findDialog().open();
                         }
                     },
                     submit: function(data) {

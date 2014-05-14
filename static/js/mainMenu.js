@@ -228,7 +228,7 @@ oml.ui.mainMenu = function() {
                     title: Ox._('Find'),
                     items: [
                         {
-                            id: 'find',
+                            id: 'finditems',
                             title: Ox._('Find'),
                             items: [
                                 {
@@ -413,6 +413,9 @@ oml.ui.mainMenu = function() {
                     Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
                 }
             },
+            key_backtick: function() {
+                changeFocus(1);
+            },
             key_control_comma: function() {
                 if (!oml.hasDialogOrScreen()) {
                     oml.UI.set({page: 'preferences'});
@@ -428,6 +431,35 @@ oml.ui.mainMenu = function() {
                         oml.$ui.filterDialog = oml.ui.filterDialog().open();
                     }
                 }
+            },
+            key_control_m: function() {
+                if (!oml.hasDialogOrScreen() && !that.isSelected()) {
+                    that.options('menus')[0].element.trigger('click');
+                }
+            },
+            key_control_shift_w: function() {
+                if (!oml.hasDialogOrScreen()) {
+                    oml.UI.set({
+                        find: oml.config.user.ui.find,
+                        item: ''
+                    });
+                }
+            },
+            key_control_shift_z: function() {
+                oml.redoHistory();
+            },
+            key_control_slash: function() {
+                if (!oml.hasDialogOrScreen()) {
+                    oml.UI.set({page: 'help'});
+                }
+            },
+            key_control_w: function() {
+                if (!oml.hasDialogOrScreen()) {
+                    oml.UI.set({item: ''});
+                }
+            },
+            key_control_z: function() {
+                oml.undoHistory();
             },
             key_shift_b: function() {
                 ui.item && oml.UI.set({showBrowser: !ui.showBrowser});

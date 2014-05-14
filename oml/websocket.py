@@ -55,9 +55,13 @@ class Background:
 
 
 class Handler(WebSocketHandler):
+    background = None
 
     def open(self):
         print "New connection opened."
+        if self.request.host not in self.request.headers['origin']:
+            print 'reject cross site attempt to open websocket', self.request
+            self.close()
         self.background = Background(self)
         state.websockets.append(self.background)
         self.t = Thread(target=self.background.worker)
@@ -70,8 +74,9 @@ class Handler(WebSocketHandler):
 
     def on_close(self):
         print "Connection closed."
-        state.websockets.remove(self.background)
-        self.background.connected = False
+        if self.background:
+            state.websockets.remove(self.background)
+            self.background.connected = False
 
 def trigger_event(event, data):
     if len(state.websockets):

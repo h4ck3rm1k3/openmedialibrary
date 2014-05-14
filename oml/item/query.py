@@ -11,7 +11,8 @@ from sqlalchemy.sql.expression import nullslast
 def parse(data):
     query = {}
     query['range'] = [0, 100]
-    query['sort'] = [{'key':'title', 'operator':'+'}]
+    if not 'group' in data:
+        query['sort'] = [{'key':'title', 'operator':'+'}]
     for key in ('keys', 'group', 'list', 'range', 'sort', 'query'):
         if key in data:
             query[key] = data[key]
@@ -25,9 +26,7 @@ def parse(data):
             query['qs'] = models.Item.query.join(
                     models.Find, models.Find.item_id==models.Item.id).filter(
                             models.Find.value.contains(value))
-    if 'group' in query:
-        query['qs'] = order_by_group(query['qs'], query['sort'])
-    else:
+    if not 'group' in query:
         query['qs'] = order(query['qs'], query['sort'])
     return query
 
@@ -61,23 +60,3 @@ def order(qs, sort, prefix='sort_'):
         order_by = _order_by
         qs = qs.order_by(*order_by)
     return qs
-
-def order_by_group(qs, sort):
-    return qs
-    if 'sort' in query:
-        if len(query['sort']) == 1 and query['sort'][0]['key'] == 'items':
-            order_by = query['sort'][0]['operator'] == '-' and '-items' or 'items'
-            if query['group'] == "year":
-                secondary = query['sort'][0]['operator'] == '-' and '-sortvalue' or 'sortvalue'
-                order_by = (order_by, secondary)
-            elif query['group'] != "keyword":
-                order_by = (order_by, 'sortvalue')
-            else:
-                order_by = (order_by, 'value')
-        else:
-            order_by = query['sort'][0]['operator'] == '-' and '-sortvalue' or 'sortvalue'
-            order_by = (order_by, 'items')
-    else:
-        order_by = ('-sortvalue', 'items')
-    return order_by
-

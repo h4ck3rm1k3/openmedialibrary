@@ -107,7 +107,7 @@ oml.ui.preferencesDialog = function() {
                 },
                 {
                     id: 'resetUI',
-                    title: 'Reset UI Settings',
+                    title: 'Reset UI Settings...',
                     click: function() {
                         oml.$ui.resetUIDialog = oml.ui.resetUIDialog().open();
                     },

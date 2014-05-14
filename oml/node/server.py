@@ -19,6 +19,7 @@ import user
 import json
 from ed25519_utils import valid
 import api
+import cert
 
 class NodeHandler(tornado.web.RequestHandler):
 
@@ -53,9 +54,10 @@ class NodeHandler(tornado.web.RequestHandler):
                     }
                 else:
                     with self.app.app_context():
+                        u = user.models.User.get(key)
                         if action in (
                             'requestPeering', 'acceptPeering', 'rejectPeering', 'removePeering'
-                        ) or user.models.User.get(key):
+                        ) or (u and u.peered):
                             content = getattr(api, 'api_' + action)(self.app, key, *args)
                         else:
                             print 'PEER', key, 'IS UNKNOWN SEND 403'
@@ -103,14 +105,22 @@ class ShareHandler(tornado.web.RequestHandler):
 
 
 def start(app):
-    http_server = tornado.web.Application([
+    application = tornado.web.Application([
         (r"/get/(.*)", ShareHandler, dict(app=app)),
         (r".*", NodeHandler, dict(app=app)),
     ])
+    if not os.path.exists(settings.ssl_cert_path):
+        settings.server['cert'] = cert.generate_ssl()
+
+    http_server = tornado.httpserver.HTTPServer(application, ssl_options={
+        "certfile": settings.ssl_cert_path,
+        "keyfile": settings.ssl_key_path
+    })
     http_server.listen(settings.server['node_port'], settings.server['node_address'])
     host = utils.get_public_ipv6()
     state.online = directory.put(settings.sk, {
         'host': host,
-        'port': settings.server['node_port']
+        'port': settings.server['node_port'],
+        'cert': settings.server['cert']
     })
     return http_server

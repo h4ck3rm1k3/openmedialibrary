@@ -19,17 +19,18 @@ oml.ui.deleteListDialog = function() {
             oml.api.removeList({
                 id: ui._list
             }, function() {
-                oml.UI.set({
-                    find: {
-                        conditions: [{
-                            key: 'list',
-                            operator: '==',
-                            value: ':'
-                        }],
-                        operator: '&'
-                    }
+                oml.updateLists(function() {
+                    oml.UI.set({
+                        find: {
+                            conditions: [{
+                                key: 'list',
+                                operator: '==',
+                                value: ':'
+                            }],
+                            operator: '&'
+                        }
+                    });
                 });
-                oml.updateLists();
             });
         });
 

@@ -20,7 +20,7 @@ from user.models import User
 from person import get_sort_name
 
 import media
-from meta import scraper
+import meta
 
 import state
 import utils
@@ -201,6 +201,13 @@ class Item(db.Model):
                 setattr(self, 'sort_%s' % key['id'], value)
 
     def update_find(self):
+
+        def add(k, v):
+            f = Find(item_id=self.id, key=k)
+            f.findvalue = v.lower().strip()
+            f.value = v
+            db.session.add(f)
+
         for key in config['itemKeys']:
             if key.get('find') or key.get('filter'):
                 value = self.json().get(key['id'], None)
@@ -208,16 +215,11 @@ class Item(db.Model):
                     value = re.compile(key.get('filterMap')).findall(value)
                     if value: value = value[0]
                 if value:
-                    if isinstance(value, list):
-                        Find.query.filter_by(item_id=self.id, key=key['id']).delete()
-                        for v in value:
-                            f = Find(item_id=self.id, key=key['id'])
-                            f.value = v.lower()
-                            db.session.add(f)
-                    else:
-                        f = Find.get_or_create(self.id, key['id'])
-                        f.value = value.lower()
-                        db.session.add(f)
+                    Find.query.filter_by(item_id=self.id, key=key['id']).delete()
+                    if not isinstance(value, list):
+                        value = [value]
+                    for v in value:
+                        add(key['id'], v)
                 else:
                     f = Find.get(self.id, key['id'])
                     if f:
@@ -313,16 +315,9 @@ class Item(db.Model):
     def scrape(self):
         mainid = self.meta.get('mainid')
         print 'scrape', mainid, self.meta.get(mainid)
-        if mainid == 'olid':
-            scraper.update_ol(self)
-            scraper.add_lookupbyisbn(self)
-        elif mainid in ('isbn10', 'isbn13'):
-            scraper.add_lookupbyisbn(self)
-        elif mainid == 'lccn':
-            import meta.lccn
-            info = meta.lccn.info(self.meta[mainid])
-            for key in info:
-                self.meta[key] = info[key]
+        if mainid:
+            m = meta.lookup(mainid, self.meta[mainid])
+            self.meta.update(m)
         else:
             print 'FIX UPDATE', mainid
         self.update()
@@ -380,7 +375,7 @@ for key in config['itemKeys']:
 
 Item.id_keys = ['isbn10', 'isbn13', 'lccn', 'olid', 'oclc']
 Item.item_keys = config['itemKeys'] 
-Item.filter_keys = []
+Item.filter_keys = [k['id'] for k in config['itemKeys'] if k.get('filter')]
 
 class Find(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -388,9 +383,10 @@ class Find(db.Model):
     item = db.relationship('Item', backref=db.backref('find', lazy='dynamic'))
     key = db.Column(db.String(200), index=True)
     value = db.Column(db.Text())
+    findvalue = db.Column(db.Text())
 
     def __repr__(self):
-        return (u'%s=%s' % (self.key, self.value)).encode('utf-8')
+        return (u'%s=%s' % (self.key, self.findvalue)).encode('utf-8')
 
     @classmethod
     def get(cls, item, key):

@@ -34,9 +34,6 @@ oml.ui.folders = function() {
                         oml.$ui.librariesList.value('', 'items', result.data.items);
                     });
                 },
-                open: function() {
-
-                },
                 select: function() {
                     oml.UI.set({find: getFind('')});
                     oml.$ui.librariesList.options({selected: ['']});
@@ -148,9 +145,6 @@ oml.ui.folders = function() {
                                 );
                             });
                         },
-                        open: function() {
-                            oml.$ui.listDialog = oml.ui.listDialog().open();
-                        },
                         select: function(data) {
                             oml.UI.set({find: getFind(data.ids[0])});
                         },
@@ -206,7 +200,7 @@ oml.ui.folders = function() {
                             });
                         },
                         open: function() {
-                            oml.ui.listDialog().open();
+                            !index && oml.ui.listDialog().open();
                         },
                         select: function(data) {
                             oml.UI.set({find: getFind(data.ids[0])});

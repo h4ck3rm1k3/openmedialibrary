@@ -25,7 +25,7 @@ oml.ui.listDialog = function() {
                 .bindEvent({
                     click: function() {
                         that.close();
-                        oml.deleteList();
+                        oml.ui.deleteListDialog().open();
                     }
                 })
             ] : []).concat([
@@ -42,7 +42,7 @@ oml.ui.listDialog = function() {
             ]),
             closeButton: true,
             content: Ox.LoadingScreen().start(),
-            height: 256,
+            height: 264,
             title: Ox._('List – {0}', [
                 ui._list == '' ? Ox._('All Libraries')
                 : ui._list
@@ -91,8 +91,15 @@ oml.ui.listDialog = function() {
                         });
                     }
                 })
+                .appendTo($content),
+            $findForm;
+        Ox.print('DEBUG:', list, listData)
+        if (listData.type == 'smart') {
+            $findForm = oml.ui.findForm(listData)
+                .css({marginTop: '8px'})
                 .appendTo($content);
-        that.options({content: $content})
+        }
+        that.options({content: $content});
     });
 
     return that;

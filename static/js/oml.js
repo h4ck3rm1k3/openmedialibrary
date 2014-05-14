@@ -73,6 +73,7 @@
                             ? Ox['format' + Ox.toTitleCase(key.format.type)].apply(
                                 this, [value].concat(key.format.args || [])
                             )
+                            : Ox.isArray(key.type) ? value.join(', ')
                             : value;
                     }
                 });

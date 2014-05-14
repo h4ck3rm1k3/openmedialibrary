@@ -12,9 +12,13 @@ app = Blueprint('oxflask', __name__)
 
 @app.route('/api/', methods=['POST', 'OPTIONS'])
 def api():
+    if request.host not in request.headers['origin']:
+        print 'reject cross site attempt to access api', request
+        return ''
+
     if request.method == "OPTIONS":
         response = render_to_json_response({'status': {'code': 200, 'text': 'use POST'}})
-        response.headers['Access-Control-Allow-Origin'] = '*'
+        #response.headers['Access-Control-Allow-Origin'] = '*'
         return response
     if not 'action' in request.form:
         methods = actions.keys()
@@ -30,7 +34,7 @@ def api():
     else:
         response = render_to_json_response(json_response(status=400,
                                 text='Unknown action %s' % action))
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    #response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
 def trim(docstring):

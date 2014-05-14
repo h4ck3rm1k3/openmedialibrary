@@ -4,7 +4,7 @@ import ox.web.lookupbyisbn
 
 from utils import normalize_isbn
 
-import ol
+import openlibrary as ol
 
 def add_lookupbyisbn(item): 
     isbn = item.meta.get('isbn10', item.meta.get('isbn13'))

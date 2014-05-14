@@ -133,12 +133,8 @@ oml.ui.filter = function(id) {
             },
             sort: function(data) {
                 var filters = Ox.clone(ui.filters, true);
-                filters[filterIndex].sort = [Ox.clone(data)];
+                filters[filterIndex].sort = [{key: data.key, operator: data.operator}];
                 oml.UI.set({filters: filters});
-            },
-            oml_find: function() {
-                Ox.print('%%%%', 'RELOADING FILTER')
-                that.reloadList(true);
             }
         }),
 

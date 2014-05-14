@@ -11,7 +11,7 @@ import os
 
 import ox
 import ed25519
-import requests
+import urllib2
 
 import settings
 import user.models
@@ -20,10 +20,12 @@ from changelog import Changelog
 import directory
 from websocket import trigger_event
 from localnodes import LocalNodes
+from ssl_request import get_opener
 
 ENCODING='base64'
 
 class Node(object):
+    _cert = None
     online = False
     download_speed = 0
 
@@ -39,15 +41,14 @@ class Node(object):
     def url(self):
         local = self.get_local()
         if local:
-            url = 'http://[%s]:%s' % (local['host'], local['port'])
-            print 'using local peer discovery to access node', url
+            url = 'https://[%s]:%s' % (local['host'], local['port'])
         elif not self.host:
             return None
         else:
             if ':' in self.host:
-                url = 'http://[%s]:%s' % (self.host, self.port)
+                url = 'https://[%s]:%s' % (self.host, self.port)
             else:
-                url = 'http://%s:%s' % (self.host, self.port)
+                url = 'https://%s:%s' % (self.host, self.port)
         return url
 
     def resolve(self):
@@ -56,13 +57,20 @@ class Node(object):
             self.host = r['host']
             if 'port' in r:
                 self.port = r['port']
+            if r['cert'] != self._cert:
+                self._cert = r['cert']
+                self._opener = get_opener(self._cert)
         else:
             self.host = None
             self.port = 9851
 
     def get_local(self):
         if self._nodes and self._nodes._local:
-            return self._nodes._local.get(self.user_id)
+            local = self._nodes._local.get(self.user_id)
+            if local and local['cert'] != self._cert:
+                self._cert = local['cert']
+                self._opener = get_opener(self._cert)
+            return local
         return None
 
     def request(self, action, *args):
@@ -84,13 +92,30 @@ class Node(object):
             'X-Ed25519-Key': settings.USER_ID,
             'X-Ed25519-Signature': sig,
         }
-        r = requests.post(url, data=content, headers=headers)
-        if r.status_code == 403:
-            print 'REMOTE ENDED PEERING'
-            if self.user.peered:
-                self.user.update_peering(False)
-                self.online = False
-        data = r.content
+        self._opener.addheaders = zip(headers.keys(), headers.values())
+        try:
+            r = self._opener.open(url, data=content)
+        except urllib2.HTTPError as e:
+            if e.code == 403:
+                print 'REMOTE ENDED PEERING'
+                if self.user.peered:
+                    self.user.update_peering(False)
+                    self.online = False
+                return
+            print 'urllib2.HTTPError', e, e.code
+            self.online = False
+            return None
+        except urllib2.URLError as e:
+            print 'urllib2.URLError', e
+            self.online = False
+            return None
+        except:
+            print 'unknown url error'
+            import traceback
+            print traceback.print_exc()
+            self.online = False
+            return None
+        data = r.read()
         sig = r.headers.get('X-Ed25519-Signature')
         if sig and self._valid(data, sig):
             response = json.loads(data)
@@ -157,7 +182,7 @@ class Node(object):
                 'status': 'offline'
             })
             r = False
-        print r
+        print 'pushedChanges', r, self.user_id
 
     def requestPeering(self, message):
         p = self.user
@@ -205,31 +230,39 @@ class Node(object):
         }
         t1 = datetime.now()
         print 'GET', url
+        '''
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
+            content = r.content
+        '''
+        self._opener.addheaders = zip(headers.keys(), headers.values())
+        r = self._opener.open(url)
+        if r.getcode() == 200:
+            content = r.read()
             t2 = datetime.now()
             duration = (t2-t1).total_seconds()
             if duration:
-                self.download_speed = len(r.content) / duration
+                self.download_speed = len(content) / duration
             print 'SPEED', ox.format_bits(self.download_speed)
-            return item.save_file(r.content)
+            return item.save_file(content)
         else:
             print 'FAILED', url
             return False
 
-    def download_upgrade(self):
-        for module in settings.release['modules']:
-            path = os.path.join(settings.update_path, settings.release['modules'][module]['name'])
+    def download_upgrade(self, release):
+        for module in release['modules']:
+            path = os.path.join(settings.update_path, release['modules'][module]['name'])
             if not os.path.exists(path):
-                url = '%s/oml/%s' % (self.url, settings.release['modules'][module]['name'])
-                sha1 = settings.release['modules'][module]['sha1']
+                url = '%s/oml/%s' % (self.url, release['modules'][module]['name'])
+                sha1 = release['modules'][module]['sha1']
                 headers = {
                     'User-Agent': settings.USER_AGENT,
                 }
-                r = requests.get(url, headers=headers)
-                if r.status_code == 200:
+                self._opener.addheaders = zip(headers.keys(), headers.values())
+                r = self._opener.open(url)
+                if r.getcode() == 200:
                     with open(path, 'w') as fd:
-                        fd.write(r.content)
+                        fd.write(r.read())
                         if (ox.sha1sum(path) != sha1):
                             print 'invalid update!'
                             os.unlink(path)
@@ -261,6 +294,8 @@ class Nodes(Thread):
     def _call(self, target, action, *args):
         if target == 'all':
             nodes = self._nodes.values()
+        elif target == 'peered':
+            nodes = [n for n in self._nodes.values() if n.user.peered]
         elif target == 'online':
             nodes = [n for n in self._nodes.values() if n.online]
         else:

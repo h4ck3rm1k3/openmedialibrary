@@ -19,9 +19,13 @@ oml.addList = function() {
                 name: oml.validateName(Ox._('Untitled'), listNames),
                 type: !isSmart ? 'static' : 'smart'
             };
-            if (isFrom) {
-                if (!isSmart) {
+            if (!isSmart) {
+                if (isFrom) {
                     data.items = ui.listSelection;
+                }
+            } else {
+                if (!isFrom) {
+                    data.query = oml.config.user.ui.find;
                 } else {
                     data.query = ui.find;
                 }
@@ -532,6 +536,16 @@ oml.enableDragAndDrop = function($list, canMove) {
 
 };
 
+oml.getEditTooltip = function(title) {
+    return function(e) {
+        var $target = $(e.target);
+        return (
+            $target.is('a') || $target.parents('a').length
+            ? Ox._('Shift+doubleclick to edit') : Ox._('Doubleclick to edit')
+        ) + (title ? ' ' + Ox._(title) : '');
+    }
+};
+
 (function() {
 
     // Note: getFindState has to run after getListState and getFilterState
@@ -705,14 +719,9 @@ oml.getInfoHeight = function() {
 };
 
 oml.getListData = function(list) {
-    var data = {}, ui = oml.user.ui;
-    if (Ox.isUndefined(list)) {
-        list = ui._list;
-    }
-    if (ui._lists) {
-        data = ui._lists[list];
-    }
-    return data;
+    var ui = oml.user.ui;
+    list = Ox.isUndefined(list) ? ui._list : list;
+    return ui._lists ? Ox.getObjectById(ui._lists, list) : {};
 };
 
 oml.getListFoldersHeight = function() {
@@ -769,25 +778,30 @@ oml.getUsersAndLists = function(callback) {
                 return user.peered;
             })
         );
-        users.forEach(function(user) {
-            lists.push({
-                id: (user.nickname == username ? '' : user.nickname) + ':',
-                name: Ox._('Library'),
-                type: 'library',
-                user: user.nickname
-            });
-        });
         oml.api.getLists(function(result) {
-            lists = lists.concat(result.data.lists);
+            users.forEach(function(user) {
+                lists = lists.concat([{
+                    id: (user.nickname == username ? '' : user.nickname) + ':',
+                    name: Ox._('Library'),
+                    type: 'library',
+                    user: user.nickname
+                }].concat(
+                    result.data.lists.filter(function(list) {
+                        return list.user == user.nickname;
+                    })
+                ));
+            });
+            lists = lists.map(function(list) {
+                return Ox.extend(list, {
+                    editable: list.user == username && list.type == 'static',
+                    title: (list.user ? list.user + ': ' : '') + list.name
+                });
+            })
             if (!ui.lists) {
                 oml.$ui.mainMenu.update();
             }
-            ui._lists = {};
-            Ox.forEach(lists, function(list) {
-                ui._lists[list.id] = Ox.extend(list, {
-                    editable: list.user == username && list.type == 'static',
-                });
-            });
+            ui._lists = lists;
+            Ox.print('UI._LISTS', JSON.stringify(ui._lists));
             callback(users, lists);
         });
     })
@@ -857,8 +871,8 @@ oml.updateFilterMenus = function() {
 oml.updateLists = function(callback) {
     // FIXME: can this go somewhere else?
     Ox.Request.clearCache('getLists');
-    oml.api.getLists(function(result) {
-        var items = result.data.lists.filter(function(list) {
+    oml.getUsersAndLists(function(users, lists) {
+        var items = lists.filter(function(list) {
             return list.user == oml.user.preferences.username;
         });
         oml.$ui.folderList[0].options({

@@ -2,32 +2,21 @@
 
 oml.ui.resetUIDialog = function(data) {
 
-    var that = oml.ui.iconDialog({
+    var that = oml.ui.confirmDialog({
         buttons: [
             Ox.Button({
-                    id: 'cancel',
-                    title: Ox._('Don\'t Reset')
-                })
-                .bindEvent({
-                    click: function() {
-                        that.close();
-                    }
-                }),
+                title: Ox._('No, Don\'t Reset')
+            }),
             Ox.Button({
-                    id: 'reset',
-                    title: Ox._('Reset')
-                }).bindEvent({
-                    click: function() {
-                        that.close();
-                        oml.$ui.preferencesDialog.close();
-                        oml.UI.set({page: ''});
-                        oml.UI.reset();
-                    }
-                })
+                title: Ox._('Yes, Reset')
+            })
         ],
         content: Ox._('Are you sure you want to reset all UI settings?'),
-        keys: {enter: 'reset', escape: 'cancel'},
         title: Ox._('Reset UI Settings')
+    }, function() {
+        oml.$ui.preferencesDialog.close();
+        oml.UI.set({page: ''});
+        oml.UI.reset();
     });
 
     return that;

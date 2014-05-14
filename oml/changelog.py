@@ -49,7 +49,7 @@ class Changelog(db.Model):
         db.session.add(c)
         db.session.commit()
         if state.online:
-            state.nodes.queue('online', 'pushChanges', [c.json()])
+            state.nodes.queue('peered', 'pushChanges', [c.json()])
 
     @property
     def timestamp(self):
@@ -123,6 +123,7 @@ class Changelog(db.Model):
             i = Item.get_or_create(itemid, info)
         i.users.append(user)
         i.update()
+        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_edititem(self, user, timestamp, itemid, meta):
@@ -137,6 +138,7 @@ class Changelog(db.Model):
         elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
             print 'new mapping', key, meta[key], 'currently', i.meta.get('mainid'), i.meta.get(i.meta.get('mainid'))
             i.update_mainid(key, meta[key])
+        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_removeitem(self, user, timestamp, itemid):
@@ -150,6 +152,7 @@ class Changelog(db.Model):
         else:
             db.session.delete(i)
             db.session.commit()
+        trigger_event('itemchange', {'fixme': 'new remote changes'})
         return True
 
     def action_addlist(self, user, timestamp, name, query=None):

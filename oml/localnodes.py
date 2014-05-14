@@ -47,6 +47,7 @@ class LocalNodes(Thread):
             'username': preferences.get('username', 'anonymous'),
             'host': self.host,
             'port': server['node_port'],
+            'cert': server['cert']
         })
         sig = sk.sign(message, encoding='base64')
         packet = json.dumps([sig, USER_ID, message])
@@ -65,11 +66,12 @@ class LocalNodes(Thread):
                 data = data[:-1] # Strip trailing \0's
             data = self.verify(data)
             if data:
-                if data['id'] not in self._nodes:
-                    thread.start_new_thread(self.new_node, (data, ))
-                else:
-                    print 'UPDATE NODE', data
-                self._nodes[data['id']] = data
+                if data['id'] != USER_ID:
+                    if data['id'] not in self._nodes:
+                        thread.start_new_thread(self.new_node, (data, ))
+                    #else:
+                    #    print 'UPDATE NODE', data
+                    self._nodes[data['id']] = data
 
     def verify(self, data):
         try:
@@ -81,7 +83,7 @@ class LocalNodes(Thread):
             if valid(user_id, data, sig):
                 message = json.loads(data)
                 message['id'] = user_id
-                for key in ['id', 'username', 'host', 'port']:
+                for key in ['id', 'username', 'host', 'port', 'cert']:
                     if key not in message:
                         return None
                 return message

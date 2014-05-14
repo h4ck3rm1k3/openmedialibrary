@@ -44,7 +44,6 @@ if [ "$1" == "debug" ]; then
         exit 1
     fi
     shift
-    echo Open browser at http://$HOST
     python oml server $@
     exit $?
 fi

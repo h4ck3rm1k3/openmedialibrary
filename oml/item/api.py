@@ -25,44 +25,21 @@ def find(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     q = query.parse(data)
     if 'group' in q:
-        response['items'] = []
-        '''
-        items = 'items'
-        item_qs = q['qs']
-        order_by = query.order_by_group(q)
-        qs = models.Facet.objects.filter(key=q['group']).filter(item__id__in=item_qs)
-        qs = qs.values('value').annotate(items=Count('id')).order_by(*order_by)
-
-        if 'positions' in q:
-            response['positions'] = {}
-            ids = [j['value'] for j in qs]
-            response['positions'] = utils.get_positions(ids, q['positions'])
-        elif 'range' in data:
-            qs = qs[q['range'][0]:q['range'][1]]
-            response['items'] = [{'name': i['value'], 'items': i[items]} for i in qs]
-        else:
-            response['items'] = qs.count()
-        '''
-        _g = {}
-        key = utils.get_by_id(settings.config['itemKeys'], q['group'])
-        for item in q['qs']:
-            i = item.json()
-            if q['group'] in i:
-                values = i[q['group']]
-                if isinstance(values, basestring):
-                    values = [values]
-                for value in values:
-                    if key.get('filterMap') and value:
-                        value = re.compile(key.get('filterMap')).findall(value)
-                        if value:
-                            value = value[0]
-                        else:
-                            continue
-                    if value not in _g:
-                        _g[value] = 0
-                    _g[value] += 1
-        g = [{'name': k, 'items': _g[k]} for k in _g]
-        if 'sort' in data: # parse adds default sort to q!
+        names = {}
+        groups = {}
+        items = [i.id for i in q['qs']]
+        qs = models.Find.query.filter_by(key=q['group'])
+        if items:
+            qs = qs.filter(models.Find.item_id.in_(items))
+        for f in qs.values('value', 'findvalue'):
+            value = f[0]
+            findvalue = f[1]
+            if findvalue not in groups:
+                groups[findvalue] = 0
+            groups[findvalue] += 1
+            names[findvalue] = value
+        g = [{'name': names[k], 'items': groups[k]} for k in groups]
+        if 'sort' in q:
             g.sort(key=lambda k: k[q['sort'][0]['key']])
             if q['sort'][0]['operator'] == '-':
                 g.reverse()
@@ -90,9 +67,11 @@ def find(request):
             j = i.json()
             response['items'].append({k:j[k] for k in j if not data['keys'] or k in data['keys']})
     else:
-        items = [i.json() for i in q['qs']]
-        response['items'] = len(items)
-        response['size'] = sum([i.get('size',0) for i in items])
+        response['items'] = q['qs'].count()
+        #from sqlalchemy.sql import func
+        #models.db.session.query(func.sum(models.Item.sort_size).label("size"))
+        #response['size'] = x.scalar()
+        response['size'] = sum([i.sort_size or 0 for i in q['qs']])
     return response
 actions.register(find)
 
