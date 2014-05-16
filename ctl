@@ -73,6 +73,11 @@ if [ "$1" == "open" ]; then
     fi
     exit 0
 fi
+if [ "$1" == "ui" ]; then
+    shift
+    python2 $NAME/oml/ui.py $@
+    exit $?
+fi
 
 cd $BASE/$NAME
 python2 oml $@
