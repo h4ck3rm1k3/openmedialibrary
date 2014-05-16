@@ -62,6 +62,7 @@ oml.ui.usersDialog = function() {
         }),
 
         users,
+        peerIds = [],
 
         buttons = [
             {id: 'send', title: Ox._('Send')},
@@ -284,11 +285,12 @@ oml.ui.usersDialog = function() {
                             var isOwn = data.value == oml.user.id,
                                 isPeer = Ox.contains(peerIds, data.value),
                                 isValid = oml.validatePublicKey(data.value),
-                                peer = Ox.getObjectById(users, data.value);
-                            $sendButton.options({
-                                disabled: isOwn || isPeer || !isValid
+                                peer = Ox.getObjectById(users, data.value),
+                                disabled = isOwn || isPeer || !isValid;
+                            $buttons[0].options({
+                                disabled: disabled
                             });
-                            if (data.value && $sendButton.options('disabled')) {
+                            if (data.value && disabled) {
                                 $warning.html(
                                     isOwn ? 'That\'s your own public key.'
                                     : isPeer ? 'That\'s '
@@ -383,19 +385,31 @@ oml.ui.usersDialog = function() {
                             };
                             if (id == 'send') {
                                 oml.api.requestPeering(data, function(result) {
-                                    
+                                    Ox.Request.clearCache();
+                                    updateUsers(function() {
+                                        selectUser(user.id);
+                                    });
                                 });
                             } else if (id == 'cancel') {
                                 oml.api.cancelPeering(data, function(result) {
-                                    
+                                    Ox.Request.clearCache();
+                                    updateUsers(function() {
+                                        selectUser(user.id);
+                                    });
                                 });
                             } else if (id == 'accept') {
                                 oml.api.acceptPeering(data, function(result) {
-                                    
+                                    Ox.Request.clearCache();
+                                    updateUsers(function() {
+                                        selectUser(user.id);
+                                    });
                                 });
                             } else if (id == 'reject') {
                                 oml.api.rejectPeering(data, function(result) {
-                                    
+                                    Ox.Request.clearCache();
+                                    updateUsers(function() {
+                                        selectUser(user.id);
+                                    });
                                 });
                             } else if (id == 'remove') {
                                 oml.ui.confirmDialog({
@@ -411,7 +425,10 @@ oml.ui.usersDialog = function() {
                                     content: Ox._('Are you sure you want to remove this peer?')
                                 }, function() {
                                     oml.api.removePeering(data, function(result) {
-                                        // ...
+                                        Ox.Request.clearCache();
+                                        updateUsers(function() {
+                                            selectUser(user.id);
+                                        });
                                     });
                                 });
                             }
@@ -478,6 +495,17 @@ oml.ui.usersDialog = function() {
 
     }
 
+    function selectUser(id) {
+        $lists.forEach(function($list) {
+            var item = $list.options('items').filter(function(item) {
+                return item.id == id;
+            })[0];
+            if (item) {
+                selectItem($list, id);
+            }
+        });
+    }
+
     function selectItem($list, id) {
         $lists.forEach(function($element) {
             if ($element == $list) {
@@ -492,19 +520,15 @@ oml.ui.usersDialog = function() {
         }
     }
 
-    function updateUsers() {
-        // ...
-    }
-
-    that.update = function() {
-
-        that.options({
-            content: Ox.LoadingScreen().start()
-        });
-
+    function updateUsers(callback) {
         oml.api.getUsers(function(result) {
 
             users = result.data.users;
+            peerIds = users.filter(function(user) {
+                return user.peered;
+            }).map(function(user) {
+                return user.id
+            });
             folders.forEach(function(folder) {
                 folder.items = [];
             });
@@ -517,6 +541,10 @@ oml.ui.usersDialog = function() {
                         username: ''
                     }, user)
                 );
+            });
+
+            $lists.splice(1).forEach(function(folder) {
+                folder.remove();
             });
 
             folders.forEach(function(folder, index) {
@@ -549,9 +577,17 @@ oml.ui.usersDialog = function() {
             });
 
             that.options({content: $panel});
+            callback && callback();
 
         });
-        
+    }
+
+    that.update = function() {
+
+        that.options({
+            content: Ox.LoadingScreen().start()
+        });
+        updateUsers();
         return that;
 
     };
