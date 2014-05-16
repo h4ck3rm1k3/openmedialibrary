@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
 
 from flask.ext.script import Command
 
@@ -10,7 +11,10 @@ class Setup(Command):
         """
         def run(self):
             import setup
+            import settings
             setup.create_default_lists()
+            settings.db.session.connection().execute("PRAGMA journal_mode=WAL")
+            settings.db.session.commit()
 
 class UpdateStatic(Command):
         """
@@ -28,8 +32,8 @@ class UpdateStatic(Command):
             oxjs = os.path.join(settings.static_path, 'oxjs')
             if not os.path.exists(oxjs):
                 r('git', 'clone', 'https://git.0x2620.org/oxjs.git', oxjs)
-            r('python', os.path.join(oxjs, 'tools', 'build', 'build.py'))
-            r('python', os.path.join(settings.static_path, 'py', 'build.py'))
+            r('python2', os.path.join(oxjs, 'tools', 'build', 'build.py'))
+            r('python2', os.path.join(settings.static_path, 'py', 'build.py'))
 
 class Release(Command):
         """

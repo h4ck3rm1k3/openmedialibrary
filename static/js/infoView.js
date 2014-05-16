@@ -66,6 +66,12 @@ oml.ui.infoView = function(identifyData) {
         return '<span class="OxLight">' + str + '</span>';
     }
 
+    function formatKey(key) {
+        var item = Ox.getObjectById(oml.config.itemKeys, key);
+        return '<span style="font-weight: bold">'
+            + Ox._(Ox.toTitleCase(key)) + ':&nbsp;</span> ';
+    }
+
     function formatValue(value, key) {
         return (Ox.isArray(value) ? value : [value]).map(function(value) {
             return key ?
@@ -234,6 +240,7 @@ oml.ui.infoView = function(identifyData) {
         $elements = $elements 
             ? Ox.makeArray($elements)
             : [$cover, $info, $data];
+        Ox.print('DEBUG, $ELEMENTS', $elements);
 
         (data ? Ox.noop : oml.api.get)({
             id: id,
@@ -308,8 +315,9 @@ oml.ui.infoView = function(identifyData) {
                             Ox.EditableContent({
                                 clickLink: oml.clickLink,
                                 editable: isEditable,
+                                placeholder: formatLight(Ox._('Unknown Title')),
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
-                                value: data.title
+                                value: data.title || ''
                             })
                             .css({
                                 fontSize: '13px',
@@ -330,7 +338,9 @@ oml.ui.infoView = function(identifyData) {
                                     clickLink: oml.clickLink,
                                     editable: isEditable,
                                     format: function(value) {
-                                        return formatValue(value.split(', '), 'author');
+                                        return !identifyData
+                                            ? formatValue(value.split(', '), 'author')
+                                            : value;
                                     },
                                     placeholder: formatLight(Ox._('Unknown Author')),
                                     tooltip: isEditable ? oml.getEditTooltip() : '',
@@ -340,23 +350,65 @@ oml.ui.infoView = function(identifyData) {
                                     fontSize: '13px',
                                     fontWeight: 'bold'
                                 })
+                                .bindEvent({
+                                    // ...
+                                })
                             )
                             .appendTo($info);
                     }
 
+                    if (!isEditable) {
+                        $('<div>')
+                            .css({
+                                marginTop: '8px'
+                            })
+                            .text(
+                                (data.place || '')
+                                + (data.place && (data.publisher || data.date) ? ' : ' : '')
+                                + (data.publisher || '')
+                                + (data.publisher && data.date ? ', ' : '')
+                                + (data.date || '')
+                            )
+                            .appendTo($info);
+                    } else {
+                        var $div = $('<div>')
+                            .addClass('OxSelectable')
+                            .css({marginTop: '8px'})
+                            .appendTo($info);
+                        ['edition', 'publisher', 'date'].forEach(function(key, index) {
+                            index && $('<div>').css({float: 'left'}).html(';&nbsp;').appendTo($div);
+                            $('<div>')
+                                .css({float: 'left'})
+                                .html(formatKey(key))
+                                .appendTo($div);
+                            Ox.EditableContent({
+                                    clickLink: oml.clickLink,
+                                    format: function(value) {
+                                        return formatValue(value.split(', '), key)
+                                    },
+                                    placeholder: formatLight('unknown'),
+                                    tooltip: oml.getEditTooltip(),
+                                    value: data[key] || ''
+                                })
+                                .css({float: 'left'})
+                                .bindEvent({
+                                    submit: function(event) {
+                                        editMetadata(key, event.value);
+                                    }
+                                })
+                                .appendTo($div);
+                        });
+                    }
 
-                    $('<div>')
-                        .css({
-                            marginTop: '8px'
-                        })
-                        .text(
-                            (data.place || '')
-                            + (data.place && (data.publisher || data.date) ? ' : ' : '')
-                            + (data.publisher || '')
-                            + (data.publisher && data.date ? ', ' : '')
-                            + (data.date || '')
-                        )
-                        .appendTo($info);
+                    if (data.classification) {
+                        $('<div>')
+                            .css({
+                                marginTop: '8px',
+                                textAlign: 'justify'
+                            })
+                            .html(Ox.encodeHTMLEntities(data.classification))
+                            .appendTo($info);
+                    }
 
                     if (data.description) {
                         $('<div>')
@@ -445,11 +497,14 @@ oml.ui.infoView = function(identifyData) {
 
             });
 
+            // FIXME: identify dialog should call this too
             function editMetadata(key, value) {
                 var edit;
                 if (value != data[key]) {
                     edit = Ox.extend({id: ui.item}, key, value);
                     oml.api.edit(edit, function(result) {
+                        Ox.Request.clearCache('find');
+                        oml.$ui.browser.reloadList();
                         that.update(result.data, $data);
                     });
                 }
@@ -469,7 +524,7 @@ oml.ui.infoView = function(identifyData) {
         transfer: function(data) {
             if (data.id == ui.item && data.progress == 1) {
                 Ox.Request.clearCache(); // FIXME: too much
-                that.update(ui.item, $data);
+                that.update(ui.item, [$info, $data]);
             }
         }
     });

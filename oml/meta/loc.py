@@ -33,7 +33,10 @@ def lookup(id):
     info = {
         'lccn': id
     }
-    info['title'] = ''.join([e.text for e in mods.findall(ns + 'titleInfo')[0]])
+    title = mods.findall(ns + 'titleInfo')
+    if not title:
+        return {}
+    info['title'] = ''.join([e.text for e in title[0]])
     origin = mods.findall(ns + 'originInfo')
     if origin:
         info['place'] = []

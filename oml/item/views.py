@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
 
 import os
 from datetime import datetime
@@ -77,7 +78,7 @@ def cover(id, size=None):
     if not 'coverRatio' in item.meta:
         #img = Image.open(StringIO(str(covers[id])))
         img = Image.open(StringIO(data))
-        item.meta['coverRatio'] = float(img.size[0])/img.size[1]
+        item.meta['coverRatio'] = img.size[0]/img.size[1]
         db.session.add(item)
         db.session.commit()
     resp = make_response(data)

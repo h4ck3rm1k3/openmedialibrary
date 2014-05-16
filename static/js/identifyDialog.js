@@ -34,7 +34,7 @@ oml.ui.identifyDialog = function(data) {
 
         originalData = Ox.clone(data, true),
 
-        editedData,
+        idValue, titleValue,
 
         $idInputs, $idButtons = {},
 
@@ -125,12 +125,17 @@ oml.ui.identifyDialog = function(data) {
                         var edit = Ox.extend(
                             {id: data.id},
                             $innerPanel.options('selected') == 'id'
-                                ? Ox.extend({}, 'foo', 'bar')
-                                : {olid: $list.value($list.options('selected'), 'olid')}
+                                ? idValue
+                                : titleValue
                         );
                         that.options({content: Ox.LoadingScreen().start()});
-                        oml.api.edit(edit, function() {
+                        that.disableButtons();
+                        oml.api.edit(edit, function(result) {
                             that.close();
+                            Ox.Request.clearCache('find');
+                            oml.$ui.browser.reloadList(true);
+                            Ox.Request.clearCache(data.id);
+                            oml.$ui.infoView.update(result.data);
                         });
                     }
                 })
@@ -227,7 +232,7 @@ oml.ui.identifyDialog = function(data) {
                             var value = $idInputs[index].options('elements')[1].value();
                             if (data.value) {
                                 if (value) {
-                                    editedData = Ox.extend({}, id.id, value);
+                                    idValue = Ox.extend({}, id.id, value);
                                     $idInputs.forEach(function($input, i) {
                                         if (i != index) {
                                             $input.options('elements')[0].value(false);
@@ -251,7 +256,7 @@ oml.ui.identifyDialog = function(data) {
                     .bindEvent({
                         submit: function(data) {
                             if (data.value) {
-                                editedData = Ox.extend({}, id.id, data.value);
+                                idValue = Ox.extend({}, id.id, data.value);
                                 $idInputs.forEach(function($input, i) {
                                     $input.options('elements')[0].options({
                                         disabled: true,
@@ -336,54 +341,53 @@ oml.ui.identifyDialog = function(data) {
     }
 
     function renderResults(items) {
-        items = [Ox.extend({index: '0'}, data)].concat(items);
         Ox.print('LIST ITEMS::::', items);
         var $list = Ox.TableList({
-                columns: [{
-                    format: function(value, data) {
-                        return (data.title || '') + (
-                            data.author
-                                ? ' <span class="OxLight">'
-                                    + data.author.join(', ') + '</span>'
-                                : ''
-                        );
+                columns: [
+                    {
+                        format: function(value) {
+                            return Ox.getObjectById(ids, value).title;
+                        },
+                        id: 'mainid',
+                        visible: true,
+                        width: 64
                     },
-                    id: 'index',
-                    visible: true,
-                    width: 192 - Ox.UI.SCROLLBAR_SIZE
-                }],
+                    {
+                        format: function(value, data) {
+                            return data[data.mainid]; 
+                        },
+                        id: 'index',
+                        visible: true,
+                        width: 128 - Ox.UI.SCROLLBAR_SIZE
+                    }
+                ],
                 items: items,
-                keys: ['author', 'title', 'olid'],
+                keys: ['mainid', 'isbn10', 'isbn13'],
                 min: 1,
                 max: 1,
                 scrollbarVisible: true,
-                selected: ['0'],
-                sort: [{key: 'index', operator: '+'}],
+                sort: [{key: 'mainid', operator: '+'}],
                 unique: 'index'
             })
             .bindEvent({
                 select: function(data) {
-                    var index = data.ids[0], olid;
-                    if (index == '0') {
-                        $results.replaceElement(1, oml.ui.infoView(data));
-                    } else {
-                        olid = $list.value(index, 'olid');
-                        editedData = {olid: olid};
-                        $results.replaceElement(1, Ox.LoadingScreen().start());
-                        oml.api.getMetadata({olid: olid}, function(result) {
-                            if (index == $list.options('selected')[0]) {
-                                $results.replaceElement(1, oml.ui.infoView(result.data));
-                                that.options('buttons')[1].options({disabled: false});
-                            }
-                        });
-                    }
-
+                    var index = data.ids[0], mainid;
+                    mainid = $list.value(index, 'mainid');
+                    Ox.print('MAINID', mainid)
+                    titleValue = Ox.extend({}, mainid, $list.value(index, mainid));
+                    $results.replaceElement(1, Ox.LoadingScreen().start());
+                    oml.api.getMetadata(titleValue, function(result) {
+                        if (index == $list.options('selected')[0]) {
+                            $results.replaceElement(1, oml.ui.infoView(result.data));
+                            that.options('buttons')[1].options({disabled: false});
+                        }
+                    });
                 }
             }),
             $results = Ox.SplitPanel({
                 elements: [
                     {element: $list, size: 192},
-                    {element: oml.ui.infoView(items[0])}
+                    {element: Ox.Element()}
                 ],
                 orientation: 'horizontal'
             });
@@ -480,7 +484,7 @@ oml.ui.identifyDialog = function(data) {
         $idButtons.clear.options({disabled: empty});
         $idButtons.reset.options({disabled: original});
         $idButtons.find.options({disabled: empty});
-        that.options('buttons')[1].options({disabled: original});
+        that[original ? 'disableButton' : 'enableButton']('update');
     }
 
     function updateTitleButtons() {
@@ -493,7 +497,7 @@ oml.ui.identifyDialog = function(data) {
         $titleButtons.clear.options({disabled: empty});
         $titleButtons.reset.options({disabled: original});
         $titleButtons.find.options({disabled: empty});
-        that.options('buttons')[1].options({disabled: original});
+        that[original ? 'disableButton' : 'enableButton']('update');
     }
 
     return that;

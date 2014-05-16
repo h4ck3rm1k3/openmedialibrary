@@ -37,8 +37,8 @@ oml.ui.appDialog = function() {
                     .css({
                         position: 'absolute',
                         left: '16px',
-                        right: '24px',
-                        top: '24px',
+                        right: '16px',
+                        top: '16px',
                         overflowY: 'auto'
                     })
                     .html(

@@ -14,6 +14,8 @@ def get_ids(key, value):
         if m:
             asin = m[0].split('/')[-3]
             ids.append(('asin', asin))
+    if key == 'isbn10':
+        ids.append(('isbn13', stdnum.isbn.to_isbn13(value)))
     if key == 'asin':
         if stdnum.isbn.is_valid(value):
             ids.append(('isbn10', value))
@@ -47,14 +49,16 @@ def lookup(id):
             r[key] = int(r[key])
     desc = find_re(data, '<h2>Description:<\/h2>(.*?)<div ')
     desc = desc.replace('<br /><br />', ' ').replace('<br /> ', ' ').replace('<br />', ' ')
-    r['description'] = desc
-    if r['description'] == u'Description of this item is not available at this time.':
-        r['description'] = ''
+    r['description'] = decode_html(strip_tags(desc))
     r['cover'] = find_re(data, '<img src="(.*?)" alt="Book cover').replace('._SL160_', '')
     for key in r:
         if isinstance(r[key], basestring):
             r[key] = decode_html(strip_tags(r[key])).strip()
-    if 'author' in r and isinstance(r['author'], basestring):
+    if 'author' in r and isinstance(r['author'], basestring) and r['author']:
         r['author'] = [r['author']]
+    else:
+        r['author'] = []
+    if r['description'].lower() == u'Description of this item is not available at this time.'.lower():
+        r['description'] = ''
     return r
 

@@ -254,8 +254,20 @@ oml.ui.usersDialog = function() {
                     width: 480
                 })
                 .bindEvent({
-                    change: function() {
-                        // ...
+                    change: function(data) {
+                        var value = oml.validateName(
+                                data.value,
+                                users.map(function(user) {
+                                    return user.nickname;
+                                })
+                            );
+                        this.value(value);
+                        oml.api.editUser({
+                            id: user.id,
+                            nickname: value
+                        }, function() {
+                            // ...
+                        });
                     }
                 })
                 .appendTo($form);
@@ -480,6 +492,10 @@ oml.ui.usersDialog = function() {
         }
     }
 
+    function updateUsers() {
+        // ...
+    }
+
     that.update = function() {
 
         that.options({
@@ -503,7 +519,6 @@ oml.ui.usersDialog = function() {
                 );
             });
 
-            Ox.print('FOLDERS::', folders)
             folders.forEach(function(folder, index) {
                 $lists.push(
                     (

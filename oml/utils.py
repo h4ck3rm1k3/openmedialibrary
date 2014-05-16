@@ -8,7 +8,7 @@ import stdnum.isbn
 
 import ox
 
-from meta.utils import normalize_isbn
+from meta.utils import normalize_isbn, find_isbns
 
 def valid_olid(id):
     return id.startswith('OL') and id.endswith('M')
@@ -75,16 +75,6 @@ def sort_title(title):
     #title
     title = re.sub(u'[\'!¿¡,\.;\-"\:\*\[\]]', '', title)
     return title.strip()
-
-def find_isbns(text):
-    matches = re.compile('\d[\d\-X\ ]+').findall(text)
-    matches = [normalize_isbn(value) for value in matches]
-    return [isbn for isbn in matches if stdnum.isbn.is_valid(isbn)
-        and len(isbn) in (10, 13)
-        and isbn not in (
-        '0' * 10,
-        '0' * 13,
-    )]
 
 def get_position_by_id(list, key):
     for i in range(0, len(list)):

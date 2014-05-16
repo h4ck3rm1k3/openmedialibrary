@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
 
 import os
 import re
@@ -198,6 +199,8 @@ class Item(db.Model):
                         if value:
                             value = unicode(value)
                             value = ox.sort_string(value).lower()
+                elif isinstance(value, list): #empty list
+                    value = ''
                 setattr(self, 'sort_%s' % key['id'], value)
 
     def update_find(self):
@@ -295,11 +298,14 @@ class Item(db.Model):
 
     def update_cover(self):
         cover = None
-        if 'cover' in self.meta:
+        if 'cover' in self.meta and self.meta['cover']:
             cover = ox.cache.read_url(self.meta['cover'])
             #covers[self.id] = requests.get(self.meta['cover']).content
             if cover:
                 covers[self.id] = cover
+        else:
+            if covers[self.id]:
+                del covers[self.id]
         path = self.get_path()
         if not cover and path:
             cover = self.extract_cover()

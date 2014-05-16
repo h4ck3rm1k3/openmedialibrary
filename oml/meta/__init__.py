@@ -7,6 +7,7 @@ import loc
 import lookupbyisbn
 import openlibrary
 import worldcat
+import google
 
 providers = [
     ('openlibrary', 'olid'),
@@ -17,9 +18,12 @@ providers = [
 ]
 
 def find(title, author=None, publisher=None, date=None):
+    results = google.find(title=title, author=author, publisher=publisher, date=date)
+    '''
     results = openlibrary.find(title=title, author=author, publisher=publisher, date=date)
     for r in results:
         r['mainid'] = 'olid'
+    '''
     return results
 
 def lookup(key, value):
