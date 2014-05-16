@@ -183,6 +183,8 @@ actions.register(scan, cache=False)
 
 @returns_json
 def _import(request):
-    state.main.add_callback(state.websockets[0].put, json.dumps(['import', {}]))
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    print 'api.import', data
+    state.main.add_callback(state.websockets[0].put, json.dumps(['import', data]))
     return {}
 actions.register(_import, 'import', cache=False)

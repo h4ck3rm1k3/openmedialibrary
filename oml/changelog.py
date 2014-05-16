@@ -57,6 +57,15 @@ class Changelog(db.Model):
         return self.created.strftime('%s')
 
     @classmethod
+    def apply_changes(cls, user, changes):
+        for change in changes:
+            if not Changelog.apply_change(user, change):
+                print 'FAIL', change
+                break
+                return False
+        return True
+
+    @classmethod
     def apply_change(cls, user, change, rebuild=False):
         revision, timestamp, sig, data = change
         last = Changelog.query.filter_by(user_id=user.id).order_by('-revision').first()

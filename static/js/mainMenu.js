@@ -370,6 +370,8 @@ oml.ui.mainMenu = function() {
                     oml.ui.listDialog.open();
                 } else if (id == 'deletelist') {
                     oml.ui.deleteListDialog().open();
+                } else if (id == 'import') {
+                    oml.ui.importDialog().open();
                 } else if (id == 'selectall') {
                     oml.$ui.list.selectAll();
                 } else if (id == 'selectnone') {
@@ -545,11 +547,11 @@ oml.ui.mainMenu = function() {
             title: Ox._('Edit'),
             items: [
                 {
-                    id: 'importitems',
+                    id: 'import',
                     title: Ox._('Import Books...')
                 },
                 {
-                    id: 'exportitems',
+                    id: 'export',
                     title: Ox._('Export Books...')
                 },
                 {},

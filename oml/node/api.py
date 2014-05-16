@@ -29,11 +29,10 @@ def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
 
 def api_pushChanges(app, user_id, changes):
     user = User.get(user_id)
-    for change in changes:
-        if not Changelog.apply_change(user, change):
-            print 'FAILED TO APPLY CHANGE', change
-            state.nodes.queue(user_id, 'pullChanges')
-            return False
+    if not Changelog.apply_changes(user, changes):
+        print 'FAILED TO APPLY CHANGE'
+        state.nodes.queue(user_id, 'pullChanges')
+        return False
     return True
 
 def api_requestPeering(app, user_id, username, message):

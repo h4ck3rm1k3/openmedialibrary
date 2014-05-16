@@ -12,12 +12,14 @@ from app import app
 import settings
 from settings import db
 from item.models import File
-from user.models import User
+from user.models import User, List
 
 from changelog import Changelog
 
 import media
 from websocket import trigger_event
+
+extensions = ['epub', 'pdf', 'txt']
 
 def remove_missing():
     dirty = False
@@ -49,7 +51,6 @@ def run_scan():
             prefix += '/'
         user = User.get_or_create(settings.USER_ID)
         assert isinstance(prefix, unicode)
-        extensions = ['pdf', 'epub', 'txt']
         books = []
         for root, folders, files in os.walk(prefix):
             for f in files:
@@ -62,8 +63,7 @@ def run_scan():
                     books.append(f)
 
         trigger_event('scan', {
-            'path': prefix,
-            'files': len(books)
+            'progress': [0, len(books)],
         })
         position = 0
         added = 0
@@ -96,29 +96,37 @@ def run_scan():
                 item.scrape()
                 added += 1
             trigger_event('scan', {
-                'position': position,
-                'length': len(books),
-                'path': path,
-                'progress': position/len(books),
                 'added': added,
+                'progress': [position, len(books)],
+                'path': path,
             })
         trigger_event('scan', {
-            'progress': 1,
+            'progress': [position, len(books)],
             'added': added,
-            'done': True
+            'status': {'code': 200, 'text': ''}
         })
 
-def run_import():
+def run_import(options=None):
+    options = options or {}
+
     with app.app_context():
         prefs = settings.preferences
-        prefix = os.path.expanduser(prefs['importPath'])
+        prefix = options.get('path', os.path.expanduser(prefs['importPath']))
         prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         prefix_imported = os.path.join(prefix_books, 'Imported/')
         if not prefix[-1] == '/':
             prefix += '/'
+
+        if not os.path.exists(prefix):
+            trigger_event('import', {
+                'progress': [0, 0],
+                'status': {'code': 404, 'text': 'path not found'}
+            })
         user = User.get_or_create(settings.USER_ID)
+        listname = options.get('list')
+        if listname:
+            listitems = []
         assert isinstance(prefix, unicode)
-        extensions = ['pdf', 'epub', 'txt']
         books = []
         for root, folders, files in os.walk(prefix):
             for f in files:
@@ -131,8 +139,7 @@ def run_import():
                     books.append(f)
 
         trigger_event('import', {
-            'path': prefix,
-            'files': len(books)
+            'progress': [0, len(books)],
         })
         position = 0
         added = 0
@@ -145,7 +152,10 @@ def run_import():
                 f_import = f
                 f = f.replace(prefix, prefix_imported)
                 ox.makedirs(os.path.dirname(f))
-                shutil.move(f_import, f)
+                if options.get('mode') == 'move':
+                    shutil.move(f_import, f)
+                else:
+                    shutil.copy(f_import, f)
                 path = f[len(prefix_books):]
                 data = media.metadata(f)
                 ext = f.split('.')[-1]
@@ -167,16 +177,19 @@ def run_import():
                         item.meta['mainid']: item.meta[item.meta['mainid']]
                     })
                 item.scrape()
+                if listname:
+                    listitems.append(item.id)
                 added += 1
             trigger_event('import', {
-                'position': position,
-                'length': len(books),
+                'progress': [position, len(books)],
                 'path': path,
-                'progress': position/len(books),
                 'added': added,
             })
+        if listname:
+            l = List.get_or_create(settings.USER_ID, listname)
+            l.add_items(listitems)
         trigger_event('import', {
-            'progress': 1,
+            'progress': [position, len(books)],
+            'status': {'code': 200, 'text': ''},
             'added': added,
-            'done': True
         })

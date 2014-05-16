@@ -46,6 +46,8 @@ def info(epub):
         isbn = extract_isbn(text)
         if isbn:
             data['isbn'] = isbn
+    if 'date' in data and 'T' in data['date']:
+        data['date'] = data['date'].split('T')[0]
     return data
 
 def extract_text(path):

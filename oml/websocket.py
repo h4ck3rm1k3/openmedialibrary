@@ -33,7 +33,7 @@ class Background:
             if action == 'ping':
                 self.post(['pong', data])
             elif action == 'import':
-                item.scan.run_import()
+                item.scan.run_import(data)
             elif action == 'scan':
                 item.scan.run_scan()
             elif action == 'update':

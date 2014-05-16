@@ -21,6 +21,11 @@ you need a working python 2.7.x installation and the following packages:
     python-simplejson python-lxml
  pip install -r requirements.txt
 
+On Linux you need to always install:
+
+ apt-get install \
+    python-imaging  python-lxml ghostscript
+
 == Development ==
 
 mkdir client

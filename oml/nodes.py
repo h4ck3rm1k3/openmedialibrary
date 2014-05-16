@@ -164,12 +164,7 @@ class Node(object):
             changes = self.request('pullChanges', from_revision)
             if not changes:
                 return False
-            for change in changes:
-                if not Changelog.apply_change(self.user, change):
-                    print 'FAIL', change
-                    break
-                    return False
-            return True
+            return Changelog.apply_changes(self.user, changes)
 
     def pushChanges(self, changes):
         print 'pushing changes to', self.user_id, changes
