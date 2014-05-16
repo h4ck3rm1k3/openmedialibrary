@@ -125,7 +125,7 @@ def info(pdf):
 '''
 def extract_text(pdf):
     if sys.platform == 'darwin':
-        cmd = ['/usr/bin/mdimport' '-d2', pdf]
+        cmd = ['/usr/bin/mdimport', '-d2', pdf]
     else:
         cmd = ['pdftotext', pdf, '-']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

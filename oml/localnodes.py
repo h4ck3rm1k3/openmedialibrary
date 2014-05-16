@@ -7,6 +7,9 @@ import thread
 import json
 import struct
 from threading import Thread
+import sys
+import subprocess
+
 
 from settings import preferences, server, USER_ID, sk
 from node.utils import get_public_ipv6
@@ -23,6 +26,20 @@ def can_connect(data):
         pass
     return False
 
+def get_interface():
+    interface = ''
+    if sys.platform == 'darwin':
+        #cmd = ['netstat', '-rn']
+        cmd = ['/sbin/route', '-n', 'get', 'default']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        interface = [[p.strip() for p in s.split(':', 1)] for s in stdout.strip().split('\n') if 'interface' in s]
+        if interface:
+            interface = '%%%s' % interface[0][1]
+        else:
+            interface = ''
+    return interface
+
 class LocalNodes(Thread):
     _active = True
     _nodes = {}
@@ -38,16 +55,11 @@ class LocalNodes(Thread):
             return
         self.daemon = True
         self.start()
-        self.host = get_public_ipv6()
-        self.send()
 
     def send(self):
         if not server['localnode_discovery']:
             return
-        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
 
-        ttl = struct.pack('@i', self.TTL)
-        s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl)
         message = json.dumps({
             'username': preferences.get('username', 'anonymous'),
             'host': self.host,
@@ -56,7 +68,16 @@ class LocalNodes(Thread):
         })
         sig = sk.sign(message, encoding='base64')
         packet = json.dumps([sig, USER_ID, message])
-        s.sendto(packet + '\0', (self._BROADCAST, self._PORT))
+
+        ttl = struct.pack('@i', self.TTL)
+        address = self._BROADCAST + get_interface()
+        addrs = socket.getaddrinfo(address, self._PORT, socket.AF_INET6,socket.SOCK_DGRAM)
+        addr = addrs[0]
+        (family, socktype, proto, canonname, sockaddr) = addr
+        s = socket.socket(family, socktype, proto)
+        s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl)
+        s.sendto(packet + '\0', sockaddr)
+        s.close()
 
     def receive(self):
         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
@@ -71,6 +92,7 @@ class LocalNodes(Thread):
                 data = data[:-1] # Strip trailing \0's
             data = self.verify(data)
             if data:
+                print addr
                 if data['id'] != USER_ID:
                     if data['id'] not in self._nodes:
                         thread.start_new_thread(self.new_node, (data, ))
@@ -111,6 +133,8 @@ class LocalNodes(Thread):
             self.send()
 
     def run(self):
+        self.host = get_public_ipv6()
+        self.send()
         self.receive()
 
     def join(self):
