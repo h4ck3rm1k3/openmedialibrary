@@ -31,6 +31,7 @@ class Node(object):
     _cert = None
     online = False
     download_speed = 0
+    TIMEOUT = 3
 
     def __init__(self, nodes, user):
         self._nodes = nodes
@@ -97,7 +98,7 @@ class Node(object):
         }
         self._opener.addheaders = zip(headers.keys(), headers.values())
         try:
-            r = self._opener.open(url, data=content)
+            r = self._opener.open(url, data=content, timeout=self.TIMEOUT)
         except urllib2.HTTPError as e:
             if e.code == 403:
                 logger.debug('REMOTE ENDED PEERING')
@@ -235,7 +236,7 @@ class Node(object):
             content = r.content
         '''
         self._opener.addheaders = zip(headers.keys(), headers.values())
-        r = self._opener.open(url)
+        r = self._opener.open(url, timeout=self.TIMEOUT)
         if r.getcode() == 200:
             content = r.read()
             t2 = datetime.now()

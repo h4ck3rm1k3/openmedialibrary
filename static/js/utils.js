@@ -208,6 +208,7 @@ oml.clearFilters = function() {
                     items: addedItems,
                     list: target
                 }, function(result) {
+                    Ox.Request.clearCache();
                     callback(result, addedItems);
                 });                    
             } else {

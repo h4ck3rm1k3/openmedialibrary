@@ -136,10 +136,18 @@ actions.register(editList, cache=False)
 @returns_json
 def addListItems(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    l = models.List.get_or_create(data['list'])
-    if l:
-        l.add_items(data['items'])
-        return l.json()
+    if data['list'] == ':':
+        from item.models import Item
+        user = state.user()
+        for item_id in data['items']:
+            i = Item.get(item_id)
+            if user not in i.users:
+                i.queue_download()
+    elif data['list']:
+        l = models.List.get_or_create(data['list'])
+        if l:
+            l.add_items(data['items'])
+            return l.json()
     return {}
 actions.register(addListItems, cache=False)
 
