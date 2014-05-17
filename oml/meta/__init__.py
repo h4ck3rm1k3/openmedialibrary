@@ -44,7 +44,7 @@ def lookup(key, value):
                     if not kv in ids:
                         ids.append(kv)
                         done = False
-    logger.debug('lookup %s=%s => %s' % ids[0][0], ids[0][1], ids)
+    logger.debug('lookup %s=%s => %s', ids[0][0], ids[0][1], ids)
     for k, v in ids:
         for provider, id in providers:
             if id == k and provider not in provider_data:
