@@ -37,16 +37,18 @@
             config: data.config,
             user: data.user
         });
-        // make sure all valid ui settings are present
-        oml.user.ui = Ox.extend(
-            Ox.clone(data.config.user.ui, true),
-            oml.user.ui
-        );
-        // make sure no invalid ui settings are present
-        Object.keys(oml.user.ui).forEach(function(key) {
-            if (Ox.isUndefined(oml.config.user.ui[key])) {
-                delete oml.user.ui[key];
-            }
+        ['preferences', 'ui'].forEach(function(key) {
+            // make sure all valid settings are present
+            oml.user[key] = Ox.extend(
+                Ox.clone(data.config.user[key], true),
+                oml.user[key]
+            );
+            // make sure no invalid settings are present
+            Object.keys(oml.user[key]).forEach(function(key_) {
+                if (Ox.isUndefined(oml.config.user[key][key_])) {
+                    delete oml.user[key][key_];
+                }
+            });
         });
         // TODO: make sure listView, listSort and itemView are valid
         Ox.extend(oml.config, {

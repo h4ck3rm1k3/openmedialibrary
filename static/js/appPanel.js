@@ -18,23 +18,38 @@ oml.ui.appPanel = function() {
         })
         .bindEvent({
             oml_page: function(data) {
-                setPage(data.value);
+                setPage(data.value, data.previousValue);
             }
         });
 
     setPage(ui.page);
 
-    function setPage(page) {
+    function setPage(page, previousPage) {
         // close dialogs
-        $('.OxDialog:visible').each(function() {
-            Ox.UI.elements[$(this).data('oxid')].close();
-        });
+        if (
+            !Ox.contains(['import', 'export'], page)
+            || !Ox.contains(['import', 'export'], previousPage)
+        ) {
+            $('.OxDialog:visible').each(function() {
+                Ox.UI.elements[$(this).data('oxid')].close();
+            });
+        }
         // open dialog
         if (Ox.contains([
             'welcome', 'app', 'preferences', 'users',
             'notifications', 'transfers', 'help'
         ], page)) {
             oml.$ui[page + 'Dialog'] = oml.ui[page + 'Dialog']().open();
+        } else if (Ox.contains(['import', 'export'], page)) {
+            if (
+                oml.$ui.importExportDialog
+                && oml.$ui.importExportDialog.is(':visible')
+            ) {
+                Ox.print('AAAAAAAA')
+                oml.$ui.importExportDialog.select(page);
+            } else {
+                oml.$ui.importExportDialog = oml.ui.importExportDialog(page).open();
+            }
         }
     }
 

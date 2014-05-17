@@ -371,7 +371,9 @@ oml.ui.mainMenu = function() {
                 } else if (id == 'deletelist') {
                     oml.ui.deleteListDialog().open();
                 } else if (id == 'import') {
-                    oml.ui.importDialog().open();
+                    oml.UI.set({page: 'import'});
+                } else if (id == 'export') {
+                    oml.UI.set({page: 'export'});
                 } else if (id == 'selectall') {
                     oml.$ui.list.selectAll();
                 } else if (id == 'selectnone') {
@@ -548,11 +550,11 @@ oml.ui.mainMenu = function() {
             items: [
                 {
                     id: 'import',
-                    title: Ox._('Import Books...')
+                    title: Ox._(oml.user.importing ? 'Importing Books...' : 'Import Books...') // FIXME
                 },
                 {
                     id: 'export',
-                    title: Ox._('Export Books...')
+                    title: Ox._(oml.user.exporting ? 'Exporting Books...' : 'Export Books...') // FIXME
                 },
                 {},
                 {

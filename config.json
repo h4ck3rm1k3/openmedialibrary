@@ -284,6 +284,8 @@
         ]},
         {"id": "users", "title": "Users"},
         {"id": "devices", "title": "Devices"},
+        {"id": "import", "title": "Import"},
+        {"id": "export", "title": "Export"},
         {"id": "notifications", "title": "Notifications"},
         {"id": "transfers", "title": "Transfers"},
         {"id": "gettingstarted", "title": "Getting Started"},

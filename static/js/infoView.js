@@ -247,6 +247,10 @@ oml.ui.infoView = function(identifyData) {
             keys: []
         }, function(result) {
 
+            if (!identifyData && ui.item != id) {
+                return;
+            }
+
             if (result) {
                 data = result.data;
             }

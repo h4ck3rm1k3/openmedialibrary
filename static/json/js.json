@@ -25,7 +25,7 @@
     "gridView.js",
     "iconDialog.js",
     "identifyDialog.js",
-    "importDialog.js",
+    "importExportDialog.js",
     "info.js",
     "infoView.js",
     "itemInnerPanel.js",

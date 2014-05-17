@@ -174,6 +174,7 @@ class List(db.Model):
         for item_id in items:
             i = Item.get(item_id)
             i.update_lists()
+            db.session.add(i)
         db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)
@@ -189,6 +190,8 @@ class List(db.Model):
         for item_id in items:
             i = Item.get(item_id)
             i.update_lists()
+            db.session.add(i)
+        db.session.commit()
         db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'removelistitems', self.name, items)

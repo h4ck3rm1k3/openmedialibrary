@@ -10,7 +10,7 @@ oml.ui.folders = function() {
 
         that = Ox.Element()
             .css({
-                //overflowX: 'hidden',
+                overflowX: 'hidden',
                 //overflowY: 'auto',
             })
             .bindEvent({

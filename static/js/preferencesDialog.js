@@ -25,7 +25,7 @@ oml.ui.preferencesDialog = function() {
                 {
                     id: 'libraryPath',
                     title: 'Library Path',
-                    value: preferences.libaryPath,
+                    value: preferences.libraryPath,
                     help: 'The directory in which your "Books" folder is located. This is where your media files are stored. It can be on your local machine, but just as well on an external drive or networked volume.'
                 },
                 {
@@ -366,7 +366,7 @@ oml.ui.preferencesDialog = function() {
                         ? Ox.Input({
                             height: 328,
                             type: 'textarea',
-                            value: item.value,
+                            value: oml.user.preferences[item.id] || item.value,
                             width: 400
                         })
                         : Ox.isBoolean(item.value)
@@ -379,7 +379,7 @@ oml.ui.preferencesDialog = function() {
                             label: Ox._(item.title),
                             labelWidth: 128,
                             placeholder: item.placeholder || '',
-                            value: item.value || '',
+                            value: oml.user.preferences[item.id] || item.value || '',
                             width: 384 - !!item.unit * 48
                         })
 

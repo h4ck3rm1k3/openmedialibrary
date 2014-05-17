@@ -174,8 +174,6 @@ oml.ui.usersDialog = function() {
 
     function renderUser(user) {
 
-        Ox.print('renderUSER', user)
-
         var $user = Ox.Element(),
 
             $form = Ox.Element()
@@ -521,6 +519,7 @@ oml.ui.usersDialog = function() {
     }
 
     function updateUsers(callback) {
+
         oml.api.getUsers(function(result) {
 
             users = result.data.users;
@@ -580,6 +579,7 @@ oml.ui.usersDialog = function() {
             callback && callback();
 
         });
+
     }
 
     that.update = function() {

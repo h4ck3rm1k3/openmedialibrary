@@ -727,6 +727,7 @@ oml.getListData = function(list) {
 oml.getListFoldersHeight = function() {
     var ui = oml.user.ui;
     return Object.keys(ui.showFolder).reduce(function(value, id, index) {
+        Ox.print('WTF WTF', index)
         var items = oml.$ui.folderList[index].options('items').length;
         return value + 16 + ui.showFolder[id] * (1 + items) * 16;
     }, 16);
@@ -828,15 +829,15 @@ oml.resizeListFolders = function() {
     var width = oml.getListFoldersWidth(),
         columnWidth = width - 58;
     oml.$ui.librariesList
-        .resizeColumn('title', columnWidth)
+        .resizeColumn('name', columnWidth)
         .css({width: width + 'px'});
     Ox.forEach(oml.$ui.folder, function($folder, index) {
         $folder.css({width: width + 'px'});
         oml.$ui.libraryList[index]
-            .resizeColumn('title', columnWidth)
+            .resizeColumn('name', columnWidth)
             .css({width: width + 'px'});
         oml.$ui.folderList[index]
-            .resizeColumn('title', columnWidth)
+            .resizeColumn('name', columnWidth)
             .css({width: width + 'px'});
     });
     oml.$ui.librariesList

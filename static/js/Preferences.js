@@ -19,7 +19,6 @@ oml.Preferences = (function() {
                 set[key] = value;
             }
         });
-
         if (Ox.len(set)) {
             oml.api.setPreferences(set);
             Ox.forEach(set, function(value, key) {
