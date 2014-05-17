@@ -8,6 +8,7 @@ import lookupbyisbn
 import openlibrary
 import worldcat
 import google
+import duckduckgo
 
 providers = [
     ('openlibrary', 'olid'),
@@ -18,7 +19,8 @@ providers = [
 ]
 
 def find(title, author=None, publisher=None, date=None):
-    results = google.find(title=title, author=author, publisher=publisher, date=date)
+    #results = google.find(title=title, author=author, publisher=publisher, date=date)
+    results = duckduckgo.find(title=title, author=author, publisher=publisher, date=date)
     '''
     results = openlibrary.find(title=title, author=author, publisher=publisher, date=date)
     for r in results:
