@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
 
 import Image
 from StringIO import StringIO
 import re
 import stdnum.isbn
+import socket
 
 import ox
+import ed25519
 
 from meta.utils import normalize_isbn, find_isbns
+
+
+ENCODING='base64'
 
 def valid_olid(id):
     return id.startswith('OL') and id.endswith('M')
@@ -81,4 +87,24 @@ def get_position_by_id(list, key):
         if list[i]['id'] == key:
             return i
     return -1
+
+def valid(key, value, sig):
+    '''
+    validate that value was signed by key
+    '''
+    vk = ed25519.VerifyingKey(str(key), encoding=ENCODING)
+    try:
+        vk.verify(str(sig), str(value), encoding=ENCODING)
+    #except ed25519.BadSignatureError:
+    except:
+        return False
+    return True
+
+def get_public_ipv6():
+    host = ('2a01:4f8:120:3201::3', 25519)
+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    s.connect(host)
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
 

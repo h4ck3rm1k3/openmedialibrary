@@ -7,7 +7,7 @@ import logging
 import json
 from datetime import datetime
 
-from ed25519_utils import valid
+from utils import valid
 
 import settings
 from settings import db

@@ -9,12 +9,11 @@ from tornado.httpserver import HTTPServer
 import settings
 
 import directory
-import utils
 import state
 import user
 
 import json
-from ed25519_utils import valid
+from utils import valid, get_public_ipv6
 import api
 import cert
 
@@ -105,7 +104,7 @@ class ShareHandler(tornado.web.RequestHandler):
 
 
 def publish_node():
-    host = utils.get_public_ipv6()
+    host = get_public_ipv6()
     state.online = directory.put(settings.sk, {
         'host': host,
         'port': settings.server['node_port'],

@@ -12,8 +12,7 @@ import thread
 from threading import Thread
 
 from settings import preferences, server, USER_ID, sk
-from node.utils import get_public_ipv6
-from ed25519_utils import valid
+from utils import valid, get_public_ipv6
 
 logger = logging.getLogger('oml.localnodes')
 
