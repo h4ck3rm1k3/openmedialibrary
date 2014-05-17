@@ -78,6 +78,15 @@ if [ "$1" == "ui" ]; then
     python2 $NAME/oml/ui.py $@
     exit $?
 fi
+if [ "$1" == "update" ]; then
+    cd $BASE/platform
+    git pull
+    cd $BASE/$NAME
+    git pull
+    $0 db upgrade
+    $0 setup
+    exit
+fi
 
 cd $BASE/$NAME
 python2 oml $@
