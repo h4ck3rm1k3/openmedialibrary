@@ -223,39 +223,7 @@ oml.ui.mainMenu = function() {
                         }
                     ]
                 },
-                {
-                    id: 'findMenu',
-                    title: Ox._('Find'),
-                    items: [
-                        {
-                            id: 'finditems',
-                            title: Ox._('Find'),
-                            items: [
-                                {
-                                    group: 'find',
-                                    title: Ox._('Find'),
-                                    min: 1,
-                                    max: 1,
-                                    items: oml.config.findKeys.map(function(key) {
-                                        var checked = key.id == findState.key;
-                                        return {
-                                            id: key.id,
-                                            title: Ox._(key.title),
-                                            checked: checked,
-                                            keyboard: checked ? 'control f' : ''
-                                        };
-                                    })
-                                },
-                            ]
-
-                        },
-                        {
-                            id: 'advancedfind',
-                            title: Ox._('Advanced Find'),
-                            keyboard: 'shift control f'
-                        }
-                    ]
-                },
+                getFindMenu(),
                 {
                     id: 'helpMenu',
                     title: Ox._('Help'),
@@ -333,12 +301,21 @@ oml.ui.mainMenu = function() {
                             operator: value == 'ascending' ? '+' : '-'
                         }]
                     });
+                } else if (id == 'findin') {
+                    oml.$ui.findInSelect.value(value);
+                    if (ui._findState.key == 'advanced') {
+                        // ...
+                    } else {
+                        oml.$ui.findInput.focusInput(true);
+                    }
                 } else if (id == 'find') {
                     if (value) {
                         oml.$ui.findSelect.value(value);
                         if (ui._findState.key == 'advanced') {
                             // fixme: autocomplete function doesn't get updated
-                            pandora.$ui.findInput.options({placeholder: ''});
+                            oml.$ui.findInput.options({placeholder: ''});
+                        } else {
+                            oml.$ui.findInput.focusInput(true);
                         }
                     } 
                 } else {
@@ -505,6 +482,7 @@ oml.ui.mainMenu = function() {
             oml_find: function() {
                 that.replaceMenu('listMenu', getListMenu());
                 that.replaceMenu('editMenu', getEditMenu());
+                that.replaceMenu('findMenu', getFindMenu());
                 /*
                 var action = Ox.startsWith(ui._list, ':') && ui._list != ':'
                     ? 'enableItem' : 'disableItem';
@@ -678,7 +656,59 @@ oml.ui.mainMenu = function() {
     }
 
     function getFindMenu() {
-        return ;
+        var isLibraries = !ui._list,
+            isLibrary = Ox.endsWith(ui._list, ':'),
+            isList = !isLibraries && !isLibrary;
+        return {
+            id: 'findMenu',
+            title: Ox._('Find'),
+            items: [
+                {
+                    id: 'findlists',
+                    title: Ox._('Find In'),
+                    items: [
+                        {
+                            group: 'findin',
+                            min: 1,
+                            max: 1,
+                            items: [
+                                {id: 'all', title: Ox._('All Libraries'), checked: isLibraries}
+                            ].concat(!isLibraries ? [
+                                {id: 'user', title: Ox._('This Library'), checked: isLibrary}
+                            ] : []).concat(isList ? [
+                                {id: 'list', title: Ox._('This List'), checked: isList}
+                            ] : [])
+                        }
+                    ]
+                },
+                {
+                    id: 'finditems',
+                    title: Ox._('Find'),
+                    items: [
+                        {
+                            group: 'find',
+                            min: 1,
+                            max: 1,
+                            items: oml.config.findKeys.map(function(key) {
+                                var checked = key.id == findState.key;
+                                return {
+                                    id: key.id,
+                                    title: Ox._(key.title),
+                                    checked: checked,
+                                    keyboard: checked ? 'control f' : ''
+                                };
+                            })
+                        },
+                    ]
+
+                },
+                {
+                    id: 'advancedfind',
+                    title: Ox._('Advanced Find'),
+                    keyboard: 'shift control f'
+                }
+            ]
+        };
     }
 
     function getListMenu() {
@@ -755,11 +785,13 @@ oml.ui.mainMenu = function() {
 
     that.updateElement = function(menu) {
         (
-            menu ? Ox.makeArray(menu) : ['listMenu', 'editMenu']
+            menu ? Ox.makeArray(menu) : ['listMenu', 'editMenu', 'findMenu']
         ).forEach(function(menu) {
             that.updateMenu(
                 menu,
-                menu == 'listMenu' ? getListMenu() : getEditMenu()
+                menu == 'listMenu' ? getListMenu()
+                    : menu == 'editMenu' ? getEditMenu()
+                    : getFindMenu()
             );
         });
         return that;

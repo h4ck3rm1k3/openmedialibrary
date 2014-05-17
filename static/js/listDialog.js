@@ -43,12 +43,7 @@ oml.ui.listDialog = function() {
             closeButton: true,
             content: Ox.LoadingScreen().start(),
             height: 264,
-            title: Ox._('List – {0}', [
-                ui._list == '' ? Ox._('All Libraries')
-                : ui._list
-                    .replace(/^:/, oml.user.preferences.username + ':')
-                    .replace(/:$/, Ox._(':Library'))
-            ]),
+            title: getTitle(list),
             width: 648 + Ox.UI.SCROLLBAR_SIZE
         });
 
@@ -71,12 +66,18 @@ oml.ui.listDialog = function() {
                 .bindEvent({
                     change: function(data) {
                         var value = oml.validateName(data.value, listNames);
+                        that.options({title: getTitle(':' + value)})
                         $nameInput.value(value);
+                        // FIXME: UGLY
+                        listNames[listNames.indexOf(listData.name)] = value;
+                        listData.name = value;
+                        //
+                        Ox.print(listData.name, 'LIST NAMES ???', listNames)
                         oml.api.editList({
-                            id: list,
+                            id: ui._list,
                             name: value
                         }, function(result) {
-                            oml.updateLists(function() {
+                            oml.$ui.folders.updateOwnLists(function() {
                                 oml.UI.set({
                                     find: {
                                         conditions: [{
@@ -101,6 +102,15 @@ oml.ui.listDialog = function() {
         }
         that.options({content: $content});
     });
+
+    function getTitle(list) {
+        return Ox._('List – {0}', [
+            list == '' ? Ox._('All Libraries')
+            : list
+                .replace(/^:/, oml.user.preferences.username + ':')
+                .replace(/:$/, Ox._(':Library'))
+        ]);
+    }
 
     return that;
 

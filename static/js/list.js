@@ -23,7 +23,8 @@ oml.ui.list = function() {
                         oml.clipboard.copy(data.ids, 'item');
                         oml.doHistory('cut', data.ids, ui._list, function() {
                             oml.UI.set({listSelection: []});
-                            oml.reloadList();
+                            oml.$ui.folders.updateElement();
+                            oml.$ui.list.updateElement();
                         });
                     }
                 },
@@ -33,16 +34,18 @@ oml.ui.list = function() {
                         oml.clipboard.add(data.ids, 'item');
                         oml.doHistory('cut', data.ids, ui._list, function() {
                             oml.UI.set({listSelection: []});
-                            oml.reloadList();
+                            oml.$ui.folders.updateElement();
+                            oml.$ui.list.updateElement();
                         });
                     }
                 },
-                'delete': function() {
+                'delete': function(data) {
                     var listData = oml.getListData();
                     if (listData.editable && listData.type == 'static') {
                         oml.doHistory('delete', data.ids, ui._list, function() {
                             oml.UI.set({listSelection: []});
-                            oml.reloadList();
+                            oml.$ui.folders.updateItems();
+                            oml.$ui.list.updateElement();
                         });
                     }
                 },
@@ -107,6 +110,7 @@ oml.ui.list = function() {
     oml.enableDragAndDrop(that);
 
     that.updateElement = function() {
+        Ox.Request.clearCache('find');
         that.reloadList(true);
     };
 

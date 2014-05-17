@@ -4,6 +4,7 @@ oml.addList = function() {
         isDuplicate = args.length == 1,
         isSmart, isFrom, list, listData, data,
         username = oml.user.preferences.username;
+    Ox.Request.clearCache('getLists');
     oml.api.getLists(function(result) {
         var lists = result.data.lists,
             listNames = lists.filter(function(list) {
@@ -92,7 +93,7 @@ oml.addList = function() {
                         oml.$ui.listDialog = oml.ui.listDialog().open();
                     }
                 });
-            oml.updateLists();
+            oml.$ui.folders.updateOwnLists();
         });
     }
 };
@@ -397,7 +398,10 @@ oml.enableDragAndDrop = function($list, canMove) {
                         */
                         cleanup(250);
                     });
-                    drag.action == 'move' && oml.reloadList();
+                    oml.$ui.folders.updateItems();
+                    if (drag.action == 'move') {
+                        oml.$ui.list.updateElement();
+                    }
                 });
             } else {
                 cleanup()
@@ -873,24 +877,6 @@ oml.updateFilterMenus = function() {
         $filter[
             filtersHaveSelection ? 'enableMenuItem' : 'disableMenuItem'
         ]('clearFilters');
-    });
-};
-
-oml.updateLists = function(callback) {
-    // FIXME: can this go somewhere else?
-    Ox.Request.clearCache('getLists');
-    oml.getUsersAndLists(function(users, lists) {
-        var items = lists.filter(function(list) {
-            return list.user == oml.user.preferences.username;
-        });
-        oml.$ui.folderList[0].options({
-                items: items
-            })
-            .css({height: items.length * 16 + 'px'})
-            .size();
-        oml.$ui.folder[0].$content
-            .css({height: 16 + items.length * 16 + 'px'});
-        callback && callback();
     });
 };
 

@@ -240,26 +240,24 @@ oml.ui.infoView = function(identifyData) {
         $elements = $elements 
             ? Ox.makeArray($elements)
             : [$cover, $info, $data];
-        Ox.print('DEBUG, $ELEMENTS', $elements);
 
         (data ? Ox.noop : oml.api.get)({
             id: id,
             keys: []
         }, function(result) {
 
-            if (!identifyData && ui.item != id) {
+            if (!identifyData && id && id != ui.item) {
                 return;
             }
 
             if (result) {
                 data = result.data;
             }
-            Ox.print('BOOK DATA', data)
 
             var $mediaButton,
                 isEditable = !data.mainid && data.mediastate == 'available',
                 src = !identifyData
-                    ? '/' + data.id + '/cover256.jpg'
+                    ? '/' + data.id + '/cover256.jpg?' + data.modified
                     : data.cover,
                 ratio = data.coverRatio || oml.config.coverRatio,
                 size = 256,

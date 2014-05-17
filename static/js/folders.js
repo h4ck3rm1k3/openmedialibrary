@@ -63,7 +63,7 @@ oml.ui.folders = function() {
                 })
                 .bindEvent({
                     load: function() {
-                        oml.api.find({query: getFind()}, function(result) {
+                        oml.api.find({query: getFind('')}, function(result) {
                             oml.$ui.librariesList.value('', 'items', result.data.items);
                         });
                     },
@@ -220,7 +220,12 @@ oml.ui.folders = function() {
                                 oml.addList(ui._list);
                             },
                             load: function() {
-                                // ...
+                                // FIXME: too much
+                                items.forEach(function(item) {
+                                    oml.api.find({query: getFind(item.id)}, function(result) {
+                                        oml.$ui.folderList[index].value(item.id, 'items', result.data.items);
+                                    });
+                                });
                             },
                             move: function(data) {
                                 lists[user.id] = data.ids.map(function(listId) {
@@ -266,6 +271,32 @@ oml.ui.folders = function() {
 
         return that;
 
+    };
+
+    that.updateItems = function() {
+        oml.getUsersAndLists(function(users, lists) {
+            Ox.Request.clearCache('find');
+            $lists.forEach(function($list) {
+                $list.reloadList();
+            });
+        });
+    };
+
+    that.updateOwnLists = function(callback) {
+        oml.getUsersAndLists(function(users, lists) {
+            var items = lists.filter(function(list) {
+                return list.user == oml.user.preferences.username
+                    && list.type != 'library';
+            });
+            oml.$ui.folderList[0].options({
+                    items: items
+                })
+                .css({height: items.length * 16 + 'px'})
+                .size();
+            oml.$ui.folder[0].$content
+                .css({height: 16 + items.length * 16 + 'px'});
+            callback && callback();
+        });
     };
 
     return that.updateElement();

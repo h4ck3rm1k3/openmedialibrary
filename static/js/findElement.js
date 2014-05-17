@@ -3,19 +3,19 @@
 oml.ui.findElement = function() {
 
     var ui = oml.user.ui,
-    	findIndex = ui._findState.index,
+        findIndex = ui._findState.index,
         findKey = ui._findState.key,
         findValue = ui._findState.value,
         hasPressedClear = false,
         previousFindKey = findKey,
 
-       	that = Ox.FormElementGroup({
+           that = Ox.FormElementGroup({
 
-       		elements: [
+               elements: [
 
-   				oml.$ui.findScopeSelect = renderFindScopeSelect(),
+                   oml.$ui.findInSelect = renderFindInSelect(),
 
-   				oml.$ui.findSelect = Ox.Select({
+                   oml.$ui.findSelect = Ox.Select({
                     id: 'select',
                     items: [].concat(
                         oml.config.findKeys.map(function(key) {
@@ -86,7 +86,7 @@ oml.ui.findElement = function() {
                         }
                     },
                     submit: function(data) {
-                        var scope = oml.$ui.findScopeSelect.value(),
+                        var scope = oml.$ui.findInSelect.value(),
                             key = oml.$ui.findSelect.value(),
                             conditions = [].concat(
                                 scope == 'list' ? [{
@@ -106,24 +106,23 @@ oml.ui.findElement = function() {
                                 }] : []
                             );
                         oml.UI.set({
-                        	find: {
-                        		conditions: conditions,
-                        		operator: '&'
-                        	}
-                       	});
+                            find: {
+                                conditions: conditions,
+                                operator: '&'
+                            }
+                        });
                     }
                 })
-
-       		]
-       	})
-		.css({
-			float: 'right',
-			margin: '4px 4px 4px 2px'
-		})
+            ]
+        })
+        .css({
+            float: 'right',
+            margin: '4px 4px 4px 2px'
+        })
         .bindEvent({
             oml_find: function() {
                 that.replaceElement(
-                    0, oml.$ui.findScopeSelect = renderFindScopeSelect()
+                    0, oml.$ui.findInSelect = renderFindInSelect()
                 );
             }
         });
@@ -138,11 +137,11 @@ oml.ui.findElement = function() {
                 key: key,
                 query: {
                     conditions: ui._list
-                    	&& oml.$ui.findScopeSelect.value() == 'list'
+                        && oml.$ui.findInSelect.value() == 'list'
                         ? [{
-                        	key: 'list',
-                        	operator: '==',
-                        	value: ui._list
+                            key: 'list',
+                            operator: '==',
+                            value: ui._list
                         }]
                         : [],
                     operator: '&'
@@ -158,17 +157,17 @@ oml.ui.findElement = function() {
         } : null;
     }
 
-    function renderFindScopeSelect() {
+    function renderFindInSelect() {
         var scope = !ui._list ? 'all'
             : Ox.endsWith(ui._list, ':') ? 'user'
             : 'list';
-        return Ox.Select({
+        var $select = Ox.Select({
                 items: [
-                    {id: 'all', title: Ox._('Find: All Libraries')},
+                    {id: 'all', title: Ox._('Find In: All Libraries')},
                 ].concat(scope != 'all' ? [
-                    {id: 'user', title: Ox._('Find: This Library')},
+                    {id: 'user', title: Ox._('Find In: This Library')},
                 ] : []).concat(scope == 'list' ? [
-                    {id: 'list', title: Ox._('Find: This List')}
+                    {id: 'list', title: Ox._('Find In: This List')}
                 ] : []),
                 overlap: 'right',
                 style: 'squared',
@@ -179,13 +178,22 @@ oml.ui.findElement = function() {
             })
             .bindEvent({
                 change: function(data) {
-                    oml.$ui.findScopeSelect.options({
+                    oml.$ui.findInSelect.options({
                         title: data.value == 'all' ? 'data' : data.value,
                         tooltip: data.title
                     });
                     oml.$ui.findInput.focusInput(true);
                 }
             });
+        $select.superValue = $select.value;
+        $select.value = function(value) {
+            if (arguments.length == 1) {
+                Ox.print('I AM HERE')
+                $select.options({title: value == 'all' ? 'data' : value});
+            }
+            $select.superValue.apply($select, arguments);
+        }
+        return $select;
     }
 
     that.updateElement = function() {

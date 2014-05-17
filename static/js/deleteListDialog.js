@@ -19,7 +19,7 @@ oml.ui.deleteListDialog = function() {
             oml.api.removeList({
                 id: ui._list
             }, function() {
-                oml.updateLists(function() {
+                oml.$ui.folders.updateOwnLists(function() {
                     oml.UI.set({
                         find: {
                             conditions: [{

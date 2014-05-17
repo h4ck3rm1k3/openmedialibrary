@@ -131,6 +131,7 @@ oml.ui.identifyDialog = function(data) {
                         that.options({content: Ox.LoadingScreen().start()});
                         that.disableButtons();
                         oml.api.edit(edit, function(result) {
+                            Ox.print('EDITED', result.data);
                             that.close();
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);

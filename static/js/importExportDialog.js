@@ -119,16 +119,16 @@ oml.ui.importExportDialog = function(selected) {
             );
         });
         return [
-            {id: ':', title: Ox._('Library')}
+            {id: '', title: Ox._('Library')}
         ].concat(
             lists.length ? [{}] : []
         ).concat(
             lists.map(function(list) {
-                return {id: list.id, title: list.name};
+                return {id: list.name, title: list.name};
             })
         ).concat(selected == 'import' ? [
             {},
-            {id: '', title: Ox._('New List...')}
+            {id: 'FIXME', title: Ox._('New List...')}
         ] : []);
     }
 
@@ -223,7 +223,7 @@ oml.ui.importExportDialog = function(selected) {
                         labelWidth: 128,
                         max: 1,
                         min: 1,
-                        value: ':',
+                        value: '',
                         width: 480
                     }),
                     Ox.Select({
@@ -271,7 +271,7 @@ oml.ui.importExportDialog = function(selected) {
                     Ox.print('FORM CHANGE', data);
                     if (data.id == 'list') {
                         // FIXME: WRONG
-                        if (data.data.value[0] != ':') {
+                        if (data.data.value[0] != '') {
                             $form.values('list', oml.validateName(data.data.value, getListNames()))
                         }
                     }
