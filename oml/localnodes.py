@@ -2,18 +2,20 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import socket
-import thread
 import json
+import logging
+import socket
 import struct
-from threading import Thread
-import sys
 import subprocess
-
+import sys
+import thread
+from threading import Thread
 
 from settings import preferences, server, USER_ID, sk
 from node.utils import get_public_ipv6
 from ed25519_utils import valid
+
+logger = logging.getLogger('oml.localnodes')
 
 def can_connect(data):
     try:
@@ -122,7 +124,7 @@ class LocalNodes(Thread):
                 return self._nodes[user_id]
 
     def new_node(self, data):
-        print 'NEW NODE', data
+        logger.debug('NEW NODE %s', data)
         if can_connect(data):
             self._nodes[data['id']] = data
             with self._app.app_context():

@@ -31,7 +31,6 @@ def remove_missing():
             path = f.item.get_path()
             if not os.path.exists(path):
                 dirty = True
-                print 'file gone', f, path
                 f.item.remove_file()
         if dirty:
             db.session.commit()

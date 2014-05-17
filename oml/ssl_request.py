@@ -3,6 +3,8 @@ import socket
 import urllib2
 import ssl
 import hashlib
+import logging
+logger = logging.getLogger('oml.ssl_request')
 
 class InvalidCertificateException(httplib.HTTPException, urllib2.URLError):
     def __init__(self, fingerprint, cert, reason):
@@ -40,7 +42,7 @@ class CertValidatingHTTPSConnection(httplib.HTTPConnection):
             if not self._ValidateCertificateFingerprint(cert):
                 raise InvalidCertificateException(self.fingerprint, cert,
                                                   'fingerprint mismatch')
-        print 'CIPHER', self.sock.cipher(), 'VERSION', self.sock.ssl_version
+        logger.debug('CIPHER %s VERSION %s', self.sock.cipher(), self.sock.ssl_version)
 
 class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
     def __init__(self, **kwargs):

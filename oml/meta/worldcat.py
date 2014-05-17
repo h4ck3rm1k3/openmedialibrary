@@ -8,6 +8,9 @@ import re
 from utils import normalize_isbn
 import stdnum.isbn
 
+import logging
+logger = logging.getLogger('meta.worldcat')
+
 base_url = 'http://www.worldcat.org'
 
 def get_ids(key, value):
@@ -28,8 +31,8 @@ def get_ids(key, value):
             if k in info:
                 ids.append((k, info[k]))
     if ids:
-        print 'worldcat.get_ids', key, value
-        print ids
+        logger.debug('get_ids %s %s', key, value)
+        logger.debug('%s', ids)
     return ids
 
 def lookup(id):
@@ -58,8 +61,7 @@ def lookup(id):
                 data['isbn%d'%len(isbn)] = isbn
     if 'author' in data:
         data['author'] = [data['author']]
-    print 'worldcat.lookup', id
-    print data.keys()
+    logger.debug('lookup %s => %s', id, data.keys())
     return data
 
 info = lookup

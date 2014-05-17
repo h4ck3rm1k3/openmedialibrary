@@ -3,6 +3,9 @@ from ox import find_re, strip_tags, decode_html
 import re
 import stdnum.isbn
 
+import logging
+logger = logging.getLogger('meta.lookupbyisbn')
+
 base = 'http://www.lookupbyisbn.com'
 
 def get_ids(key, value):
@@ -20,12 +23,11 @@ def get_ids(key, value):
         if stdnum.isbn.is_valid(value):
             ids.append(('isbn10', value))
     if ids:
-        print 'lookupbyisbn.get_ids', key, value
-        print ids
+        logger.debug('get_ids %s, %s => %s', key, value, ids)
     return ids
 
 def lookup(id):
-    print 'lookupbyisbn.lookup', id
+    logger.debug('lookup %s', id)
     r = {
         'asin': id
     }

@@ -5,16 +5,18 @@ from __future__ import division, with_statement
 import inspect
 import sys
 import json
+import logging
 
 from flask import request, Blueprint
 from .shortcuts import render_to_json_response, json_response
 
+logger = logging.getLogger('oxflask.api')
 app = Blueprint('oxflask', __name__)
 
 @app.route('/api/', methods=['POST', 'OPTIONS'])
 def api():
     if request.host not in request.headers['origin']:
-        print 'reject cross site attempt to access api', request
+        logger.debug('reject cross site attempt to access api %s', request)
         return ''
 
     if request.method == "OPTIONS":
@@ -29,6 +31,7 @@ def api():
                         'doc': actions.doc(f).replace('\n', '<br>\n')})
         return render_to_json_response(api)
     action = request.form['action']
+    logger.debug('API %s', action)
     f = actions.get(action)
     if f:
         response = f(request)

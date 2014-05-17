@@ -9,6 +9,9 @@ from user.models import User
 import state
 from websocket import trigger_event
 
+import logging
+logger = logging.getLogger('oml.node.api')
+
 def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
     if user_id and not from_ and not to:
         from_ = user_id
@@ -34,7 +37,7 @@ def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
 def api_pushChanges(app, user_id, changes):
     user = User.get(user_id)
     if not Changelog.apply_changes(user, changes):
-        print 'FAILED TO APPLY CHANGE'
+        logger.debug('FAILED TO APPLY CHANGE')
         state.nodes.queue(user_id, 'pullChanges')
         return False
     return True
@@ -58,7 +61,7 @@ def api_requestPeering(app, user_id, username, message):
 
 def api_acceptPeering(app, user_id, username, message):
     user = User.get(user_id)
-    print 'incoming acceptPeering event: pending:', user.pending
+    logger.debug('incoming acceptPeering event: pending: %s', user.pending)
     if user and user.pending == 'sent':
         if not user.info:
             user.info = {}

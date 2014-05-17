@@ -12,6 +12,9 @@ from settings import db
 
 import state
 
+import logging
+logger = logging.getLogger('oml.user.models')
+
 class User(db.Model):
 
     created = db.Column(db.DateTime())

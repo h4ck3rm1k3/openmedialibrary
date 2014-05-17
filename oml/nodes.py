@@ -22,6 +22,9 @@ from websocket import trigger_event
 from localnodes import LocalNodes
 from ssl_request import get_opener
 
+import logging
+logger = logging.getLogger('oml.nodes')
+
 ENCODING='base64'
 
 class Node(object):
@@ -79,7 +82,7 @@ class Node(object):
             self.resolve()
         url = self.url
         if not self.url:
-            print 'unable to find host', self.user_id
+            logger.debug('unable to find host %s', self.user_id)
             self.online = False
             return None
         content = json.dumps([action, args])
@@ -97,20 +100,20 @@ class Node(object):
             r = self._opener.open(url, data=content)
         except urllib2.HTTPError as e:
             if e.code == 403:
-                print 'REMOTE ENDED PEERING'
+                logger.debug('REMOTE ENDED PEERING')
                 if self.user.peered:
                     self.user.update_peering(False)
                     self.online = False
                 return
-            print 'urllib2.HTTPError', e, e.code
+            logger.debug('urllib2.HTTPError %s %s', e, e.code)
             self.online = False
             return None
         except urllib2.URLError as e:
-            print 'urllib2.URLError', e
+            logger.debug('urllib2.URLError %s', e)
             self.online = False
             return None
         except:
-            print 'unknown url error'
+            logger.debug('unknown url error')
             import traceback
             print traceback.print_exc()
             self.online = False
@@ -120,7 +123,7 @@ class Node(object):
         if sig and self._valid(data, sig):
             response = json.loads(data)
         else:
-            print 'invalid signature', data
+            logger.debug('invalid signature %s', data)
             response = None
         return response
 
@@ -141,14 +144,14 @@ class Node(object):
         if self.user.peered:
             try:
                 self.online = False
-                print 'type to connect to', self.user_id
+                logger.debug('type to connect to %s', self.user_id)
                 self.pullChanges()
-                print 'connected to', self.user_id
+                logger.debug('connected to %s', self.user_id)
                 self.online = True
             except:
                 import traceback
                 traceback.print_exc()
-                print 'failed to connect to', self.user_id
+                logger.debug('failed to connect to %s', self.user_id)
                 self.online = False
         else:
             self.online = False
@@ -167,7 +170,7 @@ class Node(object):
             return Changelog.apply_changes(self.user, changes)
 
     def pushChanges(self, changes):
-        print 'pushing changes to', self.user_id, changes
+        logger.debug('pushing changes to %s %s', self.user_id, changes)
         try:
             r = self.request('pushChanges', changes)
         except:
@@ -177,7 +180,7 @@ class Node(object):
                 'status': 'offline'
             })
             r = False
-        print 'pushedChanges', r, self.user_id
+        logger.debug('pushedChanges %s %s', r, self.user_id)
 
     def requestPeering(self, message):
         p = self.user
@@ -187,25 +190,24 @@ class Node(object):
         return True
 
     def acceptPeering(self, message):
-        print 'run acceptPeering', message
+        logger.debug('run acceptPeering %s', message)
         r = self.request('acceptPeering', settings.preferences['username'], message)
-        print 'result', r
+        logger.debug('result %s', r)
         p = self.user
         p.update_peering(True)
         self.go_online()
         return True
 
     def rejectPeering(self, message):
-        print 'reject peering!!!', self.user
+        logger.debug('rejectPeering %s', self.user)
         p = self.user
         p.update_peering(False)
         r = self.request('rejectPeering', message)
-        print 'reject peering!!!', r
         self.online = False
         return True
 
     def removePeering(self, message):
-        print 'remove peering!!!', self.user
+        logger.debug('removePeering %s', self.user)
         p = self.user
         if p.peered:
             p.update_peering(False)
@@ -226,7 +228,7 @@ class Node(object):
             'User-Agent': settings.USER_AGENT,
         }
         t1 = datetime.now()
-        print 'GET', url
+        logger.debug('download %s', url)
         '''
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
@@ -240,10 +242,10 @@ class Node(object):
             duration = (t2-t1).total_seconds()
             if duration:
                 self.download_speed = len(content) / duration
-            print 'SPEED', ox.format_bits(self.download_speed)
+            logger.debug('SPEED %s', ox.format_bits(self.download_speed))
             return item.save_file(content)
         else:
-            print 'FAILED', url
+            logger.debug('FAILED %s', url)
             return False
 
     def download_upgrade(self, release):
@@ -261,7 +263,7 @@ class Node(object):
                     with open(path, 'w') as fd:
                         fd.write(r.read())
                         if (ox.sha1sum(path) != sha1):
-                            print 'invalid update!'
+                            logger.error('invalid update!')
                             os.unlink(path)
                             return False
                 else:

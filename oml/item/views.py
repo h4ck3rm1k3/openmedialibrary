@@ -67,7 +67,6 @@ def cover(id, size=None):
     if not data:
         data = covers[id]
     if not data:
-        print 'check for cover', id
         data = item.update_cover()
         if not data:
             data = covers.black()

@@ -2,6 +2,8 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+import logging
+
 import json
 from datetime import datetime
 
@@ -11,6 +13,8 @@ import settings
 from settings import db
 import state
 from websocket import trigger_event
+
+logger = logging.getLogger('oml.changelog')
 
 class Changelog(db.Model):
     '''
@@ -60,7 +64,7 @@ class Changelog(db.Model):
     def apply_changes(cls, user, changes):
         for change in changes:
             if not Changelog.apply_change(user, change, trigger=False):
-                print 'FAIL', change
+                logger.debug('FAIL %s', change)
                 break
                 return False
         if changes:
@@ -84,19 +88,19 @@ class Changelog(db.Model):
                 c.data = data
                 c.sig = sig
                 action, args = json.loads(data)
-                print 'apply change', action, args
+                logger.debug('apply change %s %s', action, args)
                 if getattr(c, 'action_' + action)(user, timestamp, *args):
-                    print 'change applied'
+                    logger.debug('change applied')
                     db.session.add(c)
                     db.session.commit()
                     if trigger:
                         trigger_event('change', {});
                     return True
             else:
-                print 'INVLAID SIGNATURE ON CHANGE', change
+                logger.debug('INVLAID SIGNATURE ON CHANGE %s', change)
                 raise Exception, 'invalid signature'
         else:
-            print 'revsion does not match! got', revision, 'expecting', next_revision
+            logger.debug('revsion does not match! got %s expecting %s', revision, next_revision)
             return False
 
     def __repr__(self):
@@ -154,10 +158,10 @@ class Changelog(db.Model):
             return True
         key = meta.keys()[0]
         if not meta[key] and i.meta.get('mainid') == key:
-            print 'remove id mapping', key, meta[key], 'currently', i.meta[key]
+            logger.debug('remove id mapping %s currenrlt %s', key, meta[key], i.meta[key])
             i.update_mainid(key, meta[key])
         elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
-            print 'new mapping', key, meta[key], 'currently', i.meta.get('mainid'), i.meta.get(i.meta.get('mainid'))
+            logger.debug('new mapping %s %s currently %s %s', key, meta[key], i.meta.get('mainid'), i.meta.get(i.meta.get('mainid')))
             i.update_mainid(key, meta[key])
         return True
 

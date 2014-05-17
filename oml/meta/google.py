@@ -7,9 +7,12 @@ import stdnum.isbn
 
 from .utils import find_isbns
 
+import logging
+logger = logging.getLogger('meta.google')
+
 
 def find(title, author=None, publisher=None, date=None):
-    print 'google.find', title, author, publisher, date
+    logger.debug('find %s %s %s %s', title, author, publisher, date)
     query = title
     if author:
         if isinstance(author, list):
@@ -19,7 +22,7 @@ def find(title, author=None, publisher=None, date=None):
     isbns = []
     for r in ox.web.google.find(query):
         isbns += find_isbns(' '.join(r))
-    print isbns, 'google'
+    logger.debug('isbns', isbns)
     results = []
     done = set()
     for isbn in isbns:

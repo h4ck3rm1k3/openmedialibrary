@@ -5,6 +5,7 @@ from __future__ import division
 from flask import Flask
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
+import logging
 
 
 import oxflask.api
@@ -22,6 +23,12 @@ import user.api
 
 import item.views
 import commands
+
+#FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+#logging.basicConfig(format=FORMAT)
+#logger = logging.getLogger('oml.app')
+#logger.warning('test')
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask('openmedialibrary', static_folder=settings.static_path)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s' % settings.db_path

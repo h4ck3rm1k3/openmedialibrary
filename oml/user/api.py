@@ -18,12 +18,14 @@ import settings
 import state
 from changelog import Changelog
 
+import logging
+logger = logging.getLogger('oml.user.api')
+
 @returns_json
 def init(request):
     '''
         this is an init request to test stuff
     '''
-    #print 'init', request
     response = {}
     if os.path.exists(settings.oml_config_path):
         with open(settings.oml_config_path) as fd:
@@ -118,6 +120,7 @@ actions.register(removeList, cache=False)
 @returns_json
 def editList(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    logger.debug('editList %s', data)
     l = models.List.get_or_create(data['id'])
     name = l.name
     if 'name' in data:
@@ -127,7 +130,7 @@ def editList(request):
     if l.type == 'static' and name != l.name:
         Changelog.record(state.user(), 'editlist', name, {'name': l.name})
     l.save()
-    return {}
+    return l.json()
 actions.register(editList, cache=False)
 
 @returns_json
@@ -154,7 +157,7 @@ actions.register(removeListItems, cache=False)
 def sortLists(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     n = 0
-    print 'sortLists', data
+    logger.debug('sortLists %s', data)
     for id in data['ids']:
         l = models.List.get(id)
         l.position = n
@@ -178,7 +181,7 @@ actions.register(editUser, cache=False)
 def requestPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
-        print 'invalid user id'
+        logger.debug('invalid user id')
         return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
@@ -190,9 +193,9 @@ actions.register(requestPeering, cache=False)
 def acceptPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
-        print 'invalid user id'
+        logger.debug('invalid user id')
         return {}
-    print 'acceptPeering...', data
+    logger.debug('acceptPeering... %s', data)
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'acceptPeering', data.get('message', ''))
@@ -203,7 +206,7 @@ actions.register(acceptPeering, cache=False)
 def rejectPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
-        print 'invalid user id'
+        logger.debug('invalid user id')
         return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
@@ -215,7 +218,7 @@ actions.register(rejectPeering, cache=False)
 def removePeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
-        print 'invalid user id'
+        logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
     state.nodes.queue('add', u.id)
@@ -227,7 +230,7 @@ actions.register(removePeering, cache=False)
 def cancelPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
-        print 'invalid user id'
+        logger.debug('invalid user id')
         return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)

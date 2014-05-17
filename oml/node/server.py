@@ -18,6 +18,9 @@ from ed25519_utils import valid
 import api
 import cert
 
+import logging
+logger = logging.getLogger('oml.node.server')
+
 class NodeHandler(tornado.web.RequestHandler):
 
     def initialize(self, app):
@@ -44,7 +47,7 @@ class NodeHandler(tornado.web.RequestHandler):
             content = {}
             if valid(key, data, sig):
                 action, args = json.loads(data)
-                print key, 'action', action, args
+                logger.debug('%s action %s %s', key, action, args)
                 if action == 'ping':
                     content = {
                         'ip': request.remote_addr
@@ -57,7 +60,7 @@ class NodeHandler(tornado.web.RequestHandler):
                         ) or (u and u.peered):
                             content = getattr(api, 'api_' + action)(self.app, key, *args)
                         else:
-                            print 'PEER', key, 'IS UNKNOWN SEND 403'
+                            logger.debug('PEER %s IS UNKNOWN SEND 403', key)
                             self.set_status(403)
                             content = {
                                 'status': 'not peered'
@@ -91,7 +94,7 @@ class ShareHandler(tornado.web.RequestHandler):
                 'txt': 'text/plain',
             }.get(path.split('.')[-1], None)
             self.set_header('Content-Type', mimetype)
-            print 'GET file', id
+            logger.debug('GET file %s', id)
             with open(path, 'rb') as f:
                 while 1:
                     data = f.read(16384)

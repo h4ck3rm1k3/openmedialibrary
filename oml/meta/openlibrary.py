@@ -9,6 +9,9 @@ import json
 from marc_countries import COUNTRIES
 from utils import normalize_isbn
 
+import logging
+logger = logging.getLogger('meta.openlibrary')
+
 KEYS = {
     'authors': 'author',
     'covers': 'cover',
@@ -31,7 +34,7 @@ def find(*args, **kargs):
     args = [a.replace(':', ' ') for a in args]
     for k in ('date', 'publisher'):
         if k in kargs:
-            print 'ignoring %s on openlibrary' % k, kargs[k]
+            logger.debug('ignoring %s on openlibrary %s', k, kargs[k])
             del kargs[k]
     for k, v in kargs.iteritems():
         key = KEYS.keys()[KEYS.values().index(k)]
@@ -43,7 +46,7 @@ def find(*args, **kargs):
             args += v
     query = ' '.join(args)
     query = query.strip()
-    print 'openlibrary.find', query
+    logger.debug('find %s', query)
     r = api.search(query)
     results = []
     ids = [b for b in r.get('result', []) if b.startswith('/books')]
@@ -66,7 +69,7 @@ def get_ids(key, value):
                     if (id, v) not in ids:
                         ids.append((id, v))
     elif key in ('isbn10', 'isbn13', 'oclc', 'lccn'):
-        print 'openlibraryid.get_ids', key, value
+        logger.debug('openlibraryid.get_ids %s %s', key, value)
         r = api.things({'type': '/type/edition', key.replace('isbn', 'isbn_'): value})
         for b in r.get('result', []):
             if b.startswith('/books'):
@@ -75,8 +78,7 @@ def get_ids(key, value):
                     if kv not in ids:
                         ids.append(kv)
     if ids:
-        print 'openlibraryid.get_ids', key, value
-        print ids
+        logger.debug('get_ids %s %s => %s', key, value, ids)
     return ids
 
 def lookup(id, return_all=False):
@@ -86,7 +88,7 @@ def lookup(id, return_all=False):
     #info = json.loads(read_url(url))
     data = format(info, return_all)
     data['olid'] = id
-    print 'openlibrary.lookup', id, data.keys()
+    logger.debug('lookup %s => %s', id, data.keys())
     return data
 
 def format(info, return_all=False):
@@ -133,8 +135,8 @@ class API(object):
         url = self.base + '/' + action + '?' + urlencode(data)
         result = json.loads(read_url(url))
         if 'status' in result and result['status'] == 'error' or 'error' in result:
-            print 'FAILED', action, data
-            print 'URL', url
+            logger.info('FAILED %s %s', action, data)
+            logger.info('URL %s', url)
         return result
 
     def get(self, key):
@@ -152,7 +154,7 @@ class API(object):
             }
         data = self._request('search', {'q': query})
         if 'status' in data and data['status'] == 'error':
-            print 'FAILED', query
+            logger.info('FAILED %s', query)
         return data
 
     def things(self, query):

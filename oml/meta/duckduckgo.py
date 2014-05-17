@@ -7,9 +7,12 @@ import stdnum.isbn
 
 from .utils import find_isbns
 
+import logging
+logger = logging.getLogger('meta.duckduckgo')
+
 
 def find(title, author=None, publisher=None, date=None):
-    print 'duckduckgo.find', title, author, publisher, date
+    logger.debug('find %s %s %s %s', title, author, publisher, date)
     query = title
     if author:
         if isinstance(author, list):

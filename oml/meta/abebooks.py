@@ -1,6 +1,13 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
+
 from ox.cache import read_url
 import re
 import lxml.html
+
+import logging
+logger = logging.getLogger('meta.abebooks')
 
 def get_ids(key, value):
     ids = []
@@ -12,12 +19,11 @@ def get_ids(key, value):
         if urls:
             ids.append((key, value))
     if ids:
-        print 'abebooks.get_ids', key, value
-        print ids
+        logger.debug('get_ids %s %s => %s', key, value, ids)
     return ids
 
 def lookup(id):
-    print 'abebooks.lookup', id
+    logger.debug('lookup %s', id)
     return {}
 
 def get_data(id):

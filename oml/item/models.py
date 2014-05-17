@@ -10,6 +10,7 @@ import hashlib
 from datetime import datetime
 from StringIO import StringIO
 import shutil
+import logging
 
 import Image
 import ox
@@ -32,6 +33,8 @@ from oxflask.db import MutableDict
 from covers import covers
 from changelog import Changelog
 from websocket import trigger_event
+
+logger = logging.getLogger('oml.item.model')
 
 class Work(db.Model):
 
@@ -278,8 +281,9 @@ class Item(db.Model):
             if k != key:
                 if k in self.meta:
                     del self.meta[k]
-        print 'mainid', 'mainid' in self.meta, self.meta.get('mainid')
-        print 'key', key, self.meta.get(key)
+        logger.debug('mainid %s %s', 'mainid' in self.meta, self.meta.get('mainid'))
+        logger.debug('key %s %s', key, self.meta.get(key))
+
         # get metadata from external resources
         self.scrape()
         self.update()
@@ -319,12 +323,12 @@ class Item(db.Model):
 
     def scrape(self):
         mainid = self.meta.get('mainid')
-        print 'scrape', mainid, self.meta.get(mainid)
+        logger.debug('scrape %s %s', mainid, self.meta.get(mainid))
         if mainid:
             m = meta.lookup(mainid, self.meta[mainid])
             self.meta.update(m)
         else:
-            print 'FIX UPDATE', mainid
+            logger.debug('FIX UPDATE %s', mainid)
         self.update()
 
     def queue_download(self):
@@ -339,7 +343,7 @@ class Item(db.Model):
         f = File.get(self.id)
         content_id = media.get_id(data=content)
         if content_id != self.id:
-            print 'INVALID CONTENT', self.id, 'vs', content_id
+            logger.debug('INVALID CONTENT %s vs %s', self.id, content_id)
             return False
         if not f:
             path = 'Downloads/%s.%s' % (self.id, self.info['extension'])
@@ -355,12 +359,13 @@ class Item(db.Model):
                 self.added = datetime.now()
                 Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
+                f.move()
                 trigger_event('transfer', {
                     'id': self.id, 'progress': 1
                 })
                 return True
         else:
-            print 'TRIED TO SAVE EXISTING FILE!!!'
+            logger.debug('TRIED TO SAVE EXISTING FILE!!!')
             self.transferprogress = 1
             self.update()
         return False
@@ -368,7 +373,7 @@ class Item(db.Model):
     def remove_file(self):
         for f in self.files.all():
             path = f.fullpath()
-            print path
+            logger.debug('remove file %s', path)
             if os.path.exists(path):
                 os.unlink(path)
             db.session.delete(f)
@@ -484,7 +489,6 @@ class File(db.Model):
         if author.startswith('.'):
             author = '_' + author[1:]
         filename = '%s.%s' % (title, extension)
-        print self.sha1, author, filename
         new_path = os.path.join(author[0].upper(), author, filename)
         if self.path == new_path:
             return
@@ -501,7 +505,6 @@ class File(db.Model):
             shutil.move(current_path, path)
             self.path = new_path
             self.save()
-            print 'move', current_path, new_path
 
     def save(self):
         db.session.add(self)

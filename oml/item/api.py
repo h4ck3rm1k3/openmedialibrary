@@ -2,6 +2,8 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+import logging
+
 import json
 from oxflask.api import actions
 from oxflask.shortcuts import returns_json
@@ -15,6 +17,8 @@ import state
 import meta
 
 import utils
+
+logger = logging.getLogger('oml.item.api')
 
 @returns_json
 def find(request):
@@ -91,19 +95,19 @@ actions.register(get)
 def edit(request):
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    print 'edit', data
+    logger.debug('edit', data)
     item = models.Item.get(data['id'])
     keys = filter(lambda k: k in models.Item.id_keys, data.keys())
-    print item, keys
+    logger.debug(item, keys)
     if item and keys and item.json()['mediastate'] == 'available':
         key = keys[0]
-        print 'update mainid', key, data[key]
+        logger.debug('update mainid %s %s', key, data[key])
         if key in ('isbn10', 'isbn13'):
             data[key] = utils.normalize_isbn(data[key])
         item.update_mainid(key, data[key])
         response = item.json()
     else:
-        print 'can only edit available items'
+        logger.info('can only edit available items')
         response = item.json()
     return response
 actions.register(edit, cache=False)
@@ -111,7 +115,7 @@ actions.register(edit, cache=False)
 @returns_json
 def remove(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    print 'remove files', data['ids']
+    logger.debug('remove files', data)
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
             i.remove_file()
@@ -135,7 +139,7 @@ def findMetadata(request):
     '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    print 'findMetadata', data
+    logger.debug('findMetadata %s', data)
     response['items'] = meta.find(**data)
     return response
 actions.register(findMetadata)
@@ -143,7 +147,7 @@ actions.register(findMetadata)
 @returns_json
 def getMetadata(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    print 'getMetadata', data
+    logger.debug('getMetadata %s', data)
     key, value = data.iteritems().next()
     if key in ('isbn10', 'isbn13'):
         value = utils.normalize_isbn(value)
@@ -191,7 +195,7 @@ actions.register(scan, cache=False)
 @returns_json
 def _import(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    print 'api.import', data
+    logger.debug('api.import %s', data)
     state.main.add_callback(state.websockets[0].put, json.dumps(['import', data]))
     return {}
 actions.register(_import, 'import', cache=False)

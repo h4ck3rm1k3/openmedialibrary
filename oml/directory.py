@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+# DHT placeholder
 from __future__ import division
 
-# DHT placeholder
+import logging
 
 import requests
 import ed25519
 import json
 import settings
+
+logger = logging.getLogger('oml.directory')
 
 base = settings.server['directory_service']
 
@@ -23,7 +26,8 @@ def get(vk):
             vk.verify(sig, data, encoding='base64')
             data = json.loads(data)
         except ed25519.BadSignatureError:
-            print 'invalid signature'
+            logger.debug('invalid signature')
+
             data = None
     return data
 
@@ -39,7 +43,7 @@ def put(sk, data):
         r = requests.put(url, data, headers=headers, timeout=2)
     except:
         import traceback
-        print 'directory.put failed:', data
+        logger.info('directory.put failed: %s', data)
         traceback.print_exc()
         return False
     return r.status_code == 200

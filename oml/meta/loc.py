@@ -10,6 +10,9 @@ import xml.etree.ElementTree as ET
 from utils import normalize_isbn
 from marc_countries import COUNTRIES
 
+import logging
+logger = logging.getLogger('meta.loc')
+
 def get_ids(key, value):
     ids = []
     if key in ['isbn10', 'isbn13']:
@@ -19,12 +22,11 @@ def get_ids(key, value):
         if match:
             ids.append(('lccn', match.group(1)))
     if ids:
-        print 'loc.get_ids', key, value
-        print ids
+        logger.debug('get_ids %s,%s => %s', key, value, ids)
     return ids
 
 def lookup(id):
-    print 'loc.lookup', id
+    logger.debug('lookup %s', id)
     ns = '{http://www.loc.gov/mods/v3}'
     url = 'http://lccn.loc.gov/%s/mods' % id
     data = read_url(url)

@@ -2,6 +2,8 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+import logging
+
 from tornado.websocket import WebSocketHandler
 from tornado.ioloop import IOLoop
 from Queue import Queue
@@ -11,6 +13,8 @@ from threading import Thread
 from oxflask.shortcuts import json_dumps
 
 import state
+
+logger = logging.getLogger('oml.websocket')
 
 class Background:
 
@@ -24,8 +28,6 @@ class Background:
         while self.connected:
             message = self.q.get()
             action, data = json.loads(message)
-            print action
-            print data
             import item.scan
             if action == 'ping':
                 self.post(['pong', data])
@@ -55,9 +57,8 @@ class Handler(WebSocketHandler):
     background = None
 
     def open(self):
-        print "New connection opened."
         if self.request.host not in self.request.headers['origin']:
-            print 'reject cross site attempt to open websocket', self.request
+            logger.debug('reject cross site attempt to open websocket %s', self.request)
             self.close()
         self.background = Background(self)
         state.websockets.append(self.background)
@@ -70,19 +71,17 @@ class Handler(WebSocketHandler):
         self.background.put(message)
 
     def on_close(self):
-        print "Connection closed."
         if self.background:
             state.websockets.remove(self.background)
             self.background.connected = False
 
 def trigger_event(event, data):
     if len(state.websockets):
-        print 'trigger event', event, data, len(state.websockets)
+        logger.debug('trigger event %s %s', event, data, len(state.websockets))
     for ws in state.websockets:
         try:
             ws.post([event, data])
         except:
             import traceback
             traceback.print_exc()
-            print 'failed to send to ws', ws, event, data
-
+            logger.debug('failed to send to ws %s %s %s', ws, event, data)

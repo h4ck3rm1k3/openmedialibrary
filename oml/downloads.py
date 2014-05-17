@@ -4,8 +4,11 @@ from __future__ import division
 
 from threading import Thread
 import time
+import logging
 
 import state
+
+logger = logging.getLogger('oml.downloads')
 
 class Downloads(Thread):
 
@@ -21,11 +24,11 @@ class Downloads(Thread):
         for i in item.models.Item.query.filter(
                 item.models.Item.transferadded!=None).filter(
                 item.models.Item.transferprogress<1):
-            print 'DOWNLOAD', i, i.users
+            logger.debug('DOWNLOAD %s %s', i, i.users)
             for p in i.users:
                 if state.nodes.check_online(p.id):
                     r = state.nodes.download(p.id, i)
-                    print 'download ok?', r
+                    logger.debug('download ok? %s', r)
                     return True
         return False
 
