@@ -29,7 +29,7 @@ def can_connect(data):
 def get_interface():
     interface = ''
     if sys.platform == 'darwin':
-        #cmd = ['netstat', '-rn']
+        #cmd = ['/usr/sbin/netstat', '-rn']
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -92,7 +92,8 @@ class LocalNodes(Thread):
                 data = data[:-1] # Strip trailing \0's
             data = self.verify(data)
             if data:
-                print addr
+                #fixme use local link address
+                #print addr
                 if data['id'] != USER_ID:
                     if data['id'] not in self._nodes:
                         thread.start_new_thread(self.new_node, (data, ))

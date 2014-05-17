@@ -18,6 +18,7 @@ from changelog import Changelog
 
 import media
 from websocket import trigger_event
+import state
 
 extensions = ['epub', 'pdf', 'txt']
 
@@ -62,9 +63,6 @@ def run_scan():
                 if ext in extensions:
                     books.append(f)
 
-        trigger_event('scan', {
-            'progress': [0, len(books)],
-        })
         position = 0
         added = 0
         for f in ox.sorted_strings(books):
@@ -95,33 +93,25 @@ def run_scan():
                 item.added = datetime.now()
                 item.scrape()
                 added += 1
-            trigger_event('scan', {
-                'added': added,
-                'progress': [position, len(books)],
-                'path': path,
-            })
-        trigger_event('scan', {
-            'progress': [position, len(books)],
-            'added': added,
-            'status': {'code': 200, 'text': ''}
-        })
+                trigger_event('change', {})
 
 def run_import(options=None):
     options = options or {}
 
     with app.app_context():
         prefs = settings.preferences
-        prefix = options.get('path', os.path.expanduser(prefs['importPath']))
-        prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-        prefix_imported = os.path.join(prefix_books, 'Imported/')
+        prefix = os.path.expanduser(options.get('path', prefs['importPath']))
         if not prefix[-1] == '/':
             prefix += '/'
-
+        prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+        prefix_imported = os.path.join(prefix_books, 'Imported/')
         if not os.path.exists(prefix):
-            trigger_event('import', {
+            trigger_event('activity', {
+                'activity': 'import',
                 'progress': [0, 0],
                 'status': {'code': 404, 'text': 'path not found'}
             })
+            state.activity = {}
         user = User.get_or_create(settings.USER_ID)
         listname = options.get('list')
         if listname:
@@ -138,13 +128,17 @@ def run_import(options=None):
                 if ext in extensions:
                     books.append(f)
 
-        trigger_event('import', {
+        state.activity = {
+            'activity': 'import',
             'progress': [0, len(books)],
-        })
+        }
+        trigger_event('activity', state.activity)
         position = 0
         added = 0
         for f in ox.sorted_strings(books):
             position += 1
+            if not os.path.exists(f):
+                continue
             id = media.get_id(f)
             file = File.get(id)
             path = f[len(prefix):]
@@ -180,16 +174,20 @@ def run_import(options=None):
                 if listname:
                     listitems.append(item.id)
                 added += 1
-            trigger_event('import', {
+            state.activity = {
+                'activity': 'import',
                 'progress': [position, len(books)],
                 'path': path,
                 'added': added,
-            })
+            }
+            trigger_event('activity', state.activity)
         if listname:
             l = List.get_or_create(settings.USER_ID, listname)
             l.add_items(listitems)
-        trigger_event('import', {
+        trigger_event('activity', {
+            'activity': 'import',
             'progress': [position, len(books)],
             'status': {'code': 200, 'text': ''},
             'added': added,
         })
+        state.activity = {}

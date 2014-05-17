@@ -5,9 +5,6 @@ from __future__ import division
 from tornado.websocket import WebSocketHandler
 from tornado.ioloop import IOLoop
 from Queue import Queue
-import urllib2
-import os
-from contextlib import closing
 import json
 from threading import Thread
 
@@ -19,9 +16,9 @@ class Background:
 
     def __init__(self, handler):
         self.handler = handler
-        self.main = IOLoop.instance()
         self.q = Queue()
         self.connected = True
+        self.main = IOLoop.instance()
 
     def worker(self):
         while self.connected:

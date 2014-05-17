@@ -2,7 +2,6 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import os
 from datetime import datetime
 import zipfile
 import mimetypes
@@ -10,7 +9,7 @@ from StringIO import StringIO
 import Image
 
 from flask import Blueprint
-from flask import json, request, make_response, abort, send_file
+from flask import make_response, abort, send_file
 from covers import covers
 
 import settings

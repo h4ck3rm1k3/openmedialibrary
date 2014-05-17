@@ -59,14 +59,16 @@ class Changelog(db.Model):
     @classmethod
     def apply_changes(cls, user, changes):
         for change in changes:
-            if not Changelog.apply_change(user, change):
+            if not Changelog.apply_change(user, change, trigger=False):
                 print 'FAIL', change
                 break
                 return False
+        if changes:
+            trigger_event('change', {});
         return True
 
     @classmethod
-    def apply_change(cls, user, change, rebuild=False):
+    def apply_change(cls, user, change, rebuild=False, trigger=True):
         revision, timestamp, sig, data = change
         last = Changelog.query.filter_by(user_id=user.id).order_by('-revision').first()
         next_revision = last.revision + 1 if last else 0
@@ -87,6 +89,8 @@ class Changelog(db.Model):
                     print 'change applied'
                     db.session.add(c)
                     db.session.commit()
+                    if trigger:
+                        trigger_event('change', {});
                     return True
             else:
                 print 'INVLAID SIGNATURE ON CHANGE', change

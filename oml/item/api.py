@@ -2,9 +2,7 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-from datetime import datetime
-
-from flask import json
+import json
 from oxflask.api import actions
 from oxflask.shortcuts import returns_json
 
@@ -12,8 +10,6 @@ import query
 
 import models
 import settings
-from changelog import Changelog
-import re
 import state
 
 import meta
@@ -35,14 +31,16 @@ def find(request):
         qs = models.Find.query.filter_by(key=q['group'])
         if items:
             qs = qs.filter(models.Find.item_id.in_(items))
-        for f in qs.values('value', 'findvalue'):
-            value = f[0]
-            findvalue = f[1]
-            if findvalue not in groups:
-                groups[findvalue] = 0
-            groups[findvalue] += 1
-            names[findvalue] = value
-        g = [{'name': names[k], 'items': groups[k]} for k in groups]
+            for f in qs.values('value', 'findvalue'):
+                value = f[0]
+                findvalue = f[1]
+                if findvalue not in groups:
+                    groups[findvalue] = 0
+                groups[findvalue] += 1
+                names[findvalue] = value
+            g = [{'name': names[k], 'items': groups[k]} for k in groups]
+        else:
+            g = []
         if 'sort' in q:
             g.sort(key=lambda k: k[q['sort'][0]['key']])
             if q['sort'][0]['operator'] == '-':

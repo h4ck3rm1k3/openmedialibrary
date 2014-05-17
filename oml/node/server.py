@@ -2,12 +2,9 @@
 # vi:si:et:sw=4:sts=4:ts=4
 
 import os
-import sys
 import tornado
-from tornado.web import StaticFileHandler, Application, FallbackHandler
-from tornado.wsgi import WSGIContainer
+from tornado.web import Application
 from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop, PeriodicCallback
 
 import settings
 
@@ -104,23 +101,26 @@ class ShareHandler(tornado.web.RequestHandler):
             self.finish()
 
 
-def start(app):
-    application = tornado.web.Application([
-        (r"/get/(.*)", ShareHandler, dict(app=app)),
-        (r".*", NodeHandler, dict(app=app)),
-    ])
-    if not os.path.exists(settings.ssl_cert_path):
-        settings.server['cert'] = cert.generate_ssl()
-
-    http_server = tornado.httpserver.HTTPServer(application, ssl_options={
-        "certfile": settings.ssl_cert_path,
-        "keyfile": settings.ssl_key_path
-    })
-    http_server.listen(settings.server['node_port'], settings.server['node_address'])
+def publish_node():
     host = utils.get_public_ipv6()
     state.online = directory.put(settings.sk, {
         'host': host,
         'port': settings.server['node_port'],
         'cert': settings.server['cert']
     })
+
+def start(app):
+    application = Application([
+        (r"/get/(.*)", ShareHandler, dict(app=app)),
+        (r".*", NodeHandler, dict(app=app)),
+    ])
+    if not os.path.exists(settings.ssl_cert_path):
+        settings.server['cert'] = cert.generate_ssl()
+
+    http_server = HTTPServer(application, ssl_options={
+        "certfile": settings.ssl_cert_path,
+        "keyfile": settings.ssl_key_path
+    })
+    http_server.listen(settings.server['node_port'], settings.server['node_address'])
+    state.main.add_callback(publish_node)
     return http_server

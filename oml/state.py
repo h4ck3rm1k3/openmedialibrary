@@ -3,6 +3,8 @@ nodes = False
 main = None
 online = False
 
+activity = {}
+
 def user():
     import settings
     import user.models

@@ -19,14 +19,6 @@ def parse(data):
             query[key] = data[key]
     #print data
     query['qs'] = oxflask.query.Parser(models.Item).find(data)
-    if 'query' in query and 'conditions' in query['query'] and query['query']['conditions']:
-        conditions = query['query']['conditions']
-        condition = conditions[0]
-        if condition['key'] == '*':
-            value = condition['value'].lower()
-            query['qs'] = models.Item.query.join(
-                    models.Find, models.Find.item_id==models.Item.id).filter(
-                            models.Find.value.contains(value))
     if not 'group' in query:
         query['qs'] = order(query['qs'], query['sort'])
     return query

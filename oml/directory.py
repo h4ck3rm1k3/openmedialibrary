@@ -36,7 +36,7 @@ def put(sk, data):
         'X-Ed25519-Signature': sig
     }
     try:
-        r = requests.put(url, data, headers=headers)
+        r = requests.put(url, data, headers=headers, timeout=2)
     except:
         import traceback
         print 'directory.put failed:', data

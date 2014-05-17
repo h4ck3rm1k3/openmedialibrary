@@ -19,8 +19,6 @@ def run():
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
-    state.main = IOLoop.instance()
-
     static_path = os.path.join(root_dir, 'static')
 
     options = {
@@ -37,10 +35,14 @@ def run():
     ]
 
     http_server = HTTPServer(Application(handlers, **options))
+
     http_server.listen(settings.server['port'], settings.server['address'])
+
     if PID:
         with open(PID, 'w') as pid:
             pid.write('%s' % os.getpid())
+
+    state.main = IOLoop.instance()
 
     def start_node():
         import user

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
 
 import os
 from copy import deepcopy
+import subprocess
+import json
 
-from flask import json
 from oxflask.api import actions
 from oxflask.shortcuts import returns_json
 
 import models
-from item.models import Item
 
 from utils import get_position_by_id
 
@@ -176,6 +177,9 @@ actions.register(editUser, cache=False)
 @returns_json
 def requestPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    if len(data.get('id', '')) != 43:
+        print 'invalid user id'
+        return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'requestPeering', data.get('message', ''))
@@ -185,6 +189,9 @@ actions.register(requestPeering, cache=False)
 @returns_json
 def acceptPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    if len(data.get('id', '')) != 43:
+        print 'invalid user id'
+        return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'acceptPeering', data.get('message', ''))
@@ -194,6 +201,9 @@ actions.register(acceptPeering, cache=False)
 @returns_json
 def rejectPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    if len(data.get('id', '')) != 43:
+        print 'invalid user id'
+        return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'rejectPeering', data.get('message', ''))
@@ -203,6 +213,9 @@ actions.register(rejectPeering, cache=False)
 @returns_json
 def removePeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    if len(data.get('id', '')) != 43:
+        print 'invalid user id'
+        return {}
     u = models.User.get_or_create(data['id'])
     state.nodes.queue('add', u.id)
     state.nodes.queue(u.id, 'removePeering', data.get('message', ''))
@@ -212,8 +225,40 @@ actions.register(removePeering, cache=False)
 @returns_json
 def cancelPeering(request):
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    if len(data.get('id', '')) != 43:
+        print 'invalid user id'
+        return {}
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'cancelPeering', data.get('message', ''))
     return {}
 actions.register(cancelPeering, cache=False)
+
+@returns_json
+def getActivity(request):
+    return state.activity
+actions.register(getActivity, cache=False)
+
+@returns_json
+def selectFolder(request):
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    cmd = ['./ctl', 'ui', 'folder']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    path = stdout.decode('utf-8').strip()
+    return {
+        'path': path
+    }
+actions.register(selectFolder, cache=False)
+
+@returns_json
+def selectFile(request):
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    cmd = ['./ctl', 'ui', 'file']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    path = stdout.decode('utf-8').strip()
+    return {
+        'path': path
+    }
+actions.register(selectFile, cache=False)
