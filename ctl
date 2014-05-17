@@ -83,7 +83,6 @@ if [ "$1" == "update" ]; then
     git pull
     cd $BASE/$NAME
     git pull
-    $0 db upgrade
     $0 setup
     $0 update_static > /dev/null
     exit

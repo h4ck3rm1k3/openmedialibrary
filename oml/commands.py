@@ -2,7 +2,14 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+import subprocess
+import os
+
 from flask.ext.script import Command
+
+def r(*cmd):
+    print ' '.join(cmd)
+    return subprocess.call(cmd)
 
 
 class Setup(Command):
@@ -10,6 +17,7 @@ class Setup(Command):
             setup new node
         """
         def run(self):
+            r('./ctl', 'db', 'upgrade')
             import setup
             import settings
             setup.create_default_lists()
@@ -21,13 +29,7 @@ class UpdateStatic(Command):
             setup new node
         """
         def run(self):
-            import subprocess
-            import os
             import settings
-
-            def r(*cmd):
-                print ' '.join(cmd)
-                return subprocess.call(cmd)
 
             oxjs = os.path.join(settings.static_path, 'oxjs')
             if not os.path.exists(oxjs):
