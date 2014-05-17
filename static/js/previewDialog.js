@@ -52,7 +52,7 @@ oml.ui.previewDialog = function() {
         };
     }
 
-    that.update = function() {
+    that.updateElement = function() {
         oml.api.get({
             id: Ox.last($list.options('selected')),
             keys: ['coverRatio', 'id', 'modified', 'title']
@@ -87,6 +87,6 @@ oml.ui.previewDialog = function() {
         return that;
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

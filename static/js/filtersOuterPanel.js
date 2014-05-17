@@ -88,7 +88,7 @@ oml.ui.filtersOuterPanel = function() {
 
     oml.updateFilterMenus();
 
-    that.update = function() {
+    that.updateElement = function() {
         var filterSizes = oml.getFilterSizes();
         that.size(0, filterSizes[0])
             .size(2, filterSizes[4]);

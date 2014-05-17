@@ -20,15 +20,15 @@ oml.ui.previewButton = function() {
                 oml.$ui.list[data.value ? 'openPreview' : 'closePreview']();
             },
             oml_listselection: function() {
-                that.update();
+                that.updateElement();
             }
         });
 
-    that.update = function() {
+    that.updateElement = function() {
         return that.options({disabled: ui.listSelection.length == 0});
     };
 
-    return that.update();
+    return that.updateElement();
 
 
 };

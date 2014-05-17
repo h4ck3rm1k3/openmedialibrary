@@ -25,21 +25,14 @@ extensions = ['epub', 'pdf', 'txt']
 def remove_missing():
     dirty = False
     with app.app_context():
-        user = User.get_or_create(settings.USER_ID)
         prefs = settings.preferences
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         for f in File.query:
-            if not os.path.exists(f.item.get_path()):
+            path = f.item.get_path()
+            if not os.path.exists(path):
                 dirty = True
-                print 'file gone', f, f.item.get_path()
-                f.item.users.remove(user)
-                if not f.item.users:
-                    print 'last user, remove'
-                    db.session.delete(f.item)
-                else:
-                    f.item.update_lists()
-                Changelog.record(user, 'removeitem', f.item.id)
-                db.session.delete(f)
+                print 'file gone', f, path
+                f.item.remove_file()
         if dirty:
             db.session.commit()
 
@@ -171,6 +164,7 @@ def run_import(options=None):
                         item.meta['mainid']: item.meta[item.meta['mainid']]
                     })
                 item.scrape()
+                file.move()
                 if listname:
                     listitems.append(item.id)
                 added += 1

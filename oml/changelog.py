@@ -84,7 +84,7 @@ class Changelog(db.Model):
                 c.data = data
                 c.sig = sig
                 action, args = json.loads(data)
-                print 'apply change', action
+                print 'apply change', action, args
                 if getattr(c, 'action_' + action)(user, timestamp, *args):
                     print 'change applied'
                     db.session.add(c)
@@ -166,7 +166,8 @@ class Changelog(db.Model):
         i = Item.get(itemid)
         if not i or i.timestamp > timestamp:
             return True
-        i.users.remove(user)
+        if user in i.users:
+            i.users.remove(user)
         if i.users:
             i.update()
         else:

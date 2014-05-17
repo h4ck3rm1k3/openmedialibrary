@@ -10,12 +10,12 @@ oml.ui.infoView = function(identifyData) {
             .bindEvent({
                 oml_item: function() {
                     if (ui.item) {
-                        that.update(ui.item);
+                        that.updateElement(ui.item);
                     }
                 },
                 oml_listselection: function(data) {
                     if (data.value && data.value.length) {
-                        that.update(data.value[0]);
+                        that.updateElement(data.value[0]);
                     }
                 }
             }),
@@ -141,7 +141,7 @@ oml.ui.infoView = function(identifyData) {
                     .bindEvent({
                         click: function() {
                             data.mediastate = 'transferring';
-                            that.update(data, $data);
+                            that.updateElement(data, $data);
                             oml.api.download({id: ui.item}, function(result) {
                                 // ...
                             });
@@ -158,7 +158,7 @@ oml.ui.infoView = function(identifyData) {
                     .bindEvent({
                         click: function(data) {
                             data.mediastate = 'transferring';
-                            that.update(data, $data);
+                            that.updateElement(data, $data);
                             oml.api.download(Ox.extend({
                                 id: ui.item,
                             }, data.id == ':' ? {} : {
@@ -192,9 +192,9 @@ oml.ui.infoView = function(identifyData) {
                     .bindEvent({
                         click: function() {
                             data.mediastate = 'unavailable';
-                            that.update(data, $data);
+                            that.updateElement(data, $data);
                             oml.api.cancelDownload({id: ui.item}, function() {
-                                that.update(ui.item, $data);
+                                that.updateElement(ui.item, $data);
                             });
                         }
                     })
@@ -232,7 +232,7 @@ oml.ui.infoView = function(identifyData) {
         }).show();
     }
 
-    that.update = function(idOrData, $elements) {
+    that.updateElement = function(idOrData, $elements) {
 
         var data = Ox.isObject(idOrData) ? idOrData : null,
             id = data ? null : idOrData,
@@ -509,7 +509,7 @@ oml.ui.infoView = function(identifyData) {
                     oml.api.edit(edit, function(result) {
                         Ox.Request.clearCache('find');
                         oml.$ui.browser.reloadList();
-                        that.update(result.data, $data);
+                        that.updateElement(result.data, $data);
                     });
                 }
             }
@@ -519,16 +519,16 @@ oml.ui.infoView = function(identifyData) {
     };
 
     if (!identifyData) {
-        ui.item && that.update(ui.item);
+        ui.item && that.updateElement(ui.item);
     } else {
-        that.update(identifyData, [$cover, $info]);
+        that.updateElement(identifyData, [$cover, $info]);
     }
 
     oml.bindEvent({
         transfer: function(data) {
             if (data.id == ui.item && data.progress == 1) {
                 Ox.Request.clearCache(); // FIXME: too much
-                that.update(ui.item, [$info, $data]);
+                that.updateElement(ui.item, [$info, $data]);
             }
         }
     });

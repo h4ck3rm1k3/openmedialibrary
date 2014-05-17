@@ -23,10 +23,10 @@ oml.ui.openButton = function() {
             }
         });
 
-    that.update = function() {
+    that.updateElement = function() {
         return that.options({disabled: ui.listSelection.length == 0});
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

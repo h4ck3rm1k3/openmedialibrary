@@ -6,21 +6,21 @@ oml.ui.info = function() {
 
         that = Ox.Element()
             .addClass('OxTextPage')
-        	.css({
-        		padding: '0 16px',
+            .css({
+                padding: '0 16px',
                 textAlign: 'center',
-        		overflowY: 'auto'
-        	})
-        	.bindEvent({
+                overflowY: 'auto'
+            })
+            .bindEvent({
                 oml_item: function() {
-                    that.update();
+                    that.updateElement();
                 },
-        		oml_listselection: function() {
-                    that.update();
-        		}
-        	});
+                oml_listselection: function() {
+                    that.updateElement();
+                }
+            });
 
-    that.update = function() {
+    that.updateElement = function() {
         var id = ui.item || ui.listSelection[0];
         if (id) {
             oml.api.get({
@@ -64,6 +64,6 @@ oml.ui.info = function() {
         return that;
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

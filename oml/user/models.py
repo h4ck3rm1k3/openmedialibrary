@@ -68,17 +68,23 @@ class User(db.Model):
         was_peering = self.peered
         if peered:
             self.pending = ''
-            self.peered = True
             if username:
                 self.info['username'] = username
 
             self.set_nickname(self.info.get('username', 'anonymous'))
+            # FIXME: need to set peered to False to not trigger changelog event
+            # before other side receives acceptPeering request
+            self.peered = False
+            self.save()
             if not was_peering:
                 Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
+            self.peered = True
+            self.save()
         else:
             self.pending = ''
             self.peered = False
             self.nickname = None
+            self.save()
             List.query.filter_by(user_id=self.id).delete()
             for i in self.items:
                 i.users.remove(self)
@@ -167,7 +173,8 @@ class List(db.Model):
         for item_id in items:
             i = Item.get(item_id)
             self.items.append(i)
-            i.queue_download()
+            if self.user_id == settings.USER_ID:
+                i.queue_download()
             i.update()
         db.session.add(self)
         db.session.commit()

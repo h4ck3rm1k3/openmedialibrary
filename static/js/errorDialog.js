@@ -54,7 +54,7 @@ oml.ui.errorDialog = function() {
         return that;
     };
 
-    that.update = function(data) {
+    that.updateElement = function(data) {
         // 0 (timeout) or 500 (error)
         var error = data.status.code == 0 ? 'a timeout' : 'an error',
             title = data.status.code == 0 ? 'Timeout' : 'Error';

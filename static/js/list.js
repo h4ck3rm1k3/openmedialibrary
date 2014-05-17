@@ -11,8 +11,49 @@ oml.ui.list = function() {
                     oml.$ui.previewDialog.close();
                     delete oml.$ui.previewDialog;
                 },
+                copy: function(data) {
+                    oml.clipboard.copy(data.ids, 'item');
+                },
+                copyadd: function(data) {
+                    oml.clipboard.copy(data.ids, 'item');
+                },
+                cut: function(data) {
+                    var listData = oml.getListData();
+                    if (listData.editable && listData.type == 'static') {
+                        oml.clipboard.copy(data.ids, 'item');
+                        oml.doHistory('cut', data.ids, ui._list, function() {
+                            oml.UI.set({listSelection: []});
+                            oml.reloadList();
+                        });
+                    }
+                },
+                cutadd: function(data) {
+                    var listData = oml.getListData();
+                    if (listData.editable && listData.type == 'static') {
+                        oml.clipboard.add(data.ids, 'item');
+                        oml.doHistory('cut', data.ids, ui._list, function() {
+                            oml.UI.set({listSelection: []});
+                            oml.reloadList();
+                        });
+                    }
+                },
+                'delete': function() {
+                    var listData = oml.getListData();
+                    if (listData.editable && listData.type == 'static') {
+                        oml.doHistory('delete', data.ids, ui._list, function() {
+                            oml.UI.set({listSelection: []});
+                            oml.reloadList();
+                        });
+                    }
+                },
                 init: function(data) {
                     oml.$ui.statusbar.set('total', data);
+                },
+                key_control_delete: function() {
+                    var listData = oml.getListData();
+                    if (listData.own) {
+                        oml.ui.deleteItemsDialog().open();
+                    }
                 },
                 open: function(data) {
                     oml.UI.set({
@@ -32,7 +73,7 @@ oml.ui.list = function() {
                                 }
                             });
                     } else {
-                        oml.$ui.previewDialog.update();
+                        oml.$ui.previewDialog.updateElement();
                     }
                 },
                 resize: function(data) {
@@ -64,6 +105,10 @@ oml.ui.list = function() {
             });
 
     oml.enableDragAndDrop(that);
+
+    that.updateElement = function() {
+        that.reloadList(true);
+    };
 
     return that;
 

@@ -10,6 +10,7 @@
     "columnView.js",
     "confirmDialog.js",
     "connectionButton.js",
+    "deleteItemsDialog.js",
     "deleteListDialog.js",
     "errorDialog.js",
     "filter.js",

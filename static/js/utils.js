@@ -283,7 +283,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                         editable: data.editable || (
                             data.type == 'library'
                             && drag.source.user != username
-                            && data.user == 'username'
+                            && data.user == username
                         ),
                         selected: data.id == ui._list
                     }, data);
@@ -773,6 +773,8 @@ oml.getUsersAndLists = function(callback) {
             nickname: username,
             online: oml.user.online
         }];
+    Ox.Request.clearCache('getUsers');
+    Ox.Request.clearCache('getLists');
     oml.api.getUsers(function(result) {
         users = users.concat(
             result.data.users.filter(function(user) {
@@ -793,13 +795,15 @@ oml.getUsersAndLists = function(callback) {
                 ));
             });
             lists = lists.map(function(list) {
+                // FIXME: 'editable' is notoriously vague
                 return Ox.extend(list, {
                     editable: list.user == username && list.type == 'static',
+                    own: list.user == username,
                     title: (list.user ? list.user + ': ' : '') + list.name
                 });
             })
             if (!ui.lists) {
-                oml.$ui.mainMenu.update();
+                oml.$ui.mainMenu.updateElement();
             }
             ui._lists = lists;
             Ox.print('UI._LISTS', JSON.stringify(ui._lists));
@@ -829,17 +833,19 @@ oml.resizeListFolders = function() {
     var width = oml.getListFoldersWidth(),
         columnWidth = width - 58;
     oml.$ui.librariesList
-        .resizeColumn('name', columnWidth)
-        .css({width: width + 'px'});
+        .css({width: width + 'px'})
+        .resizeColumn('name', columnWidth);
     Ox.forEach(oml.$ui.folder, function($folder, index) {
         $folder.css({width: width + 'px'});
+        Ox.print('SHOULD BE:', width);
         oml.$ui.libraryList[index]
-            .resizeColumn('name', columnWidth)
-            .css({width: width + 'px'});
+            .css({width: width + 'px'})
+            .resizeColumn('name', columnWidth);
         oml.$ui.folderList[index]
-            .resizeColumn('name', columnWidth)
-            .css({width: width + 'px'});
+            .css({width: width + 'px'})
+            .resizeColumn('name', columnWidth);
     });
+    /*
     oml.$ui.librariesList
         .$body.find('.OxContent')
         .css({width: width + 'px'});
@@ -851,6 +857,7 @@ oml.resizeListFolders = function() {
             .$body.find('.OxContent')
             .css({width: width + 'px'});
     })
+    */
 };
 
 oml.updateFilterMenus = function() {

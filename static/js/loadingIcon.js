@@ -40,7 +40,7 @@ oml.ui.loadingIcon = function() {
         }
     };
 
-    that.update = function(requests) {
+    that.updateElement = function(requests) {
         that[requests ? 'start' : 'stop']();
     };
 

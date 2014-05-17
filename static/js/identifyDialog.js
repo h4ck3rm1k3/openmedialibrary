@@ -135,7 +135,7 @@ oml.ui.identifyDialog = function(data) {
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);
                             Ox.Request.clearCache(data.id);
-                            oml.$ui.infoView.update(result.data);
+                            oml.$ui.infoView.updateElement(result.data);
                         });
                     }
                 })

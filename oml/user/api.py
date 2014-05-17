@@ -192,6 +192,7 @@ def acceptPeering(request):
     if len(data.get('id', '')) != 43:
         print 'invalid user id'
         return {}
+    print 'acceptPeering...', data
     p = models.User.get_or_create(data['id'])
     state.nodes.queue('add', p.id)
     state.nodes.queue(p.id, 'acceptPeering', data.get('message', ''))

@@ -22,7 +22,7 @@ oml.ui.rightPanel = function() {
         .bindEvent({
             resize: function(data) {
                 that.options({size: data.size});
-                oml.$ui.filtersOuterPanel.update();
+                oml.$ui.filtersOuterPanel.updateElement();
                 oml.$ui.itemViewPanel.options({size: data.size});
             },
             oml_item: function(data) {

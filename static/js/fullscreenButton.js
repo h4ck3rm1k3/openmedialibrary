@@ -19,16 +19,16 @@ oml.ui.fullscreenButton = function() {
                 Ox.Fullscreen.enter(oml.$ui.viewer.find('iframe')[0]);
             },
             oml_itemview: function() {
-                that.update();
+                that.updateElement();
             }
         });
 
-    that.update = function() {
+    that.updateElement = function() {
         return that.options({
             disabled: ui.itemView != 'book'
         });
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

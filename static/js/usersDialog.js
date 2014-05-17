@@ -519,7 +519,7 @@ oml.ui.usersDialog = function() {
     }
 
     function updateUsers(callback) {
-
+        Ox.Request.clearCache('getUsers');
         oml.api.getUsers(function(result) {
 
             users = result.data.users;
@@ -582,7 +582,7 @@ oml.ui.usersDialog = function() {
 
     }
 
-    that.update = function() {
+    that.updateElement = function() {
 
         that.options({
             content: Ox.LoadingScreen().start()
@@ -592,6 +592,6 @@ oml.ui.usersDialog = function() {
 
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

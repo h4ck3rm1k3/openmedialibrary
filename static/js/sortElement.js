@@ -18,10 +18,7 @@ oml.ui.sortElement = function() {
             change: function(data) {
                 var key = data.value;
                 oml.UI.set({
-                    listSort: [{
-                        key: key,
-                        operator: oml.getSortOperator(key)
-                    }]
+                    listSort: [{key: key, operator: oml.getSortOperator(key)}]
                 });
             }
         }),
@@ -54,7 +51,7 @@ oml.ui.sortElement = function() {
         })
         .bindEvent({
             oml_listsort: function() {
-                that.update();
+                that.updateElement();
             }
         });
 
@@ -66,7 +63,7 @@ oml.ui.sortElement = function() {
         return Ox._(ui.listSort[0].operator == '+' ? 'Ascending' : 'Descending');
     }
 
-    that.update = function() {
+    that.updateElement = function() {
         $sortSelect.value(ui.listSort[0].key);
         $orderButton.options({
             title: getButtonTitle(),
@@ -75,6 +72,6 @@ oml.ui.sortElement = function() {
         return that;
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

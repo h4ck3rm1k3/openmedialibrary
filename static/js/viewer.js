@@ -7,16 +7,16 @@ oml.ui.viewer = function() {
         that = Ox.Element()
             .bindEvent({
                 oml_item: function(data) {
-                    that.update();
+                    that.updateElement();
                 },
                 oml_itemview: function(data) {
-                    that.update();
+                    that.updateElement();
                 }
             }),
 
         $iframe;
 
-    that.update = function() {
+    that.updateElement = function() {
         if (ui.item && ui.itemView == 'book') {
             $iframe = $iframe || Ox.Element('<iframe>').css({
                 width: '100%',
@@ -30,6 +30,6 @@ oml.ui.viewer = function() {
         return that;
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

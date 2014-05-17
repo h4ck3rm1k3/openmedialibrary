@@ -108,6 +108,15 @@ def edit(request):
     return response
 actions.register(edit, cache=False)
 
+@returns_json
+def remove(request):
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    print 'remove files', data['ids']
+    if 'ids' in data and data['ids']:
+        for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
+            i.remove_file()
+    return {}
+actions.register(remove, cache=False)
 
 @returns_json
 def findMetadata(request):

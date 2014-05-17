@@ -187,7 +187,9 @@ class Node(object):
         return True
 
     def acceptPeering(self, message):
+        print 'run acceptPeering', message
         r = self.request('acceptPeering', settings.preferences['username'], message)
+        print 'result', r
         p = self.user
         p.update_peering(True)
         self.go_online()

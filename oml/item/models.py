@@ -9,6 +9,7 @@ import json
 import hashlib
 from datetime import datetime
 from StringIO import StringIO
+import shutil
 
 import Image
 import ox
@@ -170,9 +171,7 @@ class Item(db.Model):
 
     def get_path(self):
         f = self.files.first()
-        prefs = settings.preferences
-        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-        return os.path.join(prefix, f.path) if f else None
+        return f.fullpath() if f else None
 
     def update_sort(self):
         for key in config['itemKeys']:
@@ -366,6 +365,22 @@ class Item(db.Model):
             self.update()
         return False
 
+    def remove_file(self):
+        for f in self.files.all():
+            path = f.fullpath()
+            print path
+            if os.path.exists(path):
+                os.unlink(path)
+            db.session.delete(f)
+        user = state.user()
+        self.users.remove(user)
+        db.session.commit()
+        if not self.users:
+            db.session.delete(self)
+        else:
+            self.update()
+        Changelog.record(user, 'removeitem', self.id)
+
 for key in config['itemKeys']:
     if key.get('sort'):
         sort_type = key.get('sortType', key['type'])
@@ -445,3 +460,49 @@ class File(db.Model):
         self.sha1 = sha1
         self.created = datetime.now()
         self.modified = datetime.now()
+
+    def fullpath(self):
+        prefs = settings.preferences
+        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+        return os.path.join(prefix, self.path)
+
+    def move(self):
+        prefs = settings.preferences
+        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+        j = self.item.json()
+
+        current_path = self.fullpath()
+        author = '; '.join([ox.canonical_name(a) for a in j.get('author', [])])
+        if not author:
+            author = 'Unknown Author'
+        title = j.get('title', 'Untitled')
+        extension = j['extension']
+        if len(title) > 100:
+            title = title[:100]
+        if author.endswith('.'):
+            author = author[:-1] + '_'
+        if author.startswith('.'):
+            author = '_' + author[1:]
+        filename = '%s.%s' % (title, extension)
+        print self.sha1, author, filename
+        new_path = os.path.join(author[0].upper(), author, filename)
+        if self.path == new_path:
+            return
+        h = ''
+        while os.path.exists(os.path.join(prefix, new_path)):
+            h = self.sha1[:len(h)+1]
+            filename = '%s.%s.%s' % (title, h, extension)
+            new_path = os.path.join(author[0].upper(), author, filename)
+            if current_path == os.path.join(prefix, new_path):
+                break
+        if self.path != new_path:
+            path = os.path.join(prefix, new_path)
+            ox.makedirs(os.path.dirname(path))
+            shutil.move(current_path, path)
+            self.path = new_path
+            self.save()
+            print 'move', current_path, new_path
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()

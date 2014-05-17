@@ -30,17 +30,17 @@ oml.ui.itemViewButtons = function() {
             },
             oml_item: function() {
                 if (ui.item) {
-                    that.update();
+                    that.updateElement();
                 } else {
                     that.disableButton('book');
                 }
             },
             oml_itemview: function(data) {
-                that.update();
+                that.updateElement();
             }
         });
 
-    that.update = function() {
+    that.updateElement = function() {
         var item = ui.item;
         that.options({
             disabled: ui.itemView != 'book',
@@ -68,6 +68,6 @@ oml.ui.itemViewButtons = function() {
         }
     });
 
-    return that.update();
+    return that.updateElement();
 
 };

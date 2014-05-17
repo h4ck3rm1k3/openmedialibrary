@@ -94,12 +94,12 @@ oml.ui.appDialog = function() {
             },
             'oml_part.app': function() {
                 if (ui.page == 'app') {
-                    that.update();
+                    that.updateElement();
                 }
             }
         });
 
-    that.update = function(section) {
+    that.updateElement = function(section) {
         $panel.selectTab(section);
     };
 

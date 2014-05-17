@@ -11,10 +11,10 @@ oml.ui.folderPlaceholder = function(text) {
                 padding: '1px 4px',
             });
 
-    that.updateText = function(text) {
+    that.updateElement = function(text) {
         return that.html(text);
     };
 
-    return that.updateText(text);
+    return that.updateElement(text);
 
 };

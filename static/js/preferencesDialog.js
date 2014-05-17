@@ -297,7 +297,7 @@ oml.ui.preferencesDialog = function() {
             },
             'oml_part.preferences': function() {
                 if (ui.page == 'preferences') {
-                    that.update();
+                    that.updateElement();
                 }
             }
         });
@@ -308,7 +308,7 @@ oml.ui.preferencesDialog = function() {
         $helpElement.show();
     }
 
-    that.update = function() {
+    that.updateElement = function() {
 
         var $form,
             $formTitle,
@@ -439,6 +439,6 @@ oml.ui.preferencesDialog = function() {
 
     };
 
-    return that.update();
+    return that.updateElement();
 
 };

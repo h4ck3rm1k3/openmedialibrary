@@ -319,8 +319,30 @@ oml.ui.mainMenu = function() {
                     oml.UI.set({showFileInfo: value});
                 } else if (id == 'fileinfo') {
                     oml.UI.set({fileInfo: value});
+                } else if (id == 'sort') {
+                    oml.UI.set({
+                        listSort: [{
+                            key: value,
+                            operator: oml.getSortOperator(value)
+                        }]
+                    });
+                } else if (id == 'order') {
+                    oml.UI.set({
+                        listSort: [{
+                            key: ui.listSort[0].key,
+                            operator: value == 'ascending' ? '+' : '-'
+                        }]
+                    });
+                } else if (id == 'find') {
+                    if (value) {
+                        oml.$ui.findSelect.value(value);
+                        if (ui._findState.key == 'advanced') {
+                            // fixme: autocomplete function doesn't get updated
+                            pandora.$ui.findInput.options({placeholder: ''});
+                        }
+                    } 
                 } else {
-                    Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
+                    Ox.print('MAIN MENU DOES NOT YET HANDLE', id, data);
                 }
             },
             click: function(data) {
@@ -440,6 +462,9 @@ oml.ui.mainMenu = function() {
                 if (!oml.hasDialogOrScreen() && !that.isSelected()) {
                     that.options('menus')[0].element.trigger('click');
                 }
+            },
+            key_control_shift_f: function() {
+                Ox.print('FIXME: NOT IMPLEMENTED')
             },
             key_control_shift_w: function() {
                 if (!oml.hasDialogOrScreen()) {
@@ -628,7 +653,7 @@ oml.ui.mainMenu = function() {
                     id: 'deletefromlibrary',
                     title: Ox._('Delete {0} from Library...', [selectionItemName]),
                     disabled: !canDelete,
-                    keyboard: 'shift delete'
+                    keyboard: 'control delete'
                 },
                 {},
                 {
@@ -716,19 +741,19 @@ oml.ui.mainMenu = function() {
                     id: 'editlist',
                     title: Ox._('Edit List...'),
                     keyboard: 'return',
-                    disabled: !isOwnList
+                    disabled: !isList || !isOwnList
                 },
                 {
                     id: 'deletelist',
                     title: Ox._('Delete List...'),
                     keyboard: 'delete',
-                    disabled: !isOwnList
+                    disabled: !isList || !isOwnList
                 }
             ])
         };
     }
 
-    that.update = function(menu) {
+    that.updateElement = function(menu) {
         (
             menu ? Ox.makeArray(menu) : ['listMenu', 'editMenu']
         ).forEach(function(menu) {

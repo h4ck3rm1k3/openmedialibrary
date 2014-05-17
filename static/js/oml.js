@@ -91,13 +91,13 @@
             oml.clipboard = Ox.Clipboard();
             oml.history = Ox.History();
             oml.$ui.appPanel = oml.ui.appPanel().appendTo(Ox.$body);
-            oml.$ui.loadingIcon.update(Ox.Request.requests());
+            oml.$ui.loadingIcon.updateElement(Ox.Request.requests());
             Ox.Request.bindEvent({
                 error: function(data) {
-                    oml.$ui.errorDialog = oml.ui.errorDialog().update(data).open();
+                    oml.$ui.errorDialog = oml.ui.errorDialog().updateElement(data).open();
                 },
                 request: function(data) {
-                    oml.$ui.loadingIcon.update(data.requests);
+                    oml.$ui.loadingIcon.updateElement(data.requests);
                 }
             });
              if (oml.user.preferences.extensions) {
