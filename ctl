@@ -9,7 +9,11 @@ if [ -e oml ]; then
 fi
 BASE=`pwd`
 SYSTEM=`uname -s`
+PLATFORM=`uname -m`
 
+if [ $SYSTEM == "Linux" ]; then
+    SYSTEM="${SYSTEM}_${PLATFORM}"
+fi
 export PLATFORM_ENV="$BASE/platform/$SYSTEM"
 if [ $SYSTEM == "Darwin" ]; then
 	export DYLD_FALLBACK_LIBRARY_PATH="$PLATFORM_ENV/lib"
