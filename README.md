@@ -17,6 +17,13 @@ or SixSS (https://sixxs.net).
 Development
 -----------
 
+On Linux you need to always install python-imaging  python-lxml ghostscript:
+
+    apt-get install \
+        python-imaging  python-lxml ghostscript
+
+Now checkout the source and prepare for use:
+
     mkdir client
     cd client
     git clone https://git.0x2620.org/openmedialibrary.git
@@ -28,6 +35,10 @@ Development
     # and start it
     ./ctl debug
 
+To update to latest version:
+
+    ./ctl update
+
 Platform
 ----------
 
@@ -38,9 +49,4 @@ you need a working python 2.7.x installation and the following packages:
         python-pypdf python-stdnum python-html5lib python-chardet python-openssl \
         python-simplejson python-lxml
     pip install -r requirements.txt
-
-On Linux you need to always install:
-
-     apt-get install \
-        python-imaging  python-lxml ghostscript
 
