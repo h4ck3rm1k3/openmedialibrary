@@ -11,6 +11,26 @@ def r(*cmd):
     print ' '.join(cmd)
     return subprocess.call(cmd)
 
+class Debug(Command):
+        """
+            Start Open Media Library in debug mode
+        """
+        def run(self):
+            pass
+
+class Start(Command):
+        """
+            Start Open Media Libary
+        """
+        def run(self):
+            pass
+
+class Stop(Command):
+        """
+            Stop Open Media Libary
+        """
+        def run(self):
+            pass
 
 class Setup(Command):
         """
@@ -26,7 +46,7 @@ class Setup(Command):
 
 class UpdateStatic(Command):
         """
-            setup new node
+            update static files
         """
         def run(self):
             import settings

@@ -3,7 +3,7 @@
 from __future__ import division
 
 from flask import Flask
-from flask.ext.script import Manager
+from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
 import logging
 
@@ -38,11 +38,15 @@ db.init_app(app)
 
 migrate = Migrate(app, db)
 
-manager = Manager(app)
+manager = Manager(app, with_default_commands=False)
 manager.add_command('db', MigrateCommand)
-manager.add_command('setup', commands.Setup)
-manager.add_command('update_static', commands.UpdateStatic)
 manager.add_command('release', commands.Release)
+manager.add_command('debug', commands.Debug)
+#manager.add_command('start', commands.Start)
+#manager.add_command('stop', commands.Stop)
+manager.add_command('setup', commands.Setup)
+manager.add_command('shell', Shell)
+manager.add_command('update_static', commands.UpdateStatic)
 
 @app.route('/')
 @app.route('/<path:path>')
