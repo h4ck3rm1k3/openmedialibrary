@@ -77,7 +77,7 @@ class Handler(WebSocketHandler):
 
 def trigger_event(event, data):
     if len(state.websockets):
-        logger.debug('trigger event %s %s', event, data, len(state.websockets))
+        logger.debug('trigger event %s %s %s', event, data, len(state.websockets))
     for ws in state.websockets:
         try:
             ws.post([event, data])
