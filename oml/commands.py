@@ -32,6 +32,13 @@ class Stop(Command):
         def run(self):
             pass
 
+class Update(Command):
+        """
+            Update to latest development version
+        """
+        def run(self):
+            pass
+
 class Setup(Command):
         """
             setup new node

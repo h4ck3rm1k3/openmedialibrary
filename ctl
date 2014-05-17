@@ -84,9 +84,12 @@ if [ "$1" == "ui" ]; then
 fi
 if [ "$1" == "update" ]; then
     cd $BASE/platform
+    echo Update platform..
     git pull
+    echo Update $NAME..
     cd $BASE/$NAME
     git pull
+    find . -name '*.pyc' -exec rm "{}" \;
     $0 setup
     $0 update_static > /dev/null
     exit
