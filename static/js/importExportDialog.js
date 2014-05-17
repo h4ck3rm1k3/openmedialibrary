@@ -276,7 +276,7 @@ oml.ui.importExportDialog = function(selected) {
                         }
                     }
                     $activityButton[selected].options({
-                        disabled: !values.path || !values.list
+                        disabled: !values.path //|| !values.list
                     });
                 }
             })
