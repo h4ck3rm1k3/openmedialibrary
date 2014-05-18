@@ -181,7 +181,7 @@ def cancelDownloads(request):
             if p in item.users:
                 item.users.remove(p)
             for l in item.lists.filter_by(user_id=settings.USER_ID):
-                l.remove(item)
+                l.items.remove(item)
             item.update()
         response = {'status': 'cancelled'}
     return response
