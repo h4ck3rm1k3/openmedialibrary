@@ -34,7 +34,7 @@ class Node(object):
     _cert = None
     online = False
     download_speed = 0
-    TIMEOUT = 3
+    TIMEOUT = 5
 
     def __init__(self, nodes, user):
         self._nodes = nodes
@@ -248,7 +248,7 @@ class Node(object):
             content = r.content
         '''
         self._opener.addheaders = zip(headers.keys(), headers.values())
-        r = self._opener.open(url, timeout=self.TIMEOUT)
+        r = self._opener.open(url, timeout=self.TIMEOUT*2)
         if r.getcode() == 200:
             if r.headers.get('content-encoding', None) == 'gzip':
                 content = gzip.GzipFile(fileobj=r).read()
