@@ -26,6 +26,7 @@ class User(db.Model):
     nickname = db.Column(db.String(256))
 
     pending = db.Column(db.String(64)) # sent|received
+    queued = db.Column(db.Boolean())
     peered = db.Column(db.Boolean())
     online = db.Column(db.Boolean())
 
@@ -69,6 +70,7 @@ class User(db.Model):
 
     def update_peering(self, peered, username=None):
         was_peering = self.peered
+        self.queued = True
         if peered:
             self.pending = ''
             if username:
@@ -175,16 +177,18 @@ class List(db.Model):
         from item.models import Item
         for item_id in items:
             i = Item.get(item_id)
-            self.items.append(i)
-            if self.user_id == settings.USER_ID:
-                i.queue_download()
-            i.update()
+            if i:
+                self.items.append(i)
+                if self.user_id == settings.USER_ID:
+                    i.queue_download()
+                i.update()
         db.session.add(self)
         db.session.commit()
         for item_id in items:
             i = Item.get(item_id)
-            i.update_lists()
-            db.session.add(i)
+            if i:
+                i.update_lists()
+                db.session.add(i)
         db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)

@@ -11,8 +11,9 @@ import sys
 import thread
 from threading import Thread
 
-from settings import preferences, server, USER_ID, sk
 from utils import valid, get_public_ipv6
+from settings import preferences, server, USER_ID, sk
+import state
 
 logger = logging.getLogger('oml.localnodes')
 
@@ -132,6 +133,7 @@ class LocalNodes(Thread):
                 u.info['username'] = data['username']
                 u.info['local'] = data
                 u.save()
+                state.nodes.queue('add', u.id)
             self.send()
 
     def run(self):

@@ -10,7 +10,7 @@ import state
 from websocket import trigger_event
 
 import logging
-logger = logging.getLogger('oml.node.api')
+logger = logging.getLogger('oml.node.nodeapi')
 
 def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
     if user_id and not from_ and not to:
@@ -69,6 +69,7 @@ def api_acceptPeering(app, user_id, username, message):
         user.info['message'] = message
         user.update_peering(True, username)
         trigger_event('peering', user.json())
+        state.nodes.queue('add', user.id)
         return True
     return False
 

@@ -269,6 +269,7 @@ oml.ui.identifyDialog = function(data) {
                                 });
                                 getMetadata(id.id, data.value, function() {
                                     // ...
+                                    updateIdButtons();
                                 });
                             }
                         }

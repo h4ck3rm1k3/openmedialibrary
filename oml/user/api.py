@@ -191,9 +191,13 @@ def requestPeering(request):
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
-    p = models.User.get_or_create(data['id'])
-    state.nodes.queue('add', p.id)
-    state.nodes.queue(p.id, 'requestPeering', data.get('message', ''))
+    u = models.User.get_or_create(data['id'])
+    u.pending = 'sent'
+    u.queued = True
+    u.info['message'] = data.get('message', '')
+    u.save()
+    state.nodes.queue('add', u.id)
+    state.nodes.queue(u.id, 'peering', 'requestPeering')
     return {}
 actions.register(requestPeering, cache=False)
 
@@ -204,9 +208,11 @@ def acceptPeering(request):
         logger.debug('invalid user id')
         return {}
     logger.debug('acceptPeering... %s', data)
-    p = models.User.get_or_create(data['id'])
-    state.nodes.queue('add', p.id)
-    state.nodes.queue(p.id, 'acceptPeering', data.get('message', ''))
+    u = models.User.get_or_create(data['id'])
+    u.info['message'] = data.get('message', '')
+    u.update_peering(True)
+    state.nodes.queue('add', u.id)
+    state.nodes.queue(u.id, 'peering', 'acceptPeering')
     return {}
 actions.register(acceptPeering, cache=False)
 
@@ -216,9 +222,11 @@ def rejectPeering(request):
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
-    p = models.User.get_or_create(data['id'])
-    state.nodes.queue('add', p.id)
-    state.nodes.queue(p.id, 'rejectPeering', data.get('message', ''))
+    u = models.User.get_or_create(data['id'])
+    u.info['message'] = data.get('message', '')
+    u.update_peering(False)
+    state.nodes.queue('add', u.id)
+    state.nodes.queue(u.id, 'peering', 'rejectPeering')
     return {}
 actions.register(rejectPeering, cache=False)
 
@@ -229,8 +237,10 @@ def removePeering(request):
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
+    u.info['message'] = data.get('message', '')
+    u.update_peering(False)
     state.nodes.queue('add', u.id)
-    state.nodes.queue(u.id, 'removePeering', data.get('message', ''))
+    state.nodes.queue(u.id, 'peering', 'removePeering')
     return {}
 actions.register(removePeering, cache=False)
 
@@ -240,9 +250,11 @@ def cancelPeering(request):
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
-    p = models.User.get_or_create(data['id'])
-    state.nodes.queue('add', p.id)
-    state.nodes.queue(p.id, 'cancelPeering', data.get('message', ''))
+    u = models.User.get_or_create(data['id'])
+    u.info['message'] = data.get('message', '')
+    u.update_peering(False)
+    state.nodes.queue('add', u.id)
+    state.nodes.queue(u.id, 'peering', 'cancelPeering')
     return {}
 actions.register(cancelPeering, cache=False)
 

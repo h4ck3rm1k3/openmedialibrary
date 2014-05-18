@@ -5,6 +5,7 @@ from __future__ import division
 from Queue import Queue
 from threading import Thread
 import json
+import socket
 
 from datetime import datetime
 import os
@@ -40,6 +41,7 @@ class Node(object):
         key = str(user.id)
         self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
         self.go_online()
+        logger.debug('new Node %s online=%s', self.user_id, self.online)
 
     @property
     def url(self):
@@ -114,9 +116,7 @@ class Node(object):
             self.online = False
             return None
         except:
-            logger.debug('unknown url error')
-            import traceback
-            print traceback.print_exc()
+            logger.debug('unknown url error', exc_info=1)
             self.online = False
             return None
         data = r.read()
@@ -140,19 +140,40 @@ class Node(object):
     def user(self):
         return user.models.User.get_or_create(self.user_id)
 
+    def can_connect(self):
+        try:
+            s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+            s.settimeout(1)
+            s.connect((self.host, self.port))
+            s.close()
+            return True
+        except:
+            pass
+        return False
+
     def go_online(self):
         self.resolve()
-        if self.user.peered:
+        u = self.user
+        if u.peered or u.queued:
             try:
                 self.online = False
                 logger.debug('type to connect to %s', self.user_id)
-                self.pullChanges()
+                if self.can_connect():
+                    self.online = True
+                    if u.queued:
+                        logger.debug('queued peering event pending=%s peered=%s', u.pending, u.peered)
+                        if u.pending == 'sent':
+                            self.peering('requestPeering')
+                        elif u.pending == '' and u.peered:
+                            self.peering('acceptPeering')
+                        else:
+                            #fixme, what about cancel/reject peering here?
+                            self.peering('removePeering')
+                    if self.online:
+                        self.pullChanges()
                 logger.debug('connected to %s', self.user_id)
-                self.online = True
             except:
-                import traceback
-                traceback.print_exc()
-                logger.debug('failed to connect to %s', self.user_id)
+                logger.debug('failed to connect to %s', self.user_id, exc_info=1)
                 self.online = False
         else:
             self.online = False
@@ -183,44 +204,22 @@ class Node(object):
             r = False
         logger.debug('pushedChanges %s %s', r, self.user_id)
 
-    def requestPeering(self, message):
-        p = self.user
-        p.pending = 'sent'
-        p.save()
-        r = self.request('requestPeering', settings.preferences['username'], message)
-        return True
+    def peering(self, action):
+        u = self.user
+        if action in ('requestPeering', 'acceptPeering'):
+            r = self.request(action, settings.preferences['username'], u.info.get('message'))
+        else:
+            r = self.request(action, u.info.get('message'))
+        if r:
+            u.queued = False
+            if 'message' in u.info:
+                del u.info['message']
+            u.save()
+        else:
+            logger.debug('peering failed? %s %s', action, r)
 
-    def acceptPeering(self, message):
-        logger.debug('run acceptPeering %s', message)
-        r = self.request('acceptPeering', settings.preferences['username'], message)
-        logger.debug('result %s', r)
-        p = self.user
-        p.update_peering(True)
-        self.go_online()
-        return True
-
-    def rejectPeering(self, message):
-        logger.debug('rejectPeering %s', self.user)
-        p = self.user
-        p.update_peering(False)
-        r = self.request('rejectPeering', message)
-        self.online = False
-        return True
-
-    def removePeering(self, message):
-        logger.debug('removePeering %s', self.user)
-        p = self.user
-        if p.peered:
-            p.update_peering(False)
-            r = self.request('removePeering', message)
-        self.online = False
-        return True
-
-    def cancelPeering(self, message):
-        p = self.user
-        p.update_peering(False)
-        self.online = False
-        r = self.request('cancelPeering', message)
+        if action in ('cancelPeering', 'rejectPeering', 'removePeering'):
+            self.online = False
         return True
 
     def download(self, item):
@@ -272,6 +271,7 @@ class Node(object):
 
 class Nodes(Thread):
     _nodes = {}
+    _local = None
 
     def __init__(self, app):
         self._app = app
@@ -303,18 +303,14 @@ class Nodes(Thread):
         for node in nodes:
             getattr(node, action)(*args)
 
-    def _add_node(self, user_id):
+    def _add(self, user_id):
         if user_id not in self._nodes:
             from user.models import User
             self._nodes[user_id] = Node(self, User.get_or_create(user_id))
-        '''
         else:
-            self._nodes[user_id].online = True
-            trigger_event('status', {
-                'id': user_id,
-                'status': 'online'
-            })
-        '''
+            logger.debug('bring existing node online %s', user_id)
+            if not self._nodes[user_id].online:
+                self._nodes[user_id].go_online()
 
     def run(self):
         with self._app.app_context():
@@ -322,7 +318,7 @@ class Nodes(Thread):
                 args = self._q.get()
                 if args:
                     if args[0] == 'add':
-                        self._add_node(args[1])
+                        self._add(args[1])
                     else:
                         self._call(*args)
 

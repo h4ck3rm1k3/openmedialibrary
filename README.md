@@ -19,8 +19,8 @@ Development
 
 On Linux you need to always install python-imaging  python-lxml ghostscript:
 
-    apt-get install \
-        python-imaging  python-lxml ghostscript
+    apt-get install python-imaging  python-lxml ghostscript poppler-utils
+
 
 Now checkout the source and prepare for use:
 

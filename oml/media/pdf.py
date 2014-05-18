@@ -15,6 +15,9 @@ import stdnum.isbn
 import settings
 from utils import normalize_isbn, find_isbns
 
+import logging
+logger = logging.getLogger('oml.meta.pdf')
+
 def cover(pdf):
     if sys.platform == 'darwin':
         return ql_cover(pdf)
@@ -86,9 +89,7 @@ def info(pdf):
                         if value and _key not in data:
                             data[_key] = value
         except:
-            print 'FAILED TO PARSE', pdf
-            import traceback
-            print traceback.print_exc()
+            logger.debug('FAILED TO PARSE %s', pdf, exc_info=1)
 
         if 'identifier' in data:
             value = normalize_isbn(data['identifier'])

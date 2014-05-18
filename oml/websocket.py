@@ -2,8 +2,6 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import logging
-
 from tornado.websocket import WebSocketHandler
 from tornado.ioloop import IOLoop
 from Queue import Queue
@@ -14,6 +12,7 @@ from oxflask.shortcuts import json_dumps
 
 import state
 
+import logging
 logger = logging.getLogger('oml.websocket')
 
 class Background:
@@ -82,6 +81,4 @@ def trigger_event(event, data):
         try:
             ws.post([event, data])
         except:
-            import traceback
-            traceback.print_exc()
-            logger.debug('failed to send to ws %s %s %s', ws, event, data)
+            logger.debug('failed to send to ws %s %s %s', ws, event, data, exc_info=1)
