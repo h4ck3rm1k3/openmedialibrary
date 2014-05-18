@@ -50,12 +50,29 @@ oml.ui.list = function() {
                     }
                 },
                 init: function(data) {
+                    Ox.print('MAIN LIST INIT', data);
+                    if (ui.find.conditions.length == 0 || (
+                        ui.find.conditions.length == 1
+                        && ui.find.conditions[0].key == 'list'
+                        && ui.find.conditions[0].operator == '=='
+                    )) {
+                        oml.$ui.folders.updateItems(data.items);
+                    }
                     oml.$ui.statusbar.set('total', data);
                 },
                 key_control_delete: function() {
                     var listData = oml.getListData();
                     if (listData.own) {
                         oml.ui.deleteItemsDialog().open();
+                    }
+                },
+                key_shift_enter: function() {
+                    var selected = that.options('selected');
+                    if (selected.length) {
+                        oml.UI.set({
+                            item: selected[0],
+                            itemView: 'book'
+                        });
                     }
                 },
                 open: function(data) {

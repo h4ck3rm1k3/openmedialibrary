@@ -62,6 +62,8 @@ def api_requestPeering(app, user_id, username, message):
 def api_acceptPeering(app, user_id, username, message):
     user = User.get(user_id)
     logger.debug('incoming acceptPeering event: pending: %s', user.pending)
+    if user and user.peered:
+        return True
     if user and user.pending == 'sent':
         if not user.info:
             user.info = {}

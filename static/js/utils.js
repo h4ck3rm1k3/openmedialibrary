@@ -1,8 +1,10 @@
 oml.addList = function() {
-    // addList(isSmart, isFrom) or addList(list) [=dupicate]
+    // addList(isSmart, isFrom[, name[, callback]])
+    // or addList(list) [=duplicate]
     var args = arguments,
         isDuplicate = args.length == 1,
-        isSmart, isFrom, list, listData, data,
+        isSmart, isFrom, name, callback,
+        list, listData, data,
         username = oml.user.preferences.username;
     Ox.Request.clearCache('getLists');
     oml.api.getLists(function(result) {
@@ -16,8 +18,10 @@ oml.addList = function() {
         if (!isDuplicate) {
             isSmart = args[0];
             isFrom = args[1];
+            name = args[2] || Ox._('Untitled');
+            callback = args[3];
             data = {
-                name: oml.validateName(Ox._('Untitled'), listNames),
+                name: oml.getValidName(name, listNames),
                 type: !isSmart ? 'static' : 'smart'
             };
             if (!isSmart) {
@@ -36,7 +40,7 @@ oml.addList = function() {
             list = args[0];
             listData = Ox.getObjectById(Ox.flatten(Ox.values(lists)), list);
             data = Ox.extend({
-                name: oml.validateName(listData.name, listNames),
+                name: oml.getValidName(listData.name, listNames),
                 type: listData.type
             }, listData.query ? {
                 query: listData.query
@@ -74,26 +78,32 @@ oml.addList = function() {
                 $folderList = oml.$ui.folderList[0];
             oml.$ui.folder[0].options({collapsed: false}); // FIXME: SET UI!
             // FIXME: DOESN'T WORK
-            $folderList
-                .bindEventOnce({
-                    load: function() {
-                        $folderList
-                            .gainFocus()
-                            .options({selected: [list]});
-                        oml.UI.set({
-                            find: {
-                                conditions: [{
-                                    key: 'list',
-                                    operator: '==',
-                                    value: list
-                                }],
-                                operator: '&'
-                            }
-                        });
-                        oml.$ui.listDialog = oml.ui.listDialog().open();
-                    }
-                });
+            if (
+                !oml.$ui.importExportDialog
+                || !oml.$ui.importExportDialog.is(':visible')
+            ) {
+                $folderList
+                    .bindEventOnce({
+                        load: function() {
+                            $folderList
+                                .gainFocus()
+                                .options({selected: [list]});
+                            oml.UI.set({
+                                find: {
+                                    conditions: [{
+                                        key: 'list',
+                                        operator: '==',
+                                        value: list
+                                    }],
+                                    operator: '&'
+                                }
+                            });
+                            oml.$ui.listDialog = oml.ui.listDialog().open();
+                        }
+                    });
+            }
             oml.$ui.folders.updateOwnLists();
+            callback && callback();
         });
     }
 };
@@ -267,7 +277,6 @@ oml.enableDragAndDrop = function($list, canMove) {
 
     $list.bindEvent({
         draganddropstart: function(data) {
-            Ox.print('DND START', data);
             var $lists = oml.$ui.libraryList.concat(oml.$ui.folderList);
             drag.action = 'copy';
             drag.ids = $list.options('selected');
@@ -732,7 +741,6 @@ oml.getListData = function(list) {
 oml.getListFoldersHeight = function() {
     var ui = oml.user.ui;
     return Object.keys(ui.showFolder).reduce(function(value, id, index) {
-        Ox.print('WTF WTF', index)
         var items = oml.$ui.folderList[index].options('items').length;
         return value + 16 + ui.showFolder[id] * (1 + items) * 16;
     }, 16);
@@ -747,6 +755,35 @@ oml.getListFoldersWidth = function() {
         ? Ox.UI.SCROLLBAR_SIZE : 0
     );
 };
+
+oml.getLists = function(callback) {
+    var ui = oml.user.ui;
+    Ox.Request.clearCache('getLists');
+    oml.api.getLists(function(result) {
+        var username = oml.user.preferences.username;
+        ui._lists = result.data.lists.map(function(list) {
+            // FIXME: 'editable' is notoriously vague
+            list.name = list.type == 'libraries' ? Ox._('Libraries')
+                 : list.type == 'library' ? Ox._('Library') : list.name;
+            return Ox.extend(list, {
+                editable: list.user == username && list.type == 'static',
+                own: list.user == username,
+                title: (list.user ? list.user + ': ' : '') + list.name
+            });
+        });
+        callback(ui._lists);
+    });
+};
+
+oml.getOwnListNames = function() {
+    var ui = oml.user.ui,
+        username = oml.user.preferences.username;
+    return ui._lists.filter(function(list) {
+        return list.user == username;
+    }).filter(function(list) {
+        return list.name;
+    });
+}
 
 oml.getPageTitle = function(stateOrURL) {
 	var page = Ox.getObjectById(
@@ -764,6 +801,22 @@ oml.getSortOperator = function(key) {
             Ox.isArray(itemKey.type) ? itemKey.type[0] : itemKey.type
         ) ? '+' : '-';
 };
+
+oml.getUsers = function(callback) {
+    var users = [{
+        id: oml.user.id,
+        nickname: oml.user.preferences.username,
+        online: oml.user.online
+    }];
+    oml.api.getUsers(function(result) {
+        users = users.concat(
+            result.data.users.filter(function(user) {
+                return user.peered;
+            })
+        );
+        callback(users);
+    });
+}
 
 oml.getUsersAndLists = function(callback) {
     var lists = [{
@@ -811,10 +864,28 @@ oml.getUsersAndLists = function(callback) {
                 oml.$ui.mainMenu.updateElement();
             }
             ui._lists = lists;
-            Ox.print('UI._LISTS', JSON.stringify(ui._lists));
+            Ox.print('GOT LISTS ::::', lists);
             callback(users, lists);
         });
     })
+};
+
+oml.getValidName = function(value, names, chars) {
+    var index = 1, length = 256, suffix;
+    if (chars) {
+        value = value.replace(
+            new RegExp('[' + Ox.escapeRegExp(chars) + ']', 'g'),
+            ''
+        );
+    }
+    value = Ox.clean(Ox.clean(value).slice(0, length));
+    names = names || [];
+    while (Ox.contains(names, value)) {
+        suffix = ' [' + (++index) + ']';
+        value = value.replace(/ \[\d+\]$/, '')
+            .slice(0, length - suffix.length) + suffix;
+    };
+    return value;
 };
 
 oml.hasDialogOrScreen = function() {
@@ -834,7 +905,6 @@ oml.resizeFilters = function() {
 
 oml.resizeListFolders = function() {
     // FIXME: does this have to be here?
-    Ox.print('RESIZING LIST FOLDERS', 'WIDTH', oml.getListFoldersWidth(), 'HEIGHT', oml.getListFoldersHeight())
     var width = oml.getListFoldersWidth(),
         columnWidth = width - 58;
     oml.$ui.librariesList
@@ -842,7 +912,6 @@ oml.resizeListFolders = function() {
         .resizeColumn('name', columnWidth);
     Ox.forEach(oml.$ui.folder, function($folder, index) {
         $folder.css({width: width + 'px'});
-        Ox.print('SHOULD BE:', width);
         oml.$ui.libraryList[index]
             .css({width: width + 'px'})
             .resizeColumn('name', columnWidth);
@@ -879,18 +948,6 @@ oml.updateFilterMenus = function() {
             filtersHaveSelection ? 'enableMenuItem' : 'disableMenuItem'
         ]('clearFilters');
     });
-};
-
-oml.validateName = function(value, names) {
-    var index = 1, length = 256, suffix;
-    value = Ox.clean(Ox.clean(value).slice(0, length));
-    names = names || [];
-    while (Ox.contains(names, value)) {
-        suffix = ' [' + (++index) + ']';
-        value = value.replace(/ \[\d+\]$/, '')
-            .slice(0, length - suffix.length) + suffix;
-    };
-    return value;
 };
 
 oml.validatePublicKey = function(value) {

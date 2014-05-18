@@ -6,13 +6,15 @@ from Queue import Queue
 from threading import Thread
 import json
 import socket
-
+from StringIO import StringIO
+import gzip
+import urllib2
 from datetime import datetime
 import os
 
 import ox
 import ed25519
-import urllib2
+from tornado.ioloop import PeriodicCallback
 
 import settings
 import user.models
@@ -42,6 +44,8 @@ class Node(object):
         self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
         self.go_online()
         logger.debug('new Node %s online=%s', self.user_id, self.online)
+        self._ping = PeriodicCallback(self.ping, 120000)
+        self._ping.start()
 
     @property
     def url(self):
@@ -120,6 +124,8 @@ class Node(object):
             self.online = False
             return None
         data = r.read()
+        if r.headers.get('content-encoding', None) == 'gzip':
+            data = gzip.GzipFile(fileobj=StringIO(data)).read()
         sig = r.headers.get('X-Ed25519-Signature')
         if sig and self._valid(data, sig):
             response = json.loads(data)
@@ -151,6 +157,13 @@ class Node(object):
             pass
         return False
 
+    def ping(self):
+        with self._app.app_context():
+            if self.online:
+                self.online = self.can_connect()
+            else:
+                self.go_online()
+
     def go_online(self):
         self.resolve()
         u = self.user
@@ -179,7 +192,7 @@ class Node(object):
             self.online = False
         trigger_event('status', {
             'id': self.user_id,
-            'status': 'online' if self.online else 'offline'
+            'online': self.online
         })
 
     def pullChanges(self):
@@ -199,7 +212,7 @@ class Node(object):
             self.online = False
             trigger_event('status', {
                 'id': self.user_id,
-                'status': 'offline'
+                'online': self.online
             })
             r = False
         logger.debug('pushedChanges %s %s', r, self.user_id)
@@ -210,7 +223,7 @@ class Node(object):
             r = self.request(action, settings.preferences['username'], u.info.get('message'))
         else:
             r = self.request(action, u.info.get('message'))
-        if r:
+        if r != None:
             u.queued = False
             if 'message' in u.info:
                 del u.info['message']
@@ -237,7 +250,21 @@ class Node(object):
         self._opener.addheaders = zip(headers.keys(), headers.values())
         r = self._opener.open(url, timeout=self.TIMEOUT)
         if r.getcode() == 200:
-            content = r.read()
+            if r.headers.get('content-encoding', None) == 'gzip':
+                content = gzip.GzipFile(fileobj=r).read()
+            else:
+                '''
+                content = ''
+                for chunk in iter(lambda: r.read(1024*1024), ''):
+                    content += chunk
+                    item.transferprogress = len(content) / item.info['size']
+                    item.save()
+                    trigger_event('transfer', {
+                        'id': item.id, 'progress': item.transferprogress
+                    })
+                '''
+                content = r.read()
+
             t2 = datetime.now()
             duration = (t2-t1).total_seconds()
             if duration:
@@ -308,7 +335,6 @@ class Nodes(Thread):
             from user.models import User
             self._nodes[user_id] = Node(self, User.get_or_create(user_id))
         else:
-            logger.debug('bring existing node online %s', user_id)
             if not self._nodes[user_id].online:
                 self._nodes[user_id].go_online()
 

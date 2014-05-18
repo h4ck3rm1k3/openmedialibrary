@@ -65,14 +65,18 @@ oml.ui.listDialog = function() {
                 })
                 .bindEvent({
                     change: function(data) {
-                        var value = oml.validateName(data.value, listNames);
+                        var value = oml.getValidName(
+                            data.value || Ox._('Untitled'),
+                            listNames.filter(function(listName) {
+                                return listName != listData.name;
+                            })
+                        );
                         that.options({title: getTitle(':' + value)})
                         $nameInput.value(value);
                         // FIXME: UGLY
                         listNames[listNames.indexOf(listData.name)] = value;
                         listData.name = value;
                         //
-                        Ox.print(listData.name, 'LIST NAMES ???', listNames)
                         oml.api.editList({
                             id: ui._list,
                             name: value
@@ -94,13 +98,13 @@ oml.ui.listDialog = function() {
                 })
                 .appendTo($content),
             $findForm;
-        Ox.print('DEBUG:', list, listData)
         if (listData.type == 'smart') {
             $findForm = oml.ui.findForm(listData)
                 .css({marginTop: '8px'})
                 .appendTo($content);
         }
         that.options({content: $content});
+        $nameInput.focusInput(true);
     });
 
     function getTitle(list) {

@@ -2,8 +2,7 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import logging
-logger = logging.getLogger('meta')
+import stdnum.isbn
 
 import abebooks
 import loc
@@ -12,6 +11,10 @@ import openlibrary
 import worldcat
 import google
 import duckduckgo
+
+import logging
+logger = logging.getLogger('meta')
+
 
 providers = [
     ('openlibrary', 'olid'),
@@ -32,6 +35,8 @@ def find(title, author=None, publisher=None, date=None):
     return results
 
 def lookup(key, value):
+    if not isvalid_id(key, value):
+        return {}
     data = {key: value}
     ids = [(key, value)]
     provider_data = {}
@@ -59,4 +64,13 @@ def lookup(key, value):
                 data[k_] = v_
     return data
 
+def isvalid_id(key, value):
+    if key in ('isbn10', 'isbn13'):
+        if 'isbn%d'%len(value) != key or not stdnum.isbn.is_valid(value):
+            return False
+    if key == 'asin' and len(value) != 10:
+        return False
+    if key == 'olid' and not (value.startswith('OL') and value.endswith('M')):
+        return False
+    return True
 

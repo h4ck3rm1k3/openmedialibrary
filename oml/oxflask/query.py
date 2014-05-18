@@ -5,9 +5,13 @@ from sqlalchemy.sql.expression import and_, not_, or_, ClauseElement
 from datetime import datetime
 import unicodedata
 from sqlalchemy.sql import operators, extract
+from sqlalchemy.orm import load_only
 
 import utils
 import settings
+
+import logging
+logger = logging.getLogger('oxflask.query')
 
 def get_operator(op, type='str'):
     return {
@@ -56,6 +60,9 @@ class Parser(object):
         }
         ...
         '''
+        logger.debug('parse_condition %s', condition)
+        if not 'value' in condition:
+            return None
         k = condition.get('key', '*')
         if not k:
             k = '*'
@@ -105,34 +112,7 @@ class Parser(object):
                 q = ~q
             return q
         elif k == 'list':
-            '''
-            q = Q(id=0)
-            l = v.split(":")
-            if len(l) == 1:
-                vqs = Volume.objects.filter(name=v, user=user)
-                if vqs.count() == 1:
-                    v = vqs[0]
-                    q = Q(files__instances__volume__id=v.id)
-            elif len(l) >= 2:
-                l = (l[0], ":".join(l[1:]))
-                lqs = list(List.objects.filter(name=l[1], user__username=l[0]))
-                if len(lqs) == 1 and lqs[0].accessible(user):
-                        l = lqs[0]
-                        if l.query.get('static', False) == False:
-                            data = l.query
-                            q = self.parse_conditions(data.get('conditions', []),
-                                                data.get('operator', '&'),
-                                                user, l.user)
-                        else:
-                            q = Q(id__in=l.items.all())
-                        if exclude:
-                            q = ~q
-                else:
-                    q = Q(id=0)
-            '''
-            l = v.split(":")
-            nickname = l[0]
-            name = ':'.join(l[1:])
+            nickname, name = v.split(':', 1)
             if nickname:
                 p = self._user.query.filter_by(nickname=nickname).first()
                 v = '%s:%s' % (p.id, name)
@@ -151,7 +131,17 @@ class Parser(object):
                 q = self.parse_conditions(data.get('conditions', []),
                                     data.get('operator', '&'))
             else:
-                q = (self._find.key == 'list') & (self._find.value == v)
+                if exclude:
+                    q = (self._find.key == 'list') & (self._find.value == v)
+                    ids = [i.id
+                        for i in self._model.query.join(self._find).filter(q).group_by(self._model.id).options(load_only('id'))]
+                    if ids:
+                        q = ~self._model.id.in_(ids)
+                    else:
+                        q = (self._model.id != 0)
+
+                else:
+                    q = (self._find.key == 'list') & (self._find.value == v)
             return q
         elif key_type == 'date':
             def parse_date(d):

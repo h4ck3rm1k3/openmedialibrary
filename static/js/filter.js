@@ -62,7 +62,6 @@ oml.ui.filter = function(id) {
                 );
             },
             select: function(data) {
-                Ox.print('UI FILTER STATE', ui._filterState)
                 // fixme: cant index be an empty array, instead of -1?
                 // FIXME: this is still incorrect when deselecting a filter item
                 // makes a selected item in another filter disappear

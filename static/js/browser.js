@@ -72,8 +72,10 @@ oml.ui.browser = function() {
             unique: 'id'
         })
         .bindEvent({
-            open: function() {
-                oml.UI.set({itemView: 'book'});
+            open: function(data) {
+                if (that.value(data.ids[0], 'mediastate') == 'available') {
+                    oml.UI.set({itemView: 'book'});
+                }
             },
             select: function(data) {
                 oml.UI.set({

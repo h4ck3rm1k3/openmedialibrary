@@ -23,7 +23,7 @@ class Downloads(Thread):
         import item.models
         for i in item.models.Item.query.filter(
                 item.models.Item.transferadded!=None).filter(
-                item.models.Item.transferprogress<1):
+                item.models.Item.transferprogress<1).order_by(item.models.Item.transferadded):
             logger.debug('DOWNLOAD %s %s', i, i.users)
             for p in i.users:
                 if state.nodes.check_online(p.id):

@@ -50,8 +50,8 @@ oml.ui.importExportDialog = function(selected) {
         that = Ox.Dialog({
                 buttons: [
                     Ox.Button({
-                        id: 'close',
-                        title: Ox._('Close')
+                        id: 'hide',
+                        title: Ox._('Hide')
                     })
                     .bindEvent({
                         click: function() {
@@ -87,7 +87,7 @@ oml.ui.importExportDialog = function(selected) {
         $status = {},
         $progressButton = {};
 
-    oml.getUsersAndLists(function() {
+    oml.getLists(function() {
         oml.api.getActivity(function(result) {
             var isActive = !Ox.isEmpty(result.data),
                 activity = result.data.activity;
@@ -98,7 +98,6 @@ oml.ui.importExportDialog = function(selected) {
                 progress: [0,42]
             };
             */
-            Ox.print(result.data, '!!!!!!!!')
             $innerPanel
                 .replaceElement(0,
                     activity == 'import' ? renderActivity(result.data)
@@ -208,6 +207,12 @@ oml.ui.importExportDialog = function(selected) {
             $form = Ox.Form({
                 items: selected == 'import' ? [
                     Ox.Input({
+                        autocomplete: function(value, callback) {
+                            oml.api.autocompleteFolder({path: value}, function(result) {
+                                callback(result.data.items);
+                            });
+                        },
+                        autocompleteSelect: true,
                         changeOnKeypress: true,
                         id: 'path',
                         label: 'Source Path',
@@ -216,7 +221,7 @@ oml.ui.importExportDialog = function(selected) {
                     }),
                     Ox.SelectInput({
                         id: 'list',
-                        inputValue: oml.validateName(Ox._('Untitled'), getListNames()),
+                        inputValue: oml.getValidName(Ox._('Untitled'), getListNames()),
                         inputWidth: 224,
                         items: getListItems('import'),
                         label: 'Destination',
@@ -229,8 +234,8 @@ oml.ui.importExportDialog = function(selected) {
                     Ox.Select({
                         id: 'mode',
                         items: [
-                            {id: 'copy', title: Ox._('Copy files')},
-                            {id: 'move', title: Ox._('Move files')}
+                            {id: 'copy', title: Ox._('Copy (keep files in source path)')},
+                            {id: 'move', title: Ox._('Move (delete files from source path)')}
                         ],
                         label: Ox._('Import Mode'),
                         labelWidth: 128,
@@ -255,10 +260,10 @@ oml.ui.importExportDialog = function(selected) {
                     Ox.Select({
                         id: 'mode',
                         items: [
-                            {id: 'keep', title: Ox._('Keep existing files')},
-                            {id: 'remove', title: Ox._('Remove existing files')}
+                            {id: 'add', title: Ox._('Add (keep files in destination path)')},
+                            {id: 'replace', title: Ox._('Replace (delete files from destination path)')}
                         ],
-                        label: Ox._('Import Mode'),
+                        label: Ox._('Export Mode'),
                         labelWidth: 128,
                         width: 480
                     })
@@ -268,15 +273,8 @@ oml.ui.importExportDialog = function(selected) {
             .bindEvent({
                 change: function(data) {
                     var values = $form.values();
-                    Ox.print('FORM CHANGE', data);
-                    if (data.id == 'list') {
-                        // FIXME: WRONG
-                        if (data.data.value[0] != '') {
-                            $form.values('list', oml.validateName(data.data.value, getListNames()))
-                        }
-                    }
                     $activityButton[selected].options({
-                        disabled: !values.path //|| !values.list
+                        disabled: !values.path
                     });
                 }
             })
@@ -310,7 +308,11 @@ oml.ui.importExportDialog = function(selected) {
             })
             .bindEvent({
                 click: function() {
-                    var data = $form.values();
+                    var data = $form.values(),
+                        addList = data.list && !Ox.contains(
+                            oml.getOwnListNames(),
+                            data.list
+                        );
                     $innerPanel.replaceElement(0,
                         renderActivity({
                             activity: 'import',
@@ -319,13 +321,15 @@ oml.ui.importExportDialog = function(selected) {
                         })
                     );
                     $label['export'].show();
-                    oml.api.import({
-                        list: data.list, // FIXME: WRONG for Library
-                        mode: data.mode,
-                        path: data.path,
-                    }, function() {
-                        // ...
-                    })
+                    (addList ? oml.addList : Ox.noop)(false, false, data.list, function() {
+                        oml.api.import({
+                            list: data.list,
+                            mode: data.mode,
+                            path: data.path,
+                        }, function() {
+                            // ...
+                        });
+                    });
                 }
             })
             .appendTo($element);
@@ -341,7 +345,6 @@ oml.ui.importExportDialog = function(selected) {
     }
 
     function setProgress(data) {
-        Ox.print('SET PROGRESS', data, $progress)
         var progress = data.status ? 1
             : !data.progress[0] || !data.progress[1] ? -1
             : data.progress[0] / data.progress[1];
@@ -379,7 +382,6 @@ oml.ui.importExportDialog = function(selected) {
 
     oml.bindEvent({
         activity: function(data) {
-            Ox.print('activity', arguments);
             setProgress(data);
             setStatus(data);
             setButton(data);

@@ -10,7 +10,7 @@ Networking
 ----------
 
 At this time you need a working IPv6 connection to use Open Media Libary.
-If you dont have native IPv6 you can use Teredo/Miredo (apt-get install miredo)
+If you dont have native IPv6 you can use Teredo/Miredo (`apt-get install miredo`)
 or get a tunnel Hurricane Electric (https://tunnelbroker.net/)
 or SixSS (https://sixxs.net).
 

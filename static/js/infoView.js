@@ -321,6 +321,11 @@ oml.ui.infoView = function(identifyData) {
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
                                 value: data.title || ''
                             })
+                            .bindEvent({
+                                submit: function(data) {
+                                    editMetadata('title', data.value);
+                                }
+                            })
                             .css({
                                 fontSize: '13px',
                                 fontWeight: 'bold'
@@ -353,7 +358,9 @@ oml.ui.infoView = function(identifyData) {
                                     fontWeight: 'bold'
                                 })
                                 .bindEvent({
-                                    // ...
+                                    submit: function(data) {
+                                        editMetadata('author', value.split(', '));
+                                    }
                                 })
                             )
                             .appendTo($info);
@@ -502,12 +509,13 @@ oml.ui.infoView = function(identifyData) {
             // FIXME: identify dialog should call this too
             function editMetadata(key, value) {
                 var edit;
+                Ox.print('EM', key, value, data[key])
                 if (value != data[key]) {
                     edit = Ox.extend({id: ui.item}, key, value);
                     oml.api.edit(edit, function(result) {
                         Ox.Request.clearCache('find');
                         oml.$ui.browser.reloadList();
-                        that.updateElement(result.data, $data);
+                        //that.updateElement(result.data, $info);
                     });
                 }
             }

@@ -45,7 +45,6 @@ oml.ui.appPanel = function() {
                 oml.$ui.importExportDialog
                 && oml.$ui.importExportDialog.is(':visible')
             ) {
-                Ox.print('AAAAAAAA')
                 oml.$ui.importExportDialog.select(page);
             } else {
                 oml.$ui.importExportDialog = oml.ui.importExportDialog(page).open();
@@ -56,6 +55,7 @@ oml.ui.appPanel = function() {
     that.reload = function() {
         Ox.Request.cancel();
         Ox.Request.clearCache();
+        oml.unbindEvent();
         oml.$ui.appPanel.remove();
         oml.$ui.appPanel = oml.ui.appPanel().appendTo(Ox.$body);
         return that;

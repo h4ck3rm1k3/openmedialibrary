@@ -37,6 +37,6 @@ def find(title, author=None, publisher=None, date=None):
             done.add(isbn)
             if len(isbn) == 10:
                 done.add(stdnum.isbn.to_isbn13(isbn))
-            if len(isbn) == 13:
+            if len(isbn) == 13 and isbn.startswith('978'):
                 done.add(stdnum.isbn.to_isbn10(isbn))
     return results

@@ -188,7 +188,6 @@ oml.ui.findElement = function() {
         $select.superValue = $select.value;
         $select.value = function(value) {
             if (arguments.length == 1) {
-                Ox.print('I AM HERE')
                 $select.options({title: value == 'all' ? 'data' : value});
             }
             $select.superValue.apply($select, arguments);

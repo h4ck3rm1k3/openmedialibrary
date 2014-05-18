@@ -12,7 +12,7 @@ oml.ui.preferencesDialog = function() {
                     title: 'Username',
                     value: preferences.username,
                     placeholder: 'anonymous',
-                    help: 'Your username doesn\'t have to be your real name, and you can change it at any time. You can also leave it blank, in which case you will appear as "anonymous". Any characters other than leading, trailing or consecutive spaces are okay.'
+                    help: 'Your username doesn\'t have to be your real name, and you can change it at any time. You can also leave it blank, in which case you will appear as "anonymous". Any characters other than colons and leading, trailing or consecutive spaces are okay.'
                 },
                 {
                     id: 'contact',
@@ -25,12 +25,24 @@ oml.ui.preferencesDialog = function() {
                 {
                     id: 'libraryPath',
                     title: 'Library Path',
+                    autocomplete: function(value, callback) {
+                        oml.api.autocompleteFolder({path: value}, function(result) {
+                            callback(result.data.items);
+                        });
+                    },
+                    autocompleteSelect: true,
                     value: preferences.libraryPath,
                     help: 'The directory in which your "Books" folder is located. This is where your media files are stored. It can be on your local machine, but just as well on an external drive or networked volume.'
                 },
                 {
                     id: 'importPath',
                     title: 'Import Path',
+                    autocomplete: function(value, callback) {
+                        oml.api.autocompleteFolder({path: value}, function(result) {
+                            callback(result.data.items);
+                        });
+                    },
+                    autocompleteSelect: true,
                     value: preferences.importPath,
                     help: 'Any media files that you put in this folder will be added to your library. Once added, they will be removed from this folder.'
                 }
@@ -376,6 +388,8 @@ oml.ui.preferencesDialog = function() {
                             width: 384
                         })
                         : Ox.Input({
+                            autocomplete: item.autocomplete || null,
+                            autocompleteSelect: item.autocompleteSelect || false,
                             label: Ox._(item.title),
                             labelWidth: 128,
                             placeholder: item.placeholder || '',
@@ -415,6 +429,9 @@ oml.ui.preferencesDialog = function() {
             change: function(data) {
                 var key = data.id,
                     value = data.data.value[0];
+                if (key == 'username') {
+                    value = getValidName(value, [], ':');
+                }
                 if (key in oml.config.user.preferences) {
                     oml.Preferences.set(key, value);
                 } else {

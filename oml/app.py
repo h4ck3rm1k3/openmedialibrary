@@ -18,8 +18,7 @@ import item.models
 import user.models
 import item.person
 
-import item.api
-import user.api
+import api
 
 import item.views
 import commands

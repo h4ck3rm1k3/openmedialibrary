@@ -4,7 +4,6 @@ from __future__ import division
 
 import os
 from copy import deepcopy
-import subprocess
 import json
 
 from oxflask.api import actions
@@ -12,7 +11,7 @@ from oxflask.shortcuts import returns_json
 
 import models
 
-from utils import get_position_by_id
+from utils import update_dict
 
 import settings
 import state
@@ -24,7 +23,14 @@ logger = logging.getLogger('oml.user.api')
 @returns_json
 def init(request):
     '''
-        this is an init request to test stuff
+        takes {
+        }
+        returns {
+            config
+            user
+                preferences
+                ui
+        }
     '''
     response = {}
     if os.path.exists(settings.oml_config_path):
@@ -43,26 +49,14 @@ def init(request):
     return response
 actions.register(init)
 
-def update_dict(root, data):
-    for key in data:
-        keys = map(lambda p: p.replace('\0', '\\.'), key.replace('\\.', '\0').split('.'))
-        value = data[key]
-        p = root
-        while len(keys)>1:
-            key = keys.pop(0)
-            if isinstance(p, list):
-                p = p[get_position_by_id(p, key)]
-            else:
-                if key not in p:
-                    p[key] = {}
-                p = p[key]
-        if value == None and keys[0] in p:
-            del p[keys[0]]
-        else:
-            p[keys[0]] = value
-
 @returns_json
 def setPreferences(request):
+    '''
+        takes {
+            key: value,
+            'sub.key': value
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     update_dict(settings.preferences, data)
     return settings.preferences
@@ -70,6 +64,12 @@ actions.register(setPreferences)
 
 @returns_json
 def setUI(request):
+    '''
+        takes {
+            key: value,
+            'sub.key': value
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     update_dict(settings.ui, data)
     return settings.ui
@@ -77,6 +77,11 @@ actions.register(setUI)
 
 @returns_json
 def getUsers(request):
+    '''
+        returns {
+            users: []
+        }
+    '''
     users = []
     for u in models.User.query.filter(models.User.id!=settings.USER_ID).all():
         users.append(u.json())
@@ -87,7 +92,20 @@ actions.register(getUsers)
 
 @returns_json
 def getLists(request):
+    '''
+        returns {
+            lists: []
+        }
+    '''
+    from item.models import Item
     lists = []
+    lists.append({
+        'id': '',
+        'items': Item.query.count(),
+        'name': 'Libraries',
+        'type': 'libraries',
+        'user': '',
+    })
     for u in models.User.query.filter((models.User.peered==True)|(models.User.id==settings.USER_ID)):
         lists += u.lists_json()
     return {
@@ -95,30 +113,47 @@ def getLists(request):
     }
 actions.register(getLists)
 
+def validate_query(query):
+    for condition in query['conditions']:
+        if not list(sorted(condition.keys())) in (
+            ['conditions', 'operator'],
+            ['key', 'operator', 'value']
+        ):
+            raise Exception('invalid query condition', condition)
+
 @returns_json
 def addList(request):
+    '''
+        takes {
+            name
+            items
+            query
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
+    logger.debug('addList %s', data)
     user_id = settings.USER_ID
-    l = models.List.get(user_id, data['name'])
-    if not l:
+    if 'query' in data:
+        validate_query(data['query'])
+    if data['name']:
         l = models.List.create(user_id, data['name'], data.get('query'))
         if 'items' in data:
             l.add_items(data['items'])
         return l.json()
+    else:
+        raise Exception('name not set')
     return {}
 actions.register(addList, cache=False)
 
 @returns_json
-def removeList(request):
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
-    l = models.List.get(data['id'])
-    if l:
-        l.remove()
-    return {}
-actions.register(removeList, cache=False)
-
-@returns_json
 def editList(request):
+    '''
+        takes {
+            id
+            name
+            query
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('editList %s', data)
     l = models.List.get_or_create(data['id'])
@@ -126,6 +161,7 @@ def editList(request):
     if 'name' in data:
         l.name = data['name']
     if 'query' in data:
+        validate_query(data['query'])
         l._query = data['query']
     if l.type == 'static' and name != l.name:
         Changelog.record(state.user(), 'editlist', name, {'name': l.name})
@@ -134,7 +170,28 @@ def editList(request):
 actions.register(editList, cache=False)
 
 @returns_json
+def removeList(request):
+    '''
+        takes {
+            id
+        }
+    '''
+    data = json.loads(request.form['data']) if 'data' in request.form else {}
+    l = models.List.get(data['id'])
+    if l:
+        l.remove()
+    return {}
+actions.register(removeList, cache=False)
+
+
+@returns_json
 def addListItems(request):
+    '''
+        takes {
+            list
+            items
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if data['list'] == ':':
         from item.models import Item
@@ -153,6 +210,12 @@ actions.register(addListItems, cache=False)
 
 @returns_json
 def removeListItems(request):
+    '''
+        takes {
+            list
+            items
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     l = models.List.get(data['list'])
     if l:
@@ -163,6 +226,11 @@ actions.register(removeListItems, cache=False)
 
 @returns_json
 def sortLists(request):
+    '''
+        takes {
+            ids
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     n = 0
     logger.debug('sortLists %s', data)
@@ -177,6 +245,12 @@ actions.register(sortLists, cache=False)
 
 @returns_json
 def editUser(request):
+    '''
+        takes {
+            id
+            nickname
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if 'nickname' in data:
         p = models.User.get_or_create(data['id'])
@@ -187,6 +261,12 @@ actions.register(editUser, cache=False)
 
 @returns_json
 def requestPeering(request):
+    '''
+        takes {
+            id
+            message
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
@@ -203,6 +283,12 @@ actions.register(requestPeering, cache=False)
 
 @returns_json
 def acceptPeering(request):
+    '''
+        takes {
+            id
+            message
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
@@ -218,6 +304,12 @@ actions.register(acceptPeering, cache=False)
 
 @returns_json
 def rejectPeering(request):
+    '''
+        takes {
+            id
+            message
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
@@ -232,6 +324,12 @@ actions.register(rejectPeering, cache=False)
 
 @returns_json
 def removePeering(request):
+    '''
+        takes {
+            id
+            message
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
@@ -246,6 +344,10 @@ actions.register(removePeering, cache=False)
 
 @returns_json
 def cancelPeering(request):
+    '''
+        takes {
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
@@ -260,29 +362,12 @@ actions.register(cancelPeering, cache=False)
 
 @returns_json
 def getActivity(request):
+    '''
+        return {
+            activity
+            progress
+        }
+    '''
     return state.activity
 actions.register(getActivity, cache=False)
 
-@returns_json
-def selectFolder(request):
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
-    cmd = ['./ctl', 'ui', 'folder']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    path = stdout.decode('utf-8').strip()
-    return {
-        'path': path
-    }
-actions.register(selectFolder, cache=False)
-
-@returns_json
-def selectFile(request):
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
-    cmd = ['./ctl', 'ui', 'file']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    path = stdout.decode('utf-8').strip()
-    return {
-        'path': path
-    }
-actions.register(selectFile, cache=False)

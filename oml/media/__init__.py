@@ -22,6 +22,8 @@ def get_id(f=None, data=None):
 def metadata(f):
     ext = f.split('.')[-1]
     data = {}
+    data['extension'] = ext
+    data['size'] = os.stat(f).st_size
     if ext == 'pdf':
         info = pdf.info(f)
     elif ext == 'epub':

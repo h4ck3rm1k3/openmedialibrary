@@ -2,8 +2,6 @@
 
 oml.ui.findForm = function(list) {
 
-    //Ox.print('FIND FORM LIST QUERY', list.query);
-
     var ui = oml.user.ui,
 
         that = Ox.Element(),
@@ -19,7 +17,7 @@ oml.ui.findForm = function(list) {
                 title: Ox._('List'),
                 type: 'item',
                 values: ui._lists.filter(function(list) {
-                    return list.type != 'smart'
+                    return Ox.contains(['library', 'static'], list.type);
                 }).map(function(list) {
                     return {id: list.id, title: list.title};
                 })

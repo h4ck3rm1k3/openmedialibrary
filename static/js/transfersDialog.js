@@ -21,7 +21,7 @@ oml.ui.transfersDialog = function() {
                     visible: true,
                     width: id == 'title' ? 240
                         : id == 'transferadded' ? 144
-                        : id == 'transferprogress' ? 80
+                        : id == 'transferprogress' ? 80 - Ox.UI.SCROLLBAR_SIZE
                         : key.columnWidth
                 };
             }),
@@ -40,6 +40,7 @@ oml.ui.transfersDialog = function() {
                 }), callback);
             },
             keys: ['author'],
+            scrollbarVisible: true,
             sort: [{key: 'transferprogress', operator: '-'}],
             unique: 'id'
         }),

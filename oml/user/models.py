@@ -66,7 +66,13 @@ class User(db.Model):
         return state.nodes and state.nodes.check_online(self.id)
 
     def lists_json(self):
-        return [l.json() for l in self.lists.order_by('position')]
+        return [{
+            'id': '%s:' % ('' if self.id == settings.USER_ID else self.nickname),
+            'name': 'Library',
+            'type': 'library',
+            'items': self.items.count(),
+            'user': self.nickname if self.id != settings.USER_ID else settings.preferences['username'],
+        }] + [l.json() for l in self.lists.order_by('position')]
 
     def update_peering(self, peered, username=None):
         was_peering = self.peered
@@ -128,19 +134,17 @@ class List(db.Model):
     user = db.relationship('User', backref=db.backref('lists', lazy='dynamic'))
 
     items = db.relationship('Item', secondary=list_items,
-        backref=db.backref('lists', lazy='dynamic'))
+            backref=db.backref('lists', lazy='dynamic'))
 
     @classmethod
     def get(cls, user_id, name=None):
-        if not name:
+        if name is None:
             user_id, name = cls.get_user_name(user_id)
         return cls.query.filter_by(user_id=user_id, name=name).first()
 
     @classmethod
     def get_user_name(cls, user_id):
-        l = user_id.split(':')
-        nickname = l[0]
-        name = ':'.join(l[1:])
+        nickname, name = user_id.split(':', 1)
         if nickname:
             user = User.query.filter_by(nickname=nickname).first()
             user_id = user.id
@@ -149,19 +153,22 @@ class List(db.Model):
         return user_id, name
 
     @classmethod
-    def get_or_create(cls, user_id, name=None):
-        if not name:
+    def get_or_create(cls, user_id, name=None, query=None):
+        if name is None:
             user_id, name = cls.get_user_name(user_id)
         l = cls.get(user_id, name)
         if not l:
-            l = cls(name=name, user_id=user_id)
-            db.session.add(l)
-            db.session.commit()
+            l = cls.create(user_id, name, query)
         return l
 
     @classmethod
     def create(cls, user_id, name, query=None):
-        l = cls(name=name, user_id=user_id)
+        prefix = name
+        n = 2
+        while cls.get(user_id, name):
+            name = '%s [%s]' % (prefix, n)
+            n += 1
+        l = cls(user_id=user_id, name=name)
         l._query = query
         l.type = 'smart' if l._query else 'static'
         l.position = cls.query.filter_by(user_id=user_id).count()

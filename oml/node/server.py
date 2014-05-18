@@ -120,7 +120,7 @@ def publish_node(app):
             for u in user.models.User.query.filter_by(queued=True):
                 logger.debug('adding queued node... %s', u.id)
                 state.nodes.queue('add', u.id)
-    state.check_nodes = PeriodicCallback(lambda: check_nodes(app), 60000)
+    state.check_nodes = PeriodicCallback(lambda: check_nodes(app), 120000)
     state.check_nodes.start()
 
 def check_nodes(app):
@@ -135,7 +135,7 @@ def start(app):
     application = Application([
         (r"/get/(.*)", ShareHandler, dict(app=app)),
         (r".*", NodeHandler, dict(app=app)),
-    ])
+    ], gzip=True)
     if not os.path.exists(settings.ssl_cert_path):
         settings.server['cert'] = cert.generate_ssl()
 

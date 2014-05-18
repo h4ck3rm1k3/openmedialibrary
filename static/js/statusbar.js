@@ -35,7 +35,9 @@ oml.ui.statusbar = function() {
             });
 
     function getText(data) {
-        return Ox.toTitleCase(Ox.formatCount(data.items, 'book'));
+        return Ox.toTitleCase(Ox.formatCount(data.items, 'book')) + (
+            data.items ? ', ' + Ox.formatValue(data.size, 'B') : ''
+        );
     }
 
     that.set = function(key, data) {

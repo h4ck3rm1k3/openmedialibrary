@@ -2,17 +2,22 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+import os
 import Image
 from StringIO import StringIO
 import re
 import stdnum.isbn
 import socket
+import cStringIO
+import gzip
 
 import ox
 import ed25519
 
 from meta.utils import normalize_isbn, find_isbns
 
+import logging
+logger = logging.getLogger('oml.utils')
 
 ENCODING='base64'
 
@@ -108,3 +113,38 @@ def get_public_ipv6():
     s.close()
     return ip
 
+def update_dict(root, data):
+    for key in data:
+        keys = map(lambda part: part.replace('\0', '\\.'), key.replace('\\.', '\0').split('.'))
+        value = data[key]
+        p = root
+        while len(keys)>1:
+            key = keys.pop(0)
+            if isinstance(p, list):
+                p = p[get_position_by_id(p, key)]
+            else:
+                if key not in p:
+                    p[key] = {}
+                p = p[key]
+        if value == None and keys[0] in p:
+            del p[keys[0]]
+        else:
+            p[keys[0]] = value
+
+def remove_empty_folders(prefix):
+    empty = []
+    for root, folders, files in os.walk(prefix):
+        if not folders and not files:
+            empty.append(root)
+    for folder in empty:
+        remove_empty_tree(folder)
+
+def remove_empty_tree(leaf):
+    while leaf:
+        if not os.path.exists(leaf):
+            leaf = os.path.dirname(leaf)
+        elif os.path.isdir(leaf) and not os.listdir(leaf):
+            logger.debug('rmdir %s', leaf)
+            os.rmdir(leaf)
+        else:
+            break

@@ -26,6 +26,7 @@ oml.ui.rightPanel = function() {
                 oml.$ui.itemViewPanel.options({size: data.size});
             },
             oml_item: function(data) {
+                Ox.print('rightPanel, oml_item', data);
                 if (!!data.value != !!data.previousValue) {
                     that.options({selected: !ui.item ? 'list' : 'item'});
                 }

@@ -16,7 +16,10 @@ oml.ui.backButton = function() {
         })
         .bindEvent({
             click: function() {
-                oml.UI.set({item: ''});
+                oml.UI.set({
+                    item: '',
+                    itemView: 'info'
+                });
             }
         });
 

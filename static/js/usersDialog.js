@@ -38,7 +38,15 @@ oml.ui.usersDialog = function() {
             width: 768
         })
         .bindEvent({
+            open: function() {
+                oml.bindEvent({
+                    peering: peering,
+                });
+            },
             close: function() {
+                oml.unbindEvent({
+                    peering: peering,
+                });
                 if (ui.page == 'users') {
                     oml.UI.set({page: ''});
                 }
@@ -111,6 +119,10 @@ oml.ui.usersDialog = function() {
                 .css({width: '256px'})
                 .appendTo($users);
         });
+
+    var peering = Ox.throttle(function() {
+        updateUsers();
+    }, 1000);
 
     function renderSectionList(folder) {
 
@@ -254,11 +266,15 @@ oml.ui.usersDialog = function() {
                 })
                 .bindEvent({
                     change: function(data) {
-                        var value = oml.validateName(
-                                data.value,
-                                users.map(function(user) {
-                                    return user.nickname;
-                                })
+                        var value = oml.getValidName(
+                                data.value || 'anonymous',
+                                // FIXME: WRONG
+                                users.filter(function(user_) {
+                                    return user_.nickname != user.nickname;
+                                }).map(function(u) {
+                                    return user_.nickname;
+                                }),
+                                ':'
                             );
                         this.value(value);
                         oml.api.editUser({
@@ -447,9 +463,7 @@ oml.ui.usersDialog = function() {
                 columns: [
                     {
                         format: function(value, data) {
-                            return oml.ui.statusIcon(
-                                    value ? 'connected' : 'disconnected'
-                                )
+                            return oml.ui.statusIcon(data)
                                 .css({
                                     margin: '2px 3px 3px 0'
                                 });
@@ -581,7 +595,6 @@ oml.ui.usersDialog = function() {
         });
 
     }
-
     that.updateElement = function() {
 
         that.options({

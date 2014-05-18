@@ -19,7 +19,7 @@ oml.ui.openButton = function() {
                 oml.UI.set({item: ui.listSelection[0]});
             },
             oml_listselection: function() {
-                that.update();
+                that.updateElement();
             }
         });
 

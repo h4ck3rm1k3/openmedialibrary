@@ -33,6 +33,7 @@ from oxflask.db import MutableDict
 from covers import covers
 from changelog import Changelog
 from websocket import trigger_event
+from utils import remove_empty_folders
 
 logger = logging.getLogger('oml.item.model')
 
@@ -296,8 +297,8 @@ class Item(db.Model):
 
     def extract_cover(self):
         path = self.get_path()
-        if not path:
-            return getattr(media, self.meta['extensions']).cover(path)
+        if path:
+            return getattr(media, self.info['extension']).cover(path)
 
     def update_cover(self):
         cover = None
@@ -327,8 +328,6 @@ class Item(db.Model):
         if mainid:
             m = meta.lookup(mainid, self.meta[mainid])
             self.meta.update(m)
-        else:
-            logger.debug('FIX UPDATE %s', mainid)
         self.update()
 
     def queue_download(self):
@@ -360,6 +359,7 @@ class Item(db.Model):
                 Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
                 f.move()
+                self.update_cover()
                 trigger_event('transfer', {
                     'id': self.id, 'progress': 1
                 })
@@ -376,6 +376,7 @@ class Item(db.Model):
             logger.debug('remove file %s', path)
             if os.path.exists(path):
                 os.unlink(path)
+                remove_empty_folders(os.path.dirname(path))
             db.session.delete(f)
         user = state.user()
         self.users.remove(user)
@@ -399,7 +400,7 @@ for key in config['itemKeys']:
             col = db.Column(db.String(1000), index=True)
         setattr(Item, 'sort_%s' % key['id'], col)
 
-Item.id_keys = ['isbn10', 'isbn13', 'lccn', 'olid', 'oclc']
+Item.id_keys = ['isbn10', 'isbn13', 'lccn', 'olid', 'oclc', 'asin']
 Item.item_keys = config['itemKeys'] 
 Item.filter_keys = [k['id'] for k in config['itemKeys'] if k.get('filter')]
 

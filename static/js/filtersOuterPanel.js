@@ -59,7 +59,6 @@ oml.ui.filtersOuterPanel = function() {
             },
             oml_find: function() {
                 var previousUI = oml.UI.getPrevious();
-                Ox.print('WTF', ui, oml.user.ui, Object.keys(ui), Object.keys(previousUI));
                 ui._filterState.forEach(function(data, index) {
                     if (!Ox.isEqual(data.selected, previousUI._filterState[index].selected)) {
                         oml.$ui.filters[index].options(
@@ -72,7 +71,6 @@ oml.ui.filtersOuterPanel = function() {
                         );
                     }
                     if (!Ox.isEqual(data.find, previousUI._filterState[index].find)) {
-                        Ox.print('::::', index, 'UNEQUAL', data.find, previousUI._filterState[index].find)
                         if (!ui.showFilters) {
                             oml.$ui.filters[index].options({
                                 _selected: data.selected

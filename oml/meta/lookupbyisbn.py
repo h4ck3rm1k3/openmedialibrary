@@ -45,9 +45,9 @@ def lookup(id):
     }
     for key in keys:
         r[key] = find_re(data, '<span class="title">%s:</span>(.*?)</li>'% re.escape(keys[key]))
-        if r[key] == '--':
-            r[key] = ''
-        if key == 'pages' and r[key]:
+        if r[key] == '--' or not r[key]:
+            del r[key]
+        if key == 'pages' and key in r:
             r[key] = int(r[key])
     desc = find_re(data, '<h2>Description:<\/h2>(.*?)<div ')
     desc = desc.replace('<br /><br />', ' ').replace('<br /> ', ' ').replace('<br />', ' ')

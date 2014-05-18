@@ -2,11 +2,12 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import logging
-
+import os
 import json
+
 from oxflask.api import actions
 from oxflask.shortcuts import returns_json
+from sqlalchemy.orm import load_only
 
 import query
 
@@ -18,12 +19,22 @@ import meta
 
 import utils
 
+import logging
 logger = logging.getLogger('oml.item.api')
 
 @returns_json
 def find(request):
     '''
-        find items
+        takes {
+            query {
+                conditions [{}]
+                operator   string
+            }
+            group string
+            keys  [string]
+            sort  [{}]
+            range [int, int]
+        }
     '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
@@ -31,7 +42,7 @@ def find(request):
     if 'group' in q:
         names = {}
         groups = {}
-        items = [i.id for i in q['qs']]
+        items = [i.id for i in q['qs'].options(load_only('id'))]
         qs = models.Find.query.filter_by(key=q['group'])
         if items:
             qs = qs.filter(models.Find.item_id.in_(items))
@@ -58,16 +69,12 @@ def find(request):
         else:
             response['items'] = len(g)
     elif 'position' in data:
-        ids = [i.id for i in q['qs']]
+        ids = [i.id for i in q['qs'].options(load_only('id'))]
         response['position'] = utils.get_positions(ids, [data['qs'][0].id])[0]
     elif 'positions' in data:
-        ids = [i.id for i in q['qs']]
+        ids = [i.id for i in q['qs'].options(load_only('id'))]
         response['positions'] = utils.get_positions(ids, data['positions'])
     elif 'keys' in data:
-        '''
-        qs = qs[q['range'][0]:q['range'][1]]
-        response['items'] = [p.json(data['keys']) for p in qs]
-        '''
         response['items'] = []
         for i in q['qs'][q['range'][0]:q['range'][1]]:
             j = i.json()
@@ -77,12 +84,18 @@ def find(request):
         #from sqlalchemy.sql import func
         #models.db.session.query(func.sum(models.Item.sort_size).label("size"))
         #response['size'] = x.scalar()
-        response['size'] = sum([i.sort_size or 0 for i in q['qs']])
+        response['size'] = sum([i.sort_size or 0 for i in q['qs'].options(load_only('id', 'sort_size'))])
     return response
 actions.register(find)
 
 @returns_json
 def get(request):
+    '''
+        takes {
+            id
+            keys
+        }
+    '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     item = models.Item.get(data['id'])
@@ -93,29 +106,48 @@ actions.register(get)
 
 @returns_json
 def edit(request):
+    '''
+        takes {
+            id
+            ...
+        }
+        setting identifier or base metadata is possible not both at the same time
+    '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    logger.debug('edit', data)
+    logger.debug('edit %s', data)
     item = models.Item.get(data['id'])
     keys = filter(lambda k: k in models.Item.id_keys, data.keys())
-    logger.debug(item, keys)
-    if item and keys and item.json()['mediastate'] == 'available':
-        key = keys[0]
-        logger.debug('update mainid %s %s', key, data[key])
-        if key in ('isbn10', 'isbn13'):
-            data[key] = utils.normalize_isbn(data[key])
-        item.update_mainid(key, data[key])
-        response = item.json()
+    logger.debug('edit of %s id keys: %s', item, keys)
+    if item and item.json()['mediastate'] == 'available':
+        if keys:
+            key = keys[0]
+            logger.debug('update mainid %s %s', key, data[key])
+            if key in ('isbn10', 'isbn13'):
+                data[key] = utils.normalize_isbn(data[key])
+            item.update_mainid(key, data[key])
+            response = item.json()
+        elif not item.meta.get('mainid'):
+            logger.debug('chustom data %s', data)
+            for key in ('title', 'author', 'date', 'publisher', 'edition'):
+                if key in data:
+                    item.meta[key] = data[key]
+            item.update()
+            logger.debug('FIXME: custom metadata not published to changelog!!!')
     else:
         logger.info('can only edit available items')
-        response = item.json()
     return response
 actions.register(edit, cache=False)
 
 @returns_json
 def remove(request):
+    '''
+        takes {
+            id
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    logger.debug('remove files', data)
+    logger.debug('remove files %s', data)
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
             i.remove_file()
@@ -132,10 +164,11 @@ def findMetadata(request):
             date: string
         }
         returns {
-            title: string,
-            autor: [string],
-            date: string,
+            items: [{
+                key: value
+            }]
         }
+        key is one of the supported identifiers: isbn10, isbn13...
     '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
@@ -146,18 +179,30 @@ actions.register(findMetadata)
 
 @returns_json
 def getMetadata(request):
+    '''
+        takes {
+            key: value
+        }
+        key can be one of the supported identifiers: isbn10, isbn13, oclc, olid,...
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('getMetadata %s', data)
     key, value = data.iteritems().next()
     if key in ('isbn10', 'isbn13'):
         value = utils.normalize_isbn(value)
     response = meta.lookup(key, value)
-    response['mainid'] = key
+    if response:
+        response['mainid'] = key
     return response
 actions.register(getMetadata)
 
 @returns_json
 def download(request):
+    '''
+        takes {
+            id
+        }
+    '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     item = models.Item.get(data['id'])
@@ -170,6 +215,11 @@ actions.register(download, cache=False)
 
 @returns_json
 def cancelDownloads(request):
+    '''
+        takes {
+            ids
+        }
+    '''
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     ids = data['ids']
@@ -195,8 +245,21 @@ actions.register(scan, cache=False)
 
 @returns_json
 def _import(request):
+    '''
+        takes {
+            path absolute path to import
+            list listename (add new items to this list)
+            mode copy|move
+        }
+    '''
     data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('api.import %s', data)
     state.main.add_callback(state.websockets[0].put, json.dumps(['import', data]))
     return {}
 actions.register(_import, 'import', cache=False)
+
+@returns_json
+def cancelImport(request):
+    state.activity['cancel'] = True
+    return {}
+actions.register(cancelImport, cache=False)
