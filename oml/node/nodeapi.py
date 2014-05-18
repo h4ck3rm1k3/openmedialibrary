@@ -99,6 +99,5 @@ def api_cancelPeering(app, user_id, message):
         user.info['message'] = message
         user.update_peering(False)
         trigger_event('peering', user.json())
-        user.peered = False
         return True
     return False

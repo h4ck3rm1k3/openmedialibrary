@@ -169,22 +169,23 @@ def download(request):
 actions.register(download, cache=False)
 
 @returns_json
-def cancelDownload(request):
+def cancelDownloads(request):
     response = {}
     data = json.loads(request.form['data']) if 'data' in request.form else {}
-    item = models.Item.get(data['id'])
-    if item:
-        item.transferprogress = None
-        item.transferadded = None
-        p = state.user()
-        if p in item.users:
-            item.users.remove(p)
-        for l in item.lists.filter_by(user_id=settings.USER_ID):
-            l.remove(item)
-        item.update()
+    ids = data['ids']
+    if ids:
+        for item in models.Item.query.filter(models.Item.id.in_(ids)):
+            item.transferprogress = None
+            item.transferadded = None
+            p = state.user()
+            if p in item.users:
+                item.users.remove(p)
+            for l in item.lists.filter_by(user_id=settings.USER_ID):
+                l.remove(item)
+            item.update()
         response = {'status': 'cancelled'}
     return response
-actions.register(cancelDownload, cache=False)
+actions.register(cancelDownloads, cache=False)
 
 @returns_json
 def scan(request):

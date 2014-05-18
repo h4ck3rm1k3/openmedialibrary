@@ -65,7 +65,12 @@ oml.ui.transfersDialog = function() {
             })
             .bindEvent({
                 click: function() {
-                    // ...
+                    var ids = $list.options('selected');
+                    ids && ids.length && oml.api.cancelDownloads({
+                        ids: ids
+                    }, function() {
+                        $list.reloadList(true);
+                    });
                 }
             })
             .appendTo($item),
