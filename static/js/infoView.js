@@ -4,7 +4,9 @@ oml.ui.infoView = function(identifyData) {
 
     var ui = oml.user.ui,
 
-        css = getCSS(ui.coverSize, oml.config.coverRatio),
+        coverSize = identifyData ? 256 : ui.coverSize,
+
+        css = getCSS(coverSize, oml.config.coverRatio),
 
         that = Ox.Element()
             .addClass('OxTextPage')
@@ -39,7 +41,7 @@ oml.ui.infoView = function(identifyData) {
                 right: !identifyData ? '176px' : 16 + Ox.UI.SCROLLBAR_SIZE + 'px',
                 top: '16px'
             })
-            [ui.coverSize == 512 ? 'hide' : 'show']()
+            [coverSize == 512 ? 'hide' : 'show']()
             .appendTo(that),
 
         $data,
@@ -226,8 +228,9 @@ oml.ui.infoView = function(identifyData) {
     }
 
     function toggleCoverSize(ratio) {
-        var coverSize = ui.coverSize == 256 ? 512 : 256,
-            css = getCSS(coverSize, ratio);
+        var css;
+        coverSize = coverSize == 256 ? 512 : 256,
+        css = getCSS(coverSize, ratio);
         //$cover.animate(css.cover, 250);
         $info.animate(css.info, 250);
         $image.animate(css.image, 250);
@@ -237,7 +240,7 @@ oml.ui.infoView = function(identifyData) {
     }
 
     function updateCover(ratio) {
-        var css = getCSS(ui.coverSize, ratio);
+        var css = getCSS(coverSize, ratio);
         $image.css(css.image).show();
         $reflectionImage.css(css.image);
         $reflection.css(css.reflection).show();
@@ -271,7 +274,7 @@ oml.ui.infoView = function(identifyData) {
                     ? '/' + data.id + '/cover512.jpg?' + data.modified
                     : data.cover,
                 ratio = data.coverRatio || oml.config.coverRatio,
-                size = ui.coverSize,
+                size = coverSize,
                 reflectionSize = Math.round(size / 2);
 
             $elements.forEach(function($element) {
@@ -307,7 +310,9 @@ oml.ui.infoView = function(identifyData) {
                         .hide()
                         .bindEvent({
                             singleclick: function() {
-                                toggleCoverSize(ratio);
+                                if (!identifyData) {
+                                    toggleCoverSize(ratio);
+                                }
                             }
                         })
                         .appendTo($cover);
@@ -341,101 +346,56 @@ oml.ui.infoView = function(identifyData) {
                 } else if ($element == $info) {
 
                     $('<div>')
-                        .css({marginTop: '-2px'})
-                        .append(
-                            Ox.EditableContent({
-                                clickLink: oml.clickLink,
-                                editable: isEditable,
-                                placeholder: formatLight(Ox._('Unknown Title')),
-                                tooltip: isEditable ? oml.getEditTooltip() : '',
-                                value: data.title || ''
-                            })
-                            .bindEvent({
-                                submit: function(data) {
-                                    editMetadata('title', data.value);
-                                }
-                            })
-                            .css({
-                                fontSize: '13px',
-                                fontWeight: 'bold'
-                            })
+                        .css({
+                            marginTop: '-2px',
+                            fontSize: '13px',
+                            fontWeight: 'bold'
+                        })
+                        .html(
+                            data.title
+                            || '<span class="OxLight">'
+                                + Ox._('No Title')
+                                + '</span>'
                         )
                         .appendTo($info);
 
-                    if (data.author || isEditable) {
+                    if (data.author) {
                         $('<div>')
                             .css({
                                 marginTop: '4px',
                                 fontSize: '13px',
                                 fontWeight: 'bold'
                             })
-                            .append(
-                                Ox.EditableContent({
-                                    clickLink: oml.clickLink,
-                                    editable: isEditable,
-                                    format: function(value) {
-                                        return !identifyData
-                                            ? formatValue(value.split(', '), 'author')
-                                            : value;
-                                    },
-                                    placeholder: formatLight(Ox._('Unknown Author')),
-                                    tooltip: isEditable ? oml.getEditTooltip() : '',
-                                    value: data.author ? data.author.join(', ') : ''
-                                })
-                                .css({
-                                    fontSize: '13px',
-                                    fontWeight: 'bold'
-                                })
-                                .bindEvent({
-                                    submit: function(data) {
-                                        editMetadata('author', value.split(', '));
-                                    }
-                                })
-                            )
+                            .html(formatValue(data.author, 'author'))
                             .appendTo($info);
                     }
 
-                    if (!isEditable) {
+                    if (data.place || data.publisher || data.date) {
                         $('<div>')
                             .css({
                                 marginTop: '8px'
                             })
                             .text(
-                                (data.place || '')
+                                (data.place || []).join(' ; ')
                                 + (data.place && (data.publisher || data.date) ? ' : ' : '')
                                 + (data.publisher || '')
                                 + (data.publisher && data.date ? ', ' : '')
                                 + (data.date || '')
                             )
                             .appendTo($info);
-                    } else {
-                        var $div = $('<div>')
-                            .addClass('OxSelectable')
-                            .css({marginTop: '8px'})
+                    }
+
+                    if (data.edition || data.language) {
+                        $('<div>')
+                            .css({
+                                marginTop: '8px'
+                            })
+                            .text(
+                                (data.edition || '')
+                                + (data.edition && data.language ? '; ' : '')
+                                + (data.language || '')
+                            )
                             .appendTo($info);
-                        ['edition', 'publisher', 'date'].forEach(function(key, index) {
-                            index && $('<div>').css({float: 'left'}).html(';&nbsp;').appendTo($div);
-                            $('<div>')
-                                .css({float: 'left'})
-                                .html(formatKey(key))
-                                .appendTo($div);
-                            Ox.EditableContent({
-                                    clickLink: oml.clickLink,
-                                    format: function(value) {
-                                        return formatValue(value.split(', '), key)
-                                    },
-                                    placeholder: formatLight('unknown'),
-                                    tooltip: oml.getEditTooltip(),
-                                    value: data[key] || ''
-                                })
-                                .css({float: 'left'})
-                                .bindEvent({
-                                    submit: function(event) {
-                                        editMetadata(key, event.value);
-                                    }
-                                })
-                                .appendTo($div);
-                        });
                     }
 
                     if (data.classification) {

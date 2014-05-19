@@ -161,13 +161,17 @@ class Changelog(db.Model):
         i = Item.get(itemid)
         if i.timestamp > timestamp:
             return True
-        key = meta.keys()[0]
-        if not meta[key] and i.meta.get('mainid') == key:
-            logger.debug('remove id mapping %s currenrlt %s', key, meta[key], i.meta[key])
-            i.update_mainid(key, meta[key])
-        elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
-            logger.debug('new mapping %s %s currently %s %s', key, meta[key], i.meta.get('mainid'), i.meta.get(i.meta.get('mainid')))
-            i.update_mainid(key, meta[key])
+        keys = filter(lambda k: k in Item.id_keys, meta.keys())
+        if keys:
+            key = keys[0]
+            if not meta[key] and i.meta.get('mainid') == key:
+                logger.debug('remove id mapping %s currently %s', key, meta[key], i.meta[key])
+                i.update_mainid(key, meta[key])
+            elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
+                logger.debug('new mapping %s %s currently %s %s', key, meta[key], i.meta.get('mainid'), i.meta.get(i.meta.get('mainid')))
+                i.update_mainid(key, meta[key])
+        else:
+            i.update_meta(meta)
         i.modified = datetime.fromtimestamp(float(timestamp))
         i.save()
         return True

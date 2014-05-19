@@ -24,7 +24,11 @@ providers = [
     ('abebooks', 'isbn10')
 ]
 
-def find(title, author=None, publisher=None, date=None):
+def find(**kargs):
+    title = kargs.get('title')
+    author = kargs.get('author')
+    publisher = kargs.get('publisher')
+    date = kargs.get('date')
     #results = google.find(title=title, author=author, publisher=publisher, date=date)
     results = duckduckgo.find(title=title, author=author, publisher=publisher, date=date)
     '''

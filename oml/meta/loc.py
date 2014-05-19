@@ -38,7 +38,7 @@ def lookup(id):
     title = mods.findall(ns + 'titleInfo')
     if not title:
         return {}
-    info['title'] = ''.join([e.text for e in title[0]])
+    info['title'] = ''.join([': ' + e.text.strip() if e.tag == ns + 'subTitle' else ' ' + e.text.strip() for e in title[0]]).strip()
     origin = mods.findall(ns + 'originInfo')
     if origin:
         info['place'] = []
@@ -70,6 +70,9 @@ def lookup(id):
             if a.attrib.get('usage') == 'primary':
                 info['author'].append(' '.join([e.text for e in a.findall(ns + 'namePart') if not e.attrib.get('type') in ('date', )]))
         info['author'] = [ox.normalize_name(a) for a in info['author']]
+    toc = mods.findall(ns + 'tableOfContents')
+    if toc:
+        info['description'] = toc[0].text.strip()
     for key in info.keys():
         if not info[key]:
             del info[key]

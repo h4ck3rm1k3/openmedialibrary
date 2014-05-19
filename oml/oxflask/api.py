@@ -5,12 +5,13 @@ from __future__ import division, with_statement
 import inspect
 import sys
 import json
-import logging
 
 from flask import request, Blueprint
 from .shortcuts import render_to_json_response, json_response
 
+import logging
 logger = logging.getLogger('oxflask.api')
+
 app = Blueprint('oxflask', __name__)
 
 @app.route('/api/', methods=['POST', 'OPTIONS'])

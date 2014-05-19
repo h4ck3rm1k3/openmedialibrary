@@ -42,7 +42,7 @@ txtjs.open = function(url) {
                 scale;
             text = Ox.encodeHTMLEntities(text)
                 .replace(/\r\n/g, '\n')
-                .replace(/\n/g, '<br>');
+                .replace(/[\r\n]/g, '<br>');
             $text.html(text);
             $scrollText.html(text);
             var textHeight = $text[0].clientHeight,

@@ -125,12 +125,11 @@ def edit(data):
             item.update_mainid(key, data[key])
             response = item.json()
         elif not item.meta.get('mainid'):
-            logger.debug('chustom data %s', data)
-            for key in ('title', 'author', 'date', 'publisher', 'edition'):
-                if key in data:
-                    item.meta[key] = data[key]
-            item.update()
-            logger.debug('FIXME: custom metadata not published to changelog!!!')
+            logger.debug('setting chustom metadata %s', data)
+            item.update_meta(data)
+            response = item.json()
+        else:
+            logger.debug('invalid metadata %s', data)
     else:
         logger.info('can only edit available items')
     return response

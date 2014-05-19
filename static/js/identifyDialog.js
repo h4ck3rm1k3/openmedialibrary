@@ -14,19 +14,12 @@ oml.ui.identifyDialog = function(data) {
         }),
 
         keys = [
-            'title', 'author', 'publisher', 'date'
+            'title', 'author', 'publisher', 'date', 'edition', 'language'
         ].map(function(id) {
-            var key = Ox.getObjectById(oml.config.sortKeys, id);
+            var key = Ox.getObjectById(oml.config.itemKeys, id);
             return {
                 format: key.format,
                 id: id,
-                operator: key.operator,
-                width: {
-                    title: 288,
-                    author: 224,
-                    publisher: 160,
-                    date: 96 - Ox.UI.SCROLLBAR_SIZE
-                }[id],
                 title: key.title,
                 visible: true
             };
@@ -61,7 +54,7 @@ oml.ui.identifyDialog = function(data) {
         $titlePanel = Ox.SplitPanel({
             elements: [
                 {element: $titleForm, size: 96},
-                {element: Ox.Element()}
+                {element: renderResults()}
             ],
             orientation: 'vertical'
         }),
@@ -134,12 +127,13 @@ oml.ui.identifyDialog = function(data) {
                         );
                         that.options({content: Ox.LoadingScreen().start()});
                         that.disableButtons();
+                        Ox.print('VALUE SENT:', edit)
                         oml.api.edit(edit, function(result) {
                             that.close();
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);
                             Ox.Request.clearCache(data.id);
-                            oml.$ui.infoView.updateElement(result.data);
+                            oml.$ui.infoView.updateElement(data.id);
                         });
                     }
                 })
@@ -163,7 +157,6 @@ oml.ui.identifyDialog = function(data) {
         disableButtons();
         $titlePanel.replaceElement(1, Ox.LoadingScreen().start());
         oml.api.findMetadata(data, function(result) {
-            // FIXME: CONCAT HERE
             var items = result.data.items.map(function(item, index) {
                     return Ox.extend({index: (index + 1).toString()}, item);
                 });
@@ -352,42 +345,48 @@ oml.ui.identifyDialog = function(data) {
         var $list = Ox.TableList({
                 columns: [
                     {
-                        format: function(value) {
-                            return Ox.getObjectById(ids, value).title;
+                        format: function(value, data) {
+                            return value
+                                ? '<b>' + Ox.getObjectById(ids, value).title
+                                    + ':</b> ' + data[data.mainid]
+                                : '<b>No ID</b>'
                         },
                         id: 'mainid',
                         visible: true,
-                        width: 64
-                    },
-                    {
-                        format: function(value, data) {
-                            return data[data.mainid]; 
-                        },
-                        id: 'index',
-                        visible: true,
-                        width: 128 - Ox.UI.SCROLLBAR_SIZE
+                        width: 192 - Ox.UI.SCROLLBAR_SIZE
                     }
                 ],
-                items: items,
+                items: [{
+                    'index': '0',
+                    'mainid': ''
+                }].concat(items || []),
                 keys: ['mainid', 'isbn10', 'isbn13'],
                 min: 1,
                 max: 1,
                 scrollbarVisible: true,
-                sort: [{key: 'mainid', operator: '+'}],
+                sort: [{key: 'index', operator: '+'}],
                 unique: 'index'
             })
             .bindEvent({
                 select: function(data) {
-                    var index = data.ids[0], mainid;
-                    mainid = $list.value(index, 'mainid');
-                    titleValue = Ox.extend({}, mainid, $list.value(index, mainid));
-                    $results.replaceElement(1, Ox.LoadingScreen().start());
-                    oml.api.getMetadata(titleValue, function(result) {
-                        if (index == $list.options('selected')[0]) {
-                            $results.replaceElement(1, oml.ui.infoView(result.data));
-                            that.options('buttons')[1].options({disabled: false});
-                        }
-                    });
+                    var index = data.ids[0],
+                        mainid = $list.value(index, 'mainid');
+                    if (!mainid) {
+                        titleValue = {};
+                        keys.forEach(function(key) {
+                            titleValue[key.id] = titleInputValue(key.id);
+                        });
+                        $results.replaceElement(1, oml.ui.infoView(titleValue));
+                    } else {
+                        titleValue = Ox.extend({}, mainid, $list.value(index, mainid));
+                        $results.replaceElement(1, Ox.LoadingScreen().start());
+                        oml.api.getMetadata(titleValue, function(result) {
+                            if (index == $list.options('selected')[0]) {
+                                $results.replaceElement(1, oml.ui.infoView(result.data));
+                                that.options('buttons')[1].options({disabled: false});
+                            }
+                        });   
+                    }
                 }
             }),
             $results = Ox.SplitPanel({
@@ -405,14 +404,14 @@ oml.ui.identifyDialog = function(data) {
         $titleInputs = keys.map(function(key, index) {
             return Ox.Input({
                     label: Ox._(key.title),
-                    labelWidth: 64,
+                    labelWidth: 80,
                     value: data[key.id],
-                    width: 360
+                    width: 240
                 })
                 .css({
                     position: 'absolute',
-                    left: index < 2 ? '16px' : '392px',
-                    top: index % 2 == 0 ? '16px' : '40px'
+                    left: 16 + Math.floor(index / 2) * 248 + 'px',
+                    top: 16 + (index % 2) * 24 + 'px'
                 })
                 .bindEvent({
                     submit: function(data) {

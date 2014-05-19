@@ -28,7 +28,7 @@ oml.ui.gridView = function() {
                             borderWidth: Math.round(size / 64) + 'px 0',
                             borderStyle: 'solid',
                             borderColor: 'rgba(' + color[2].join(', ') + ')',
-                            margin: Math.round(size / 18) + 'px ' + Math.round(width / 3) + 'px',
+                            margin: Math.round(size / 18) + 'px ' + Math.round(width / 2 - 14) + 'px',
                             fontSize: Math.round(size / 16) + 'px',
                             textAlign: 'center',
                             color: 'rgba(' + color[2].join(', ') + ')',

@@ -18,8 +18,6 @@ import ox
 import settings
 from settings import db, config
 
-from user.models import User
-
 from person import get_sort_name
 
 import media
@@ -250,12 +248,17 @@ class Item(db.Model):
             db.session.add(f)
 
     def update(self):
+        for key in ('mediastate', 'coverRatio'):
+            if key in self.meta:
+                if key not in self.info:
+                    self.info[key] = self.meta[key]
+                del self.meta[key]
         users = map(str, list(self.users))
-        self.meta['mediastate'] = 'available' # available, unavailable, transferring
+        self.info['mediastate'] = 'available' # available, unavailable, transferring
         if self.transferadded and self.transferprogress < 1:
-            self.meta['mediastate'] = 'transferring'
+            self.info['mediastate'] = 'transferring'
         else:
-            self.meta['mediastate'] = 'available' if settings.USER_ID in users else 'unavailable'
+            self.info['mediastate'] = 'available' if settings.USER_ID in users else 'unavailable'
         self.update_sort()
         self.update_find()
         self.update_lists()
@@ -265,6 +268,15 @@ class Item(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+    def update_meta(self, data):
+        self.meta = data
+        self.update()
+        self.modified = datetime.now()
+        self.save()
+        user = state.user()
+        if user in self.users:
+            Changelog.record(user, 'edititem', self.id, data)
 
     def update_mainid(self, key, id):
         record = {}
@@ -317,7 +329,7 @@ class Item(db.Model):
                 covers[self.id] = cover
         if cover:
             img = Image.open(StringIO(cover))
-            self.meta['coverRatio'] = img.size[0]/img.size[1]
+            self.info['coverRatio'] = img.size[0]/img.size[1]
         for p in (':128', ':256', ':512'):
             del covers['%s%s' % (self.id, p)]
         return cover

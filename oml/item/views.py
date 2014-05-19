@@ -73,10 +73,10 @@ def cover(id, size=None):
     if size:
         data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
     data = str(data)
-    if not 'coverRatio' in item.meta:
+    if not 'coverRatio' in item.info:
         #img = Image.open(StringIO(str(covers[id])))
         img = Image.open(StringIO(data))
-        item.meta['coverRatio'] = img.size[0]/img.size[1]
+        item.info['coverRatio'] = img.size[0]/img.size[1]
         db.session.add(item)
         db.session.commit()
     resp = make_response(data)
