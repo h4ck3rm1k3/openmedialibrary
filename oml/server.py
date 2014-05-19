@@ -16,6 +16,7 @@ import state
 import node.server
 import oxtornado
 from item.covers import CoverHandler
+from item.handlers import EpubHandler
 
 def run():
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
@@ -32,6 +33,7 @@ def run():
     handlers = [
         (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
         (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
+        (r'/(.*)/epub/(.*)', EpubHandler, dict(app=app)),
         (r'/(.*)/cover(\d*).jpg', CoverHandler, dict(app=app)),
         (r'/api/', oxtornado.ApiHandler, dict(app=app)),
         (r'/ws', websocket.Handler),

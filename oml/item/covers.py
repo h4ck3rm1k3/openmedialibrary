@@ -93,25 +93,27 @@ def get_cover(app, id, size, callback):
         item = Item.get(id)
         if not item:
             callback('')
-        data = None
-        if size:
-            data = covers['%s:%s' % (id, size)]
-            if data:
-                size = None
-        if not data:
-            data = covers[id]
-        if not data:
-            data = item.update_cover()
+        else:
+            data = None
+            if size:
+                data = covers['%s:%s' % (id, size)]
+                if data:
+                    size = None
             if not data:
-                data = covers.black()
-        if size:
-            data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
-        data = str(data)
-        if not 'coverRatio' in item.info:
-            img = Image.open(StringIO(data))
-            item.info['coverRatio'] = img.size[0]/img.size[1]
-            item.save()
-        callback(data)
+                data = covers[id]
+            if not data:
+                data = item.update_cover()
+                if not data:
+                    data = covers.black()
+            if size:
+                data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
+            data = str(data)
+            if not 'coverRatio' in item.info:
+                img = Image.open(StringIO(data))
+                item.info['coverRatio'] = img.size[0]/img.size[1]
+                item.save()
+            data = data or ''
+            callback(data)
 
 class CoverHandler(tornado.web.RequestHandler):
 
