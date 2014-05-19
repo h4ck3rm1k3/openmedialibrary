@@ -30,28 +30,31 @@ def render(infile, outfile):
 
         for line in f:
 
-            line = line.decode('utf-8').strip()
+            for line_ in line.decode('utf-8').strip().split('\r'):
 
-            lines = wrapText(
-                line,
-                image_size[0] - 2 * margin,
-                # we don't want the last line that ends with an ellipsis
-                max_lines + 1,
-                'txt.ttf',
-                font_size
-            )
-
-            for line_ in lines:
-                drawText(
-                    image,
-                    (margin, offset),
+                lines = wrapText(
                     line_,
-                    font_file,
-                    font_size,
-                    (0)
+                    image_size[0] - 2 * margin,
+                    # we don't want the last line that ends with an ellipsis
+                    max_lines + 1,
+                    'txt.ttf',
+                    font_size
                 )
-                offset += line_height
-                max_lines -= 1
+
+                for line__ in lines:
+                    drawText(
+                        image,
+                        (margin, offset),
+                        line__,
+                        font_file,
+                        font_size,
+                        (0)
+                    )
+                    offset += line_height
+                    max_lines -= 1
+
+                    if max_lines == 0:
+                        break
 
                 if max_lines == 0:
                     break

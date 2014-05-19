@@ -5,7 +5,8 @@ txtjs.open = function(url) {
         Ox.get(url, function(text) {
             var $body = Ox.$('body')
                     .css({
-                        backgroundColor: 'rgb(255, 255, 255)'
+                        backgroundColor: 'rgb(255, 255, 255)',
+                        overflowX: 'hidden'
                     }),
                 $text = Ox.$('<div>')
                     .css({
@@ -29,28 +30,32 @@ txtjs.open = function(url) {
                     .css({
                         fontSize: '2px',
                         lineHeight: '3px',
+                        cursor: 'pointer',
                         WebkitUserSelect: 'none'
                     })
                     .on({
-                        click: function(e) {
+                        mousedown: function(e) {
                             var offset = 'offsetY' in e ? e.offsetY : e.layerY;
                             document.body.scrollTop = offset / factor;
-                            Ox.print('!', offset)
+                            //Ox.print('!', offset)
                         }
                     })
                     .appendTo($scroll),
-                scale;
+                textHeight, scrollTextHeight, factor;
             text = Ox.encodeHTMLEntities(text)
                 .replace(/\r\n/g, '\n')
                 .replace(/[\r\n]/g, '<br>');
             $text.html(text);
             $scrollText.html(text);
-            var textHeight = $text[0].clientHeight,
-                scrollTextHeight = $scrollText[0].clientHeight,
+            window.onresize = function() {
+                textHeight = $text[0].clientHeight - window.innerHeight,
+                scrollTextHeight = $scrollText[0].clientHeight - (window.innerHeight - 32),
                 factor = scrollTextHeight / textHeight;
+            };
             window.onscroll = function() {
                 $scroll[0].scrollTop = window.pageYOffset * factor;
             };
+            window.onresize();
         });
     });
 };

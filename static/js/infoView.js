@@ -99,12 +99,13 @@ oml.ui.infoView = function(identifyData) {
             + Ox._(Ox.toTitleCase(key)) + ':&nbsp;</span> ';
     }
 
-    function formatValue(value, key) {
-        return (Ox.isArray(value) ? value : [value]).map(function(value) {
+    function formatValue(value, key, join) {
+        value = Ox.encodeHTMLEntities(value);
+        return value ? (Ox.isArray(value) ? value : [value]).map(function(value) {
             return key ?
                 '<a href="/' + key + '==' + value + '">' + value + '</a>'
                 : value;
-        }).join(', ');
+        }).join(join || ', ') : '';
     }
 
     function identify(data) {
@@ -352,8 +353,8 @@ oml.ui.infoView = function(identifyData) {
                             fontWeight: 'bold'
                         })
                         .html(
-                            data.title
-                            || '<span class="OxLight">'
+                            data.title ? Ox.encodeHTMLEntities(data.title)
+                            : '<span class="OxLight">'
                                 + Ox._('No Title')
                                 + '</span>'
                         )
@@ -375,10 +376,10 @@ oml.ui.infoView = function(identifyData) {
                             .css({
                                 marginTop: '8px'
                             })
-                            .text(
-                                (data.place || []).join(' ; ')
+                            .html(
+                                (formatValue(data.place, 'place', ' ; '))
                                 + (data.place && (data.publisher || data.date) ? ' : ' : '')
-                                + (data.publisher || '')
+                                + (formatValue(data.publisher, 'publisher'))
                                 + (data.publisher && data.date ? ', ' : '')
                                 + (data.date || '')
                             )
@@ -390,10 +391,10 @@ oml.ui.infoView = function(identifyData) {
                             .css({
                                 marginTop: '8px'
                             })
-                            .text(
-                                (data.edition || '')
+                            .html(
+                                (Ox.encodeHTMLEntities(data.edition || ''))
                                 + (data.edition && data.language ? '; ' : '')
-                                + (data.language || '')
+                                + (formatValue(data.language, 'language'))
                             )
                             .appendTo($info);
                     }
@@ -404,7 +405,9 @@ oml.ui.infoView = function(identifyData) {
                                 marginTop: '8px',
                                 textAlign: 'justify'
                             })
-                            .html(Ox.encodeHTMLEntities(data.classification))
+                            .html(
+                                Ox.formatValue(data.classification, 'classification')
+                            )
                             .appendTo($info);
                     }
 
@@ -414,7 +417,9 @@ oml.ui.infoView = function(identifyData) {
                                 marginTop: '8px',
                                 textAlign: 'justify'
                             })
-                            .html(Ox.encodeHTMLEntities(data.description))
+                            .html(
+                                Ox.encodeHTMLEntities(data.description)
+                            )
                             .appendTo($info);
                     }
 
