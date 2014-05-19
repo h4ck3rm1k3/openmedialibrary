@@ -290,9 +290,8 @@ class Item(db.Model):
         self.update()
         self.update_cover()
         self.modified = datetime.now()
-        db.session.add(self)
-        db.session.commit()
-        user = User.get_or_create(settings.USER_ID)
+        self.save()
+        user = state.user()
         if user in self.users:
             Changelog.record(user, 'edititem', self.id, record)
 

@@ -60,6 +60,8 @@ def add_file(id, f, prefix):
         })
     item.added = datetime.now()
     item.scrape()
+    item.update_cover()
+    item.save()
     return file
 
 def run_scan():
