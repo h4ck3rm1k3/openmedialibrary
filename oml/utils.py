@@ -45,7 +45,9 @@ def get_by_id(objects, id):
     return get_by_key(objects, 'id', id)
 
 def resize_image(data, width=None, size=None):
-    source = Image.open(StringIO(data)) #.convert('RGB')
+    source = Image.open(StringIO(data))
+    if source.mode == 'P':
+        source = source.convert('RGB')
     source_width = source.size[0]
     source_height = source.size[1]
     if size:
