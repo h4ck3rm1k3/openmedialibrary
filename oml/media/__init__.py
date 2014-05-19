@@ -31,7 +31,10 @@ def metadata(f):
     elif ext == 'txt':
         info = txt.info(f)
 
-    for key in ('title', 'author', 'date', 'publisher', 'isbn'):
+    for key in (
+        'title', 'author', 'date', 'publisher', 'isbn',
+        'textsize', 'pages'
+    ):
         if key in info:
             value = info[key]
             if isinstance(value, str):

@@ -315,6 +315,12 @@ oml.ui.folders = function() {
             if (data.activity == 'import') {
                 that.updateItems();
             }
+        },
+        'peering.accept': function(data) {
+            that.updateElement();
+        },
+        'peering.remove': function(data) {
+            that.updateElement();
         }
     });
 

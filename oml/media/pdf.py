@@ -75,7 +75,6 @@ def info(pdf):
             info = pdfreader.getDocumentInfo()
             if info:
                 for key in info:
-                    print key, info
                     if info[key]:
                         data[key[1:].lower()] = info[key]
             xmp =pdfreader.getXmpMetadata()

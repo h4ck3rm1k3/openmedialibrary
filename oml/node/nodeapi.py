@@ -55,7 +55,7 @@ def api_requestPeering(app, user_id, username, message):
             user.info['username'] = username
             user.info['message'] = message
         user.save()
-        trigger_event('peering', user.json())
+        trigger_event('peering.request', user.json())
         return True
     return False
 
@@ -70,7 +70,7 @@ def api_acceptPeering(app, user_id, username, message):
         user.info['username'] = username
         user.info['message'] = message
         user.update_peering(True, username)
-        trigger_event('peering', user.json())
+        trigger_event('peering.accept', user.json())
         state.nodes.queue('add', user.id)
         return True
     return False
@@ -82,7 +82,7 @@ def api_rejectPeering(app, user_id, message):
             user.info = {}
         user.info['message'] = message
         user.update_peering(False)
-        trigger_event('peering', user.json())
+        trigger_event('peering.reject', user.json())
         return True
     return False
 
@@ -91,7 +91,7 @@ def api_removePeering(app, user_id, message):
     if user:
         user.info['message'] = message
         user.update_peering(False)
-        trigger_event('peering', user.json())
+        trigger_event('peering.remove', user.json())
         return True
     return False
 
@@ -100,6 +100,6 @@ def api_cancelPeering(app, user_id, message):
     if user:
         user.info['message'] = message
         user.update_peering(False)
-        trigger_event('peering', user.json())
+        trigger_event('peering.cancel', user.json())
         return True
     return False

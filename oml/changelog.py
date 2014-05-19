@@ -82,7 +82,7 @@ class Changelog(db.Model):
                 sig = settings.sk.sign(_data, encoding='base64')
             if valid(user.id, _data, sig):
                 c = cls()
-                c.created = datetime.now()
+                c.created = datetime.fromtimestamp(float(timestamp))
                 c.user_id = user.id
                 c.revision = revision
                 c.data = data
@@ -144,9 +144,13 @@ class Changelog(db.Model):
         from item.models import Item
         i = Item.get(itemid)
         if i and i.timestamp > timestamp:
+            if user not in i.users:
+                i.users.append(user)
+                i.update()
             return True
         if not i:
             i = Item.get_or_create(itemid, info)
+            i.modified = datetime.fromtimestamp(float(timestamp))
         i.users.append(user)
         i.update()
         return True
@@ -163,6 +167,8 @@ class Changelog(db.Model):
         elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
             logger.debug('new mapping %s %s currently %s %s', key, meta[key], i.meta.get('mainid'), i.meta.get(i.meta.get('mainid')))
             i.update_mainid(key, meta[key])
+        i.modified = datetime.fromtimestamp(float(timestamp))
+        i.save()
         return True
 
     def action_removeitem(self, user, timestamp, itemid):

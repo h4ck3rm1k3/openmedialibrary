@@ -259,7 +259,7 @@ class Item(db.Model):
         self.update_sort()
         self.update_find()
         self.update_lists()
-        self.modified = datetime.now()
+        #self.modified = datetime.now()
         self.save()
 
     def save(self):
@@ -289,6 +289,7 @@ class Item(db.Model):
         self.scrape()
         self.update()
         self.update_cover()
+        self.modified = datetime.now()
         db.session.add(self)
         db.session.commit()
         user = User.get_or_create(settings.USER_ID)
