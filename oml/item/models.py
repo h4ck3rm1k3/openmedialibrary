@@ -474,6 +474,8 @@ class File(db.Model):
         return os.path.join(prefix, self.path)
 
     def move(self):
+        def format_underscores(string):
+            return re.sub('^\.|\.$|:|/|\?|<|>', '_', string)
         prefs = settings.preferences
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         j = self.item.json()
@@ -484,12 +486,13 @@ class File(db.Model):
             author = 'Unknown Author'
         title = j.get('title', 'Untitled')
         extension = j['extension']
+
         if len(title) > 100:
             title = title[:100]
-        if author.endswith('.'):
-            author = author[:-1] + '_'
-        if author.startswith('.'):
-            author = '_' + author[1:]
+
+        title = format_underscores(title)
+        author = format_underscores(author)
+
         filename = '%s.%s' % (title, extension)
         new_path = os.path.join(author[0].upper(), author, filename)
         if self.path == new_path:
