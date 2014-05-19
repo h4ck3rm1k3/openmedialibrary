@@ -70,7 +70,7 @@ def autocompleteFolder(request):
         folder, name = os.path.split(path)
     if os.path.exists(folder):
         prefix, folders, files = os.walk(folder).next()
-        folders = [os.path.join(prefix, f) for f in folders if not name or f.startswith(name)]
+        folders = [os.path.join(prefix, f) for f in folders if (not name or f.startswith(name)) and not f.startswith('.')]
         if prefix == path:
             folders = [path] + folders
     else:

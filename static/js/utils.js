@@ -122,6 +122,17 @@ oml.clearFilters = function() {
     oml.UI.set({find: find});
 };
 
+oml.clickLink = function(e) {
+    if (
+        e.target.hostname == document.location.hostname
+        && !Ox.startsWith(e.target.pathname, '/static')
+    ) {
+        oml.URL.push(e.target.pathname, true);
+    } else {
+        oml.openLink(e.target.href);
+    }
+};
+
 (function() {
 
     oml.doHistory = function(action, items, targets, callback) {
@@ -894,6 +905,15 @@ oml.hasDialogOrScreen = function() {
         || !!$('.OxScreen').length;
 };
 
+oml.openLink = function(url) {
+    if (Ox.startsWith(url, 'mailto:')) {
+        window.open(url);
+    } else {
+        //window.open('/url=' + encodeURIComponent(url), '_blank');
+        window.open(url, '_blank');
+    }
+};
+
 oml.reloadList = function() {
     oml.$ui.list.updateElement();
 };
@@ -934,6 +954,7 @@ oml.resizeWindow = function() {
     oml.$ui.leftPanel && oml.$ui.leftPanel.size(2, oml.getInfoHeight());
     oml.resizeListFolders();
     oml.$ui.rightPanel && oml.$ui.rightPanel.updateElement();
+    oml.$ui.list && oml.$ui.list.size();
 };
 
 oml.updateFilterMenus = function() {

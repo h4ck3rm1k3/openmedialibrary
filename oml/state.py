@@ -2,6 +2,7 @@ websockets = []
 nodes = False
 main = None
 online = False
+host = None
 
 activity = {}
 

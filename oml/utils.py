@@ -45,7 +45,7 @@ def get_by_id(objects, id):
     return get_by_key(objects, 'id', id)
 
 def resize_image(data, width=None, size=None):
-    source = Image.open(StringIO(data)).convert('RGB')
+    source = Image.open(StringIO(data)) #.convert('RGB')
     source_width = source.size[0]
     source_height = source.size[1]
     if size:
@@ -106,11 +106,15 @@ def valid(key, value, sig):
     return True
 
 def get_public_ipv6():
-    host = ('2a01:4f8:120:3201::3', 25519)
-    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-    s.connect(host)
-    ip = s.getsockname()[0]
-    s.close()
+    try:
+        host = ('2a01:4f8:120:3201::3', 25519)
+        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        s.settimeout(1)
+        s.connect(host)
+        ip = s.getsockname()[0]
+        s.close()
+    except:
+        ip = None
     return ip
 
 def update_dict(root, data):

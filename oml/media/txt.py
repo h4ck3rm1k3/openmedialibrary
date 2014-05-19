@@ -2,18 +2,19 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import sys
 import os
 from utils import find_isbns
-from StringIO import StringIO
-import Image
+import tempfile
+import subprocess
 
 def cover(path):
-    img = Image.new('RGB', (80, 128))
-    o = StringIO()
-    img.save(o, format='jpeg')
-    data = o.getvalue()
-    o.close()
+    image = tempfile.mkstemp('.jpg')[1]
+    cmd = ['python2', 'static/txt.js/txt.py', '-i', path, '-o', image]
+    p = subprocess.Popen(cmd)
+    p.wait()
+    with open(image, 'rb') as fd:
+        data = fd.read()
+    os.unlink(image)
     return data
 
 def info(path):

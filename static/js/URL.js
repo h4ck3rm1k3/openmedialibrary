@@ -285,7 +285,7 @@ oml.URL = (function() {
     // pushes a new URL (as string or from state)
     that.push = function(stateOrURL, expandURL) {
         var state,
-            title = oml.getPageTitle(stateOrURL)
+            title = oml.getPageTitle(stateOrURL),
             url;
         oml.replaceURL = expandURL;
         if (Ox.isObject(stateOrURL)) {

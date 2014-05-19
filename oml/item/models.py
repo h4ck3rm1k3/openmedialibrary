@@ -318,7 +318,7 @@ class Item(db.Model):
         if cover:
             img = Image.open(StringIO(cover))
             self.meta['coverRatio'] = img.size[0]/img.size[1]
-        for p in (':128', ':256'):
+        for p in (':128', ':256', ':512'):
             del covers['%s%s' % (self.id, p)]
         return cover
 
@@ -381,6 +381,8 @@ class Item(db.Model):
         user = state.user()
         if user in self.users:
             self.users.remove(user)
+        for l in self.lists.filter_by(user_id=user.id):
+            l.items.remove(self)
         db.session.commit()
         if not self.users:
             db.session.delete(self)

@@ -24,10 +24,10 @@ class Downloads(Thread):
         for i in item.models.Item.query.filter(
                 item.models.Item.transferadded!=None).filter(
                 item.models.Item.transferprogress<1).order_by(item.models.Item.transferadded):
-            logger.debug('DOWNLOAD %s %s', i, i.users)
-            for p in i.users:
-                if state.nodes.check_online(p.id):
-                    r = state.nodes.download(p.id, i)
+            for u in i.users:
+                if state.nodes.check_online(u.id):
+                    logger.debug('DOWNLOAD %s %s', i, u)
+                    r = state.nodes.download(u.id, i)
                     logger.debug('download ok? %s', r)
                     return True
         return False

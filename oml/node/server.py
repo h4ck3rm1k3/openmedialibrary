@@ -17,6 +17,7 @@ import json
 from utils import valid, get_public_ipv6
 import nodeapi
 import cert
+from websocket import trigger_event
 
 import logging
 logger = logging.getLogger('oml.node.server')
@@ -109,12 +110,7 @@ class ShareHandler(tornado.web.RequestHandler):
 
 
 def publish_node(app):
-    host = get_public_ipv6()
-    state.online = directory.put(settings.sk, {
-        'host': host,
-        'port': settings.server['node_port'],
-        'cert': settings.server['cert']
-    })
+    update_online()
     if state.online:
         with app.app_context():
             for u in user.models.User.query.filter_by(queued=True):
@@ -122,6 +118,32 @@ def publish_node(app):
                 state.nodes.queue('add', u.id)
     state.check_nodes = PeriodicCallback(lambda: check_nodes(app), 120000)
     state.check_nodes.start()
+    state._online = PeriodicCallback(update_online, 60000)
+    state._online.start()
+
+def update_online():
+    host = get_public_ipv6()
+    if not host:
+        if state.online:
+            state.online = False
+            trigger_event('status', {
+                'id': settings.USER_ID,
+                'online': state.online
+            })
+    else:
+        if host != state.host:
+            state.host = host
+            online = directory.put(settings.sk, {
+                'host': host,
+                'port': settings.server['node_port'],
+                'cert': settings.server['cert']
+            })
+            if online != state.online:
+                state.online = online
+                trigger_event('status', {
+                    'id': settings.USER_ID,
+                    'online': state.online
+                })
 
 def check_nodes(app):
     if state.online:

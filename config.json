@@ -110,8 +110,7 @@
             "title": "Extension",
             "type": "string",
             "columnWidth": 80,
-            "sort": true,
-            "find": true
+            "sort": true
         },
         {
             "id": "size",

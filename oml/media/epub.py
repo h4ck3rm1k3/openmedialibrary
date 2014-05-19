@@ -2,22 +2,51 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import sys
+import os
 import xml.etree.ElementTree as ET
 import zipfile
 from StringIO import StringIO
+import re
 
 import Image
 import stdnum.isbn
 
 from utils import normalize_isbn, find_isbns
 
+import logging
+logger = logging.getLogger('oml.media.epub')
+
 def cover(path):
-    img = Image.new('RGB', (80, 128))
-    o = StringIO()
-    img.save(o, format='jpeg')
-    data = o.getvalue()
-    o.close()
+    logger.debug('cover %s', path)
+    z = zipfile.ZipFile(path)
+    data = None
+    for f in z.filelist:
+        if 'cover' in f.filename and f.filename.split('.')[-1] in ('jpg', 'jpeg', 'png'):
+            logger.debug('using %s', f.filename)
+            data = z.read(f.filename)
+            break
+    if not data:
+        opf = [f.filename for f in z.filelist if f.filename.endswith('opf')]
+        if opf:
+            info = ET.fromstring(z.read(opf[0]))
+            manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
+            for e in manifest.getchildren():
+                if 'html' in e.attrib['media-type']:
+                    filename = e.attrib['href']
+                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                    html = z.read(filename)
+                    img = re.compile('<img.*?src="(.*?)"').findall(html)
+                    if img:
+                        img = os.path.normpath(os.path.join(os.path.dirname(filename), img[0]))
+                        logger.debug('using %s', img)
+                        data = z.read(img)
+                        break
+    if not data:
+        img = Image.new('RGB', (80, 128))
+        o = StringIO()
+        img.save(o, format='jpeg')
+        data = o.getvalue()
+        o.close()
     return data
 
 def info(epub):

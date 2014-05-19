@@ -4,7 +4,7 @@ oml.ui.infoView = function(identifyData) {
 
     var ui = oml.user.ui,
 
-        css = getCSS(ui.coverSize),
+        css = getCSS(ui.coverSize, oml.config.coverRatio),
 
         that = Ox.Element()
             .addClass('OxTextPage')
@@ -39,6 +39,7 @@ oml.ui.infoView = function(identifyData) {
                 right: !identifyData ? '176px' : 16 + Ox.UI.SCROLLBAR_SIZE + 'px',
                 top: '16px'
             })
+            [ui.coverSize == 512 ? 'hide' : 'show']()
             .appendTo(that),
 
         $data,
@@ -232,13 +233,6 @@ oml.ui.infoView = function(identifyData) {
         $image.animate(css.image, 250);
         $reflectionImage.animate(css.image, 250);
         $reflection.animate(css.reflection, 250);
-        /*
-        $reflectionGradient.animate({
-            width: iconSize + 'px',
-            height: iconSize / 2 + 'px'
-        }, 250);
-        */
-
         oml.UI.set({coverSize: coverSize});
     }
 
@@ -291,9 +285,19 @@ oml.ui.infoView = function(identifyData) {
                             tooltip: '' // TODO
                         })
                         .on({
+                            error: function() {
+                                if (size == 512) {
+                                    $info.show();
+                                }
+                            },
                             load: function() {
                                 ratio = $image[0].width / $image[0].height;
                                 updateCover(ratio);
+                                if (size == 512) {
+                                    $info.css({
+                                        left: getCSS(512, ratio).info.left
+                                    }).show();
+                                }
                             }
                         })
                         .attr({src: src})
