@@ -103,7 +103,6 @@ def format(info, return_all=False):
                 value = COUNTRIES.get(value, value)
             elif key == 'covers':
                 value = 'https://covers.openlibrary.org/b/id/%s.jpg' % value[0]
-                value = COUNTRIES.get(value, value)
             elif key == 'languages':
                 value = resolve_names(value)
             elif not return_all and isinstance(value, list) and key not in ('publish_places'):

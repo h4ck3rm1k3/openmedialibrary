@@ -8,11 +8,7 @@ from utils import find_isbns
 from StringIO import StringIO
 import Image
 
-from pdf import ql_cover
-
 def cover(path):
-    if sys.platform == 'darwin':
-        return ql_cover(path)
     img = Image.new('RGB', (80, 128))
     o = StringIO()
     img.save(o, format='jpeg')
