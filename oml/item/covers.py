@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+from __future__ import division, with_statement
 
 import sqlite3
-import Image
 from StringIO import StringIO
+import Image
+
+import tornado.ioloop
+import tornado.web
+import tornado.gen
+import tornado.concurrent
+
+from oxtornado import run_async
+
+from utils import resize_image
+
 
 from settings import covers_db_path
 
@@ -75,3 +85,48 @@ class Covers(dict):
         conn.close()
 
 covers = Covers(covers_db_path)
+
+@run_async
+def get_cover(app, id, size, callback):
+    with app.app_context():
+        from item.models import Item
+        item = Item.get(id)
+        if not item:
+            callback('')
+        data = None
+        if size:
+            data = covers['%s:%s' % (id, size)]
+            if data:
+                size = None
+        if not data:
+            data = covers[id]
+        if not data:
+            data = item.update_cover()
+            if not data:
+                data = covers.black()
+        if size:
+            data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
+        data = str(data)
+        if not 'coverRatio' in item.info:
+            img = Image.open(StringIO(data))
+            item.info['coverRatio'] = img.size[0]/img.size[1]
+            item.save()
+        callback(data)
+
+class CoverHandler(tornado.web.RequestHandler):
+
+    def initialize(self, app):
+        self._app = app
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self, id, size=None):
+        size = int(size) if size else None
+        response = yield tornado.gen.Task(get_cover, self._app, id, size)
+        if not response:
+            self.set_status(404)
+            self.write('')
+        else:
+            self.set_header('Content-Type', 'image/jpeg')
+            self.write(response)
+        self.finish()

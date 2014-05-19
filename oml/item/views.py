@@ -53,36 +53,6 @@ def get(id):
     }.get(path.split('.')[-1], None)
     return send_file(path, mimetype=mimetype)
 
-@app.route('/<string:id>/cover.jpg')
-@app.route('/<string:id>/cover<int:size>.jpg')
-def cover(id, size=None):
-    item = Item.get(id)
-    if not item:
-        abort(404)
-    data = None
-    if size:
-        data = covers['%s:%s' % (id, size)]
-        if data:
-            size = None
-    if not data:
-        data = covers[id]
-    if not data:
-        data = item.update_cover()
-        if not data:
-            data = covers.black()
-    if size:
-        data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
-    data = str(data)
-    if not 'coverRatio' in item.info:
-        #img = Image.open(StringIO(str(covers[id])))
-        img = Image.open(StringIO(data))
-        item.info['coverRatio'] = img.size[0]/img.size[1]
-        db.session.add(item)
-        db.session.commit()
-    resp = make_response(data)
-    resp.content_type = "image/jpeg"
-    return resp
-
 @app.route('/<string:id>/reader/')
 def reader(id, filename=''):
     item = Item.get(id)
