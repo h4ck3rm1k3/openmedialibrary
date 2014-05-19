@@ -270,13 +270,14 @@ class Item(db.Model):
         db.session.commit()
 
     def update_meta(self, data):
-        self.meta = data
-        self.update()
-        self.modified = datetime.now()
-        self.save()
-        user = state.user()
-        if user in self.users:
-            Changelog.record(user, 'edititem', self.id, data)
+        if data != self.meta:
+            self.meta = data
+            self.update()
+            self.modified = datetime.now()
+            self.save()
+            user = state.user()
+            if user in self.users:
+                Changelog.record(user, 'edititem', self.id, data)
 
     def update_mainid(self, key, id):
         record = {}
