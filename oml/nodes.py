@@ -170,7 +170,7 @@ class Node(object):
         if u.peered or u.queued:
             try:
                 self.online = False
-                logger.debug('type to connect to %s', self.user_id)
+                logger.debug('type to connect to %s at [%s]:%s', self.user_id, self.host, self.port)
                 if self.can_connect():
                     self.online = True
                     if u.queued:

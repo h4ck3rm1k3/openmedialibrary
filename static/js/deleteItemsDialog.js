@@ -26,7 +26,7 @@ oml.ui.deleteItemsDialog = function() {
                 ids: items
             }, function() {
                 oml.UI.set({listSelection: []});
-                Ox.Request.clearCache('find');
+                Ox.Request.clearCache(); // to much?
                 oml.$ui.list.updateElement();
             });
         });

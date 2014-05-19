@@ -379,7 +379,8 @@ class Item(db.Model):
                 remove_empty_folders(os.path.dirname(path))
             db.session.delete(f)
         user = state.user()
-        self.users.remove(user)
+        if user in self.users:
+            self.users.remove(user)
         db.session.commit()
         if not self.users:
             db.session.delete(self)

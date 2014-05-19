@@ -69,7 +69,7 @@ def get_ids(key, value):
                     if (id, v) not in ids:
                         ids.append((id, v))
     elif key in ('isbn10', 'isbn13', 'oclc', 'lccn'):
-        logger.debug('openlibraryid.get_ids %s %s', key, value)
+        logger.debug('get_ids %s %s', key, value)
         r = api.things({'type': '/type/edition', key.replace('isbn', 'isbn_'): value})
         for b in r.get('result', []):
             if b.startswith('/books'):

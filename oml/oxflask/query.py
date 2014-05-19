@@ -60,7 +60,7 @@ class Parser(object):
         }
         ...
         '''
-        logger.debug('parse_condition %s', condition)
+        #logger.debug('parse_condition %s', condition)
         if not 'value' in condition:
             return None
         k = condition.get('key', '*')

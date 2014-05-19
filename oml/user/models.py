@@ -204,7 +204,8 @@ class List(db.Model):
         from item.models import Item
         for item_id in items:
             i = Item.get(item_id)
-            self.items.remove(i)
+            if i in self.items:
+                self.items.remove(i)
             i.update()
         db.session.add(self)
         db.session.commit()
