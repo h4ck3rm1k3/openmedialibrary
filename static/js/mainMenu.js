@@ -379,6 +379,24 @@ oml.ui.mainMenu = function() {
                     oml.UI.set({listSelection: []});
                 } else if (id == 'invertselection') {
                     oml.$ui.list.invertSelection();
+                } else if (Ox.contains(['cut', 'cutadd'], id)) {
+                    var action = data.id == 'cut' ? 'copy' : 'add';
+                    fromMenu = true;
+                    oml.clipboard[action](ui.listSelection, 'item');
+                    oml.doHistory('cut', ui.listSelection, ui._list, function() {
+                        oml.UI.set({listSelection: []});
+                        oml.reloadList();
+                    });
+                } else if (Ox.contains(['copy', 'copyadd'], id)) {
+                    var action = data.id == 'copy' ? 'copy' : 'add';
+                    fromMenu = true;
+                    oml.clipboard[action](ui.listSelection, 'item');
+                } else if (id == 'paste') {
+                    var items = oml.clipboard.paste();
+                    oml.doHistory('paste', items, ui._list, function() {
+                        oml.UI.set({listSelection: items});
+                        oml.reloadList();
+                    });
                 } else if (data.id == 'clearclipboard') {
                     oml.clipboard.clear();
                 } else if (data.id == 'delete') {
@@ -542,7 +560,7 @@ oml.ui.mainMenu = function() {
             canCopy = canSelect && selectionItems,
             canCut = canCopy && listData.editable,
             canPaste = listData.editable && clipboardItems,
-            canAdd = canCopy && clipboardItems && clipboardItemType == ui.section,
+            canAdd = canCopy && clipboardItems && clipboardType == 'book',
             canDelete = listData.user == username && selectionItems,
             historyItems = oml.history.items(),
             undoText = oml.history.undoText(),
@@ -782,6 +800,24 @@ oml.ui.mainMenu = function() {
             ])
         };
     }
+
+    oml.clipboard.bindEvent(function(data, event) {
+        if (Ox.contains(['add', 'copy', 'clear'], event)) {
+            that.replaceMenu('editMenu', getEditMenu());
+        }
+        if (Ox.contains(['add', 'copy', 'paste'], event) && !fromMenu) {
+            that.highlightMenu('editMenu');
+        }
+        fromMenu = false;
+    });
+
+    oml.history.bindEvent(function(data, event) {
+        that.replaceMenu('editMenu', getEditMenu());
+        if (Ox.contains(['undo', 'redo'], event) && !fromMenu) {
+            that.highlightMenu('editMenu');
+        }
+        fromMenu = false;
+    });
 
     that.updateElement = function(menu) {
         (

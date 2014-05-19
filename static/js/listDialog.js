@@ -76,7 +76,7 @@ oml.ui.listDialog = function() {
                         // FIXME: UGLY
                         listNames[listNames.indexOf(listData.name)] = value;
                         listData.name = value;
-                        //
+                        // ...
                         oml.api.editList({
                             id: ui._list,
                             name: value

@@ -16,7 +16,10 @@ oml.ui.folders = function() {
                 //overflowY: 'auto',
             })
             .bindEvent({
-                oml_find: selectList
+                oml_find: selectList,
+                oml_showfolder: function() {
+                    oml.resizeListFolders();
+                }
             });
 
     function getFind(list) {
@@ -120,7 +123,7 @@ oml.ui.folders = function() {
                 userIndex[user.nickname] = index;
 
                 oml.$ui.folder[index] = Ox.CollapsePanel({
-                        collapsed: false,
+                        collapsed: !ui.showFolder[user.nickname],
                         extras: [
                             oml.ui.statusIcon(user, index),
                             {},
@@ -263,6 +266,7 @@ oml.ui.folders = function() {
 
             });
 
+            oml.resizeListFolders(); // FIXME: DOESN'T WORK
             selectList();
 
         });
@@ -272,7 +276,6 @@ oml.ui.folders = function() {
     };
 
     that.updateItems = function(items) {
-        Ox.print('UPDATE ITEMS', items);
         var $list;
         if (arguments.length == 0) {
             oml.getLists(function(lists) {
@@ -306,6 +309,7 @@ oml.ui.folders = function() {
                 })
                 .css({height: items.length * 16 + 'px'})
                 .size();
+            oml.resizeFolders();
             callback && callback();
         });
     };
@@ -316,10 +320,17 @@ oml.ui.folders = function() {
                 that.updateItems();
             }
         },
+        change: function(data) {
+            Ox.print('got change event')
+        },
         'peering.accept': function(data) {
+            Ox.print('peering.accept reload list')
+            Ox.Request.clearCache('getUsers');
             that.updateElement();
         },
         'peering.remove': function(data) {
+            Ox.print('peering.remove reload list')
+            Ox.Request.clearCache('getUsers');
             that.updateElement();
         }
     });

@@ -4,6 +4,8 @@ oml.ui.infoView = function(identifyData) {
 
     var ui = oml.user.ui,
 
+        css = getCSS(ui.coverSize),
+
         that = Ox.Element()
             .addClass('OxTextPage')
             .css({overflowY: 'auto'})
@@ -25,7 +27,7 @@ oml.ui.infoView = function(identifyData) {
                 position: 'absolute',
                 left: '16px',
                 top: '16px',
-                width: '256px'
+                width: css.cover.width
             })
             .appendTo(that),
 
@@ -33,7 +35,7 @@ oml.ui.infoView = function(identifyData) {
             .addClass('OxSelectable')
             .css({
                 position: 'absolute',
-                left: '288px',
+                left: css.info.left,
                 right: !identifyData ? '176px' : 16 + Ox.UI.SCROLLBAR_SIZE + 'px',
                 top: '16px'
             })
@@ -53,6 +55,28 @@ oml.ui.infoView = function(identifyData) {
                 width: '128px'
             })
             .appendTo(that);
+    }
+
+    function getCSS(size, ratio) {
+        var width = Math.round(ratio >= 1 ? size : size * ratio),
+            height = Math.round(ratio <= 1 ? size : size / ratio),
+            left = size == 256 ? Math.floor((size - width) / 2) : 0;
+        return {
+            cover: {
+                width: size + 'px'
+            },
+            info: {
+                left: (size == 256 ? size + 32 : width + 48) + 'px'
+            },
+            image: {
+                left: left + 'px',
+                width: width + 'px',
+                height: height + 'px'
+            },
+            reflection: {
+                top: height + 'px'
+            }
+        };
     }
 
     function getImageSize(size, ratio) {
@@ -82,19 +106,6 @@ oml.ui.infoView = function(identifyData) {
 
     function identify(data) {
         oml.ui.identifyDialog(data).open();
-        return;
-        $identifyPanel.select('id');
-        $identifyDialog.open();
-        identify(data);
-        function identify(data) {
-            oml.api.identify(data, function(result) {
-                $identifyList.options({
-                    items: result.data.items.map(function(item, index) {
-                        return Ox.extend(item, {index: index});
-                    })
-                });
-            });
-        }
     }
 
     function renderMediaButton(data) {
@@ -213,23 +224,29 @@ oml.ui.infoView = function(identifyData) {
         return $element;
     }
 
-    function updateCover(size, ratio) {
-        var width = Math.round(ratio >= 1 ? size : size * ratio),
-            height = Math.round(ratio <= 1 ? size : size / ratio),
-            left = Math.floor((size - width) / 2);
-        $image.css({
-            left: left + 'px',
-            width: width + 'px',
-            height: height + 'px'
-        }).show();
-        $reflectionImage.css({
-            left: left + 'px',
-            width: width + 'px',
-            height: height + 'px'
-        });
-        $reflection.css({
-            top: height + 'px'
-        }).show();
+    function toggleCoverSize(ratio) {
+        var coverSize = ui.coverSize == 256 ? 512 : 256,
+            css = getCSS(coverSize, ratio);
+        //$cover.animate(css.cover, 250);
+        $info.animate(css.info, 250);
+        $image.animate(css.image, 250);
+        $reflectionImage.animate(css.image, 250);
+        $reflection.animate(css.reflection, 250);
+        /*
+        $reflectionGradient.animate({
+            width: iconSize + 'px',
+            height: iconSize / 2 + 'px'
+        }, 250);
+        */
+
+        oml.UI.set({coverSize: coverSize});
+    }
+
+    function updateCover(ratio) {
+        var css = getCSS(ui.coverSize, ratio);
+        $image.css(css.image).show();
+        $reflectionImage.css(css.image);
+        $reflection.css(css.reflection).show();
     }
 
     that.updateElement = function(idOrData, $elements) {
@@ -257,10 +274,10 @@ oml.ui.infoView = function(identifyData) {
             var $mediaButton,
                 isEditable = !data.mainid && data.mediastate == 'available',
                 src = !identifyData
-                    ? '/' + data.id + '/cover256.jpg?' + data.modified
+                    ? '/' + data.id + '/cover512.jpg?' + data.modified
                     : data.cover,
                 ratio = data.coverRatio || oml.config.coverRatio,
-                size = 256,
+                size = ui.coverSize,
                 reflectionSize = Math.round(size / 2);
 
             $elements.forEach(function($element) {
@@ -269,11 +286,14 @@ oml.ui.infoView = function(identifyData) {
 
                 if ($element == $cover) {
 
-                    $image = $('<img>')
+                    $image = Ox.Element({
+                            element: '<img>',
+                            tooltip: '' // TODO
+                        })
                         .on({
                             load: function() {
-                                var ratio = $image[0].width / $image[0].height;
-                                updateCover(size, ratio);
+                                ratio = $image[0].width / $image[0].height;
+                                updateCover(ratio);
                             }
                         })
                         .attr({src: src})
@@ -281,6 +301,11 @@ oml.ui.infoView = function(identifyData) {
                             position: 'absolute'
                         })
                         .hide()
+                        .bindEvent({
+                            singleclick: function() {
+                                toggleCoverSize(ratio);
+                            }
+                        })
                         .appendTo($cover);
 
                     $reflection = $('<div>')

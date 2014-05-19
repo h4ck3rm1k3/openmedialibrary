@@ -151,7 +151,8 @@ class Changelog(db.Model):
         if not i:
             i = Item.get_or_create(itemid, info)
             i.modified = datetime.fromtimestamp(float(timestamp))
-        i.users.append(user)
+        if user not in i.users:
+            i.users.append(user)
         i.update()
         return True
 

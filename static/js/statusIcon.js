@@ -44,21 +44,20 @@ oml.ui.statusIcon = function(user, index) {
     }
 
     function getStatus(data) {
-        return !oml.user.online && index ? 'unknown'
+        return !oml.user.online ? 'unknown'
         : data.online ? 'connected'
         : 'disconnected';
     }
 
     function render() {
         var color = {
-            connected: [[64, 255, 64], [0, 192, 0]],
-            disconnected: [[255, 64, 64], [192, 0, 0]],
-            transferring: [[64, 255, 255], [0, 192, 192]],
-            unknown: [[255, 255, 64], [192, 192, 0]]
-        }[status].map(function(rgb) {
-            return 'rgb(' + rgb.join(', ') + ')';
-        }).join(', ');
-
+                connected: [[64, 255, 64], [0, 192, 0]],
+                disconnected: [[255, 64, 64], [192, 0, 0]],
+                transferring: [[64, 255, 255], [0, 192, 192]],
+                unknown: [[255, 255, 64], [192, 192, 0]]
+            }[status].map(function(rgb) {
+                return 'rgb(' + rgb.join(', ') + ')';
+            }).join(', ');
         that.options({
             tooltip: Ox._({
                 connected: 'Connected',
@@ -68,7 +67,6 @@ oml.ui.statusIcon = function(user, index) {
         }).css({
             background: '-webkit-linear-gradient(bottom, ' + color + ')',
         });
-
         that.find('div').css({
             background: '-webkit-linear-gradient(top, ' + color + ')',
         });
@@ -85,4 +83,5 @@ oml.ui.statusIcon = function(user, index) {
     }
 
     return that;
+
 };

@@ -90,6 +90,9 @@
         oml.URL.init().parse(function() {
             oml.clipboard = Ox.Clipboard();
             oml.history = Ox.History();
+            Ox.$window.on({
+                resize: oml.resizeWindow
+            });
             oml.$ui.appPanel = oml.ui.appPanel().appendTo(Ox.$body);
             oml.$ui.loadingIcon.updateElement(Ox.Request.requests());
             Ox.Request.bindEvent({
@@ -100,7 +103,7 @@
                     oml.$ui.loadingIcon.updateElement(data.requests);
                 }
             });
-             if (oml.user.preferences.extensions) {
+            if (oml.user.preferences.extensions) {
                 try {
                     eval(oml.user.preferences.extensions)
                 } catch(e) {}

@@ -42,7 +42,7 @@ class CertValidatingHTTPSConnection(httplib.HTTPConnection):
             if not self._ValidateCertificateFingerprint(cert):
                 raise InvalidCertificateException(self.fingerprint, cert,
                                                   'fingerprint mismatch')
-        logger.debug('CIPHER %s VERSION %s', self.sock.cipher(), self.sock.ssl_version)
+        #logger.debug('CIPHER %s VERSION %s', self.sock.cipher(), self.sock.ssl_version)
 
 class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
     def __init__(self, **kwargs):

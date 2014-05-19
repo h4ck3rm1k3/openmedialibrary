@@ -76,7 +76,6 @@ class User(db.Model):
 
     def update_peering(self, peered, username=None):
         was_peering = self.peered
-        self.queued = True
         if peered:
             self.pending = ''
             if username:
@@ -90,6 +89,7 @@ class User(db.Model):
             if not was_peering:
                 Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
             self.peered = True
+            self.queued = True
             self.save()
         else:
             self.pending = ''

@@ -70,7 +70,6 @@ def api_acceptPeering(app, user_id, username, message):
         user.info['username'] = username
         user.info['message'] = message
         user.update_peering(True, username)
-        trigger_event('peering.accept', user.json())
         state.nodes.queue('add', user.id)
         return True
     return False

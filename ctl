@@ -90,8 +90,8 @@ if [ "$1" == "update" ]; then
     cd $BASE/$NAME
     git pull
     find . -name '*.pyc' -exec rm "{}" \;
-    $0 setup
-    $0 update_static > /dev/null
+    python2 oml setup
+    python2 oml update_static > /dev/null
     exit
 fi
 

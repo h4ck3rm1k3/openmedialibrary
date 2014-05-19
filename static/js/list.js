@@ -12,15 +12,15 @@ oml.ui.list = function() {
                     delete oml.$ui.previewDialog;
                 },
                 copy: function(data) {
-                    oml.clipboard.copy(data.ids, 'item');
+                    oml.clipboard.copy(data.ids, 'book');
                 },
                 copyadd: function(data) {
-                    oml.clipboard.copy(data.ids, 'item');
+                    oml.clipboard.copy(data.ids, 'book');
                 },
                 cut: function(data) {
                     var listData = oml.getListData();
                     if (listData.editable && listData.type == 'static') {
-                        oml.clipboard.copy(data.ids, 'item');
+                        oml.clipboard.copy(data.ids, 'book');
                         oml.doHistory('cut', data.ids, ui._list, function() {
                             oml.UI.set({listSelection: []});
                             oml.$ui.folders.updateElement();
@@ -31,7 +31,7 @@ oml.ui.list = function() {
                 cutadd: function(data) {
                     var listData = oml.getListData();
                     if (listData.editable && listData.type == 'static') {
-                        oml.clipboard.add(data.ids, 'item');
+                        oml.clipboard.add(data.ids, 'book');
                         oml.doHistory('cut', data.ids, ui._list, function() {
                             oml.UI.set({listSelection: []});
                             oml.$ui.folders.updateElement();
@@ -94,6 +94,15 @@ oml.ui.list = function() {
                             });
                     } else {
                         oml.$ui.previewDialog.updateElement();
+                    }
+                },
+                paste: function(data) {
+                    var items = oml.clipboard.paste();
+                    if (items.length && oml.clipboard.type() == 'book' && oml.getListData().editable) {
+                        oml.doHistory('paste', items, ui._list, function() {
+                            oml.UI.set({listSelection: items});
+                            oml.reloadList();
+                        });
                     }
                 },
                 resize: function(data) {

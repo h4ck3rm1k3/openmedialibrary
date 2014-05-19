@@ -110,7 +110,8 @@
             "title": "Extension",
             "type": "string",
             "columnWidth": 80,
-            "sort": true
+            "sort": true,
+            "find": true
         },
         {
             "id": "size",
@@ -319,6 +320,7 @@
             "username": ""
         },
         "ui": {
+            "coverSize": 256,
             "fileInfo": "extension",
             "filters": [
                 {"id": "author", "sort": [{"key": "items", "operator": "-"}]},

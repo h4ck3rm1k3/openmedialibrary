@@ -86,18 +86,19 @@ oml.ui.findElement = function() {
                         }
                     },
                     submit: function(data) {
-                        var scope = oml.$ui.findInSelect.value(),
+                        // FIXME: oml.$ui.findInSelect.value() is undefined
+                        var scope = oml.$ui.findInSelect.options('value'),
                             key = oml.$ui.findSelect.value(),
                             conditions = [].concat(
                                 scope == 'list' ? [{
                                     key: 'list',
-                                    value: ui._list,
-                                    operator: '=='
+                                    operator: '==',
+                                    value: ui._list
                                 }] : [],
                                 scope == 'user' ? [{
                                     key: 'list',
-                                    value: ui._list.split(':')[0],
-                                    operator: '=='
+                                    operator: '==',
+                                    value: ui._list.split(':')[0] + ':'
                                 }] : [],
                                 data.value ? [{
                                     key: key,
@@ -158,22 +159,29 @@ oml.ui.findElement = function() {
     }
 
     function renderFindInSelect() {
-        var scope = !ui._list ? 'all'
-            : Ox.endsWith(ui._list, ':') ? 'user'
-            : 'list';
-        var $select = Ox.Select({
+        var items = [
+                {id: 'all', title: Ox._('Find In: All Libraries')},
+                {id: 'user', title: Ox._('Find In: This Library')},
+                {id: 'list', title: Ox._('Find In: This List')}
+            ],
+            scope = !ui._list ? 'all'
+                : Ox.endsWith(ui._list, ':') ? 'user'
+                : 'list',
+            $select = Ox.Select({
                 items: [
-                    {id: 'all', title: Ox._('Find In: All Libraries')},
+                    items[0],
                 ].concat(scope != 'all' ? [
-                    {id: 'user', title: Ox._('Find In: This Library')},
+                    items[1],
                 ] : []).concat(scope == 'list' ? [
-                    {id: 'list', title: Ox._('Find In: This List')}
+                    items[2]
                 ] : []),
+                max: 1,
+                min: 1,
                 overlap: 'right',
                 style: 'squared',
                 title: scope == 'all' ? 'data' : scope,
                 type: 'image',
-                tooltip: Ox._('Find: FIXME'),
+                tooltip: Ox.getObjectById(items, scope).title,
                 value: scope
             })
             .bindEvent({

@@ -740,9 +740,9 @@ oml.getListData = function(list) {
 
 oml.getListFoldersHeight = function() {
     var ui = oml.user.ui;
-    return Object.keys(ui.showFolder).reduce(function(value, id, index) {
+    return oml.$ui.folder.reduce(function(value, $folder, index) {
         var items = oml.$ui.folderList[index].options('items').length;
-        return value + 16 + ui.showFolder[id] * (1 + items) * 16;
+        return value + 16 + !$folder.options('collapsed') * (1 + items) * 16;
     }, 16);
 };
 
@@ -895,8 +895,7 @@ oml.hasDialogOrScreen = function() {
 };
 
 oml.reloadList = function() {
-    Ox.print('RELOAD LIST NOT IMPLEMENTED')
-    // ...
+    oml.$ui.list.updateElement();
 };
 
 oml.resizeFilters = function() {
@@ -905,6 +904,16 @@ oml.resizeFilters = function() {
 
 oml.resizeListFolders = function() {
     // FIXME: does this have to be here?
+    /*
+    Ox.print(
+        'RESIZE LIST FOLDERS',
+        'SIDEBAR', oml.user.ui.sidebarSize,
+        'WIDTH', oml.getListFoldersWidth(),
+        'HEIGHT', oml.getListFoldersHeight(),
+        'INFO HEIGHT', oml.getInfoHeight(),
+        'AVAILABLE HEIGHT', window.innerHeight - 20 - 24 - 1 - oml.user.ui.showInfo * oml.getInfoHeight()
+    )
+    */
     var width = oml.getListFoldersWidth(),
         columnWidth = width - 58;
     oml.$ui.librariesList
@@ -919,19 +928,12 @@ oml.resizeListFolders = function() {
             .css({width: width + 'px'})
             .resizeColumn('name', columnWidth);
     });
-    /*
-    oml.$ui.librariesList
-        .$body.find('.OxContent')
-        .css({width: width + 'px'});
-    Ox.forEach(oml.$ui.folder, function($folder, index) {    
-        oml.$ui.libraryList[index]
-            .$body.find('.OxContent')
-            .css({width: width + 'px'});
-        oml.$ui.folderList[index]
-            .$body.find('.OxContent')
-            .css({width: width + 'px'});
-    })
-    */
+};
+
+oml.resizeWindow = function() {
+    oml.$ui.leftPanel && oml.$ui.leftPanel.size(2, oml.getInfoHeight());
+    oml.resizeListFolders();
+    oml.$ui.rightPanel && oml.$ui.rightPanel.updateElement();
 };
 
 oml.updateFilterMenus = function() {

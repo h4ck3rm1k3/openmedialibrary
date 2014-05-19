@@ -17,7 +17,7 @@ oml.ui.leftPanel = function() {
                     collapsed: !oml.user.ui.showInfo,
                     collapsible: true,
                     element: oml.$ui.info = oml.ui.info(),
-                    size: ui.sidebarSize,
+                    size: oml.getInfoHeight(),
                     tooltip: Ox._('info') + ' <span class="OxBright">'
                         + Ox.SYMBOLS.SHIFT + 'I</span>'
                 }
