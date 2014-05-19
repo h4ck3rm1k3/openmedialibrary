@@ -6,8 +6,8 @@ import os
 from copy import deepcopy
 import json
 
-from oxflask.api import actions
-from oxflask.shortcuts import returns_json
+from oxtornado import actions
+
 
 import models
 
@@ -20,8 +20,8 @@ from changelog import Changelog
 import logging
 logger = logging.getLogger('oml.user.api')
 
-@returns_json
-def init(request):
+
+def init(data):
     '''
         takes {
         }
@@ -49,34 +49,32 @@ def init(request):
     return response
 actions.register(init)
 
-@returns_json
-def setPreferences(request):
+
+def setPreferences(data):
     '''
         takes {
             key: value,
             'sub.key': value
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     update_dict(settings.preferences, data)
     return settings.preferences
 actions.register(setPreferences)
 
-@returns_json
-def setUI(request):
+
+def setUI(data):
     '''
         takes {
             key: value,
             'sub.key': value
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     update_dict(settings.ui, data)
     return settings.ui
 actions.register(setUI)
 
-@returns_json
-def getUsers(request):
+
+def getUsers(data):
     '''
         returns {
             users: []
@@ -90,8 +88,8 @@ def getUsers(request):
     }
 actions.register(getUsers)
 
-@returns_json
-def getLists(request):
+
+def getLists(data):
     '''
         returns {
             lists: []
@@ -121,8 +119,8 @@ def validate_query(query):
         ):
             raise Exception('invalid query condition', condition)
 
-@returns_json
-def addList(request):
+
+def addList(data):
     '''
         takes {
             name
@@ -130,7 +128,6 @@ def addList(request):
             query
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('addList %s', data)
     user_id = settings.USER_ID
     if 'query' in data:
@@ -145,8 +142,8 @@ def addList(request):
     return {}
 actions.register(addList, cache=False)
 
-@returns_json
-def editList(request):
+
+def editList(data):
     '''
         takes {
             id
@@ -154,7 +151,6 @@ def editList(request):
             query
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('editList %s', data)
     l = models.List.get_or_create(data['id'])
     name = l.name
@@ -169,14 +165,13 @@ def editList(request):
     return l.json()
 actions.register(editList, cache=False)
 
-@returns_json
-def removeList(request):
+
+def removeList(data):
     '''
         takes {
             id
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     l = models.List.get(data['id'])
     if l:
         l.remove()
@@ -184,15 +179,14 @@ def removeList(request):
 actions.register(removeList, cache=False)
 
 
-@returns_json
-def addListItems(request):
+
+def addListItems(data):
     '''
         takes {
             list
             items
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if data['list'] == ':':
         from item.models import Item
         user = state.user()
@@ -208,15 +202,14 @@ def addListItems(request):
     return {}
 actions.register(addListItems, cache=False)
 
-@returns_json
-def removeListItems(request):
+
+def removeListItems(data):
     '''
         takes {
             list
             items
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     l = models.List.get(data['list'])
     if l:
         l.remove_items(data['items'])
@@ -224,14 +217,13 @@ def removeListItems(request):
     return {}
 actions.register(removeListItems, cache=False)
 
-@returns_json
-def sortLists(request):
+
+def sortLists(data):
     '''
         takes {
             ids
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     n = 0
     logger.debug('sortLists %s', data)
     for id in data['ids']:
@@ -243,15 +235,14 @@ def sortLists(request):
     return {}
 actions.register(sortLists, cache=False)
 
-@returns_json
-def editUser(request):
+
+def editUser(data):
     '''
         takes {
             id
             nickname
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if 'nickname' in data:
         p = models.User.get_or_create(data['id'])
         p.set_nickname(data['nickname'])
@@ -259,15 +250,14 @@ def editUser(request):
     return {}
 actions.register(editUser, cache=False)
 
-@returns_json
-def requestPeering(request):
+
+def dataPeering(data):
     '''
         takes {
             id
             message
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
@@ -277,19 +267,18 @@ def requestPeering(request):
     u.info['message'] = data.get('message', '')
     u.save()
     state.nodes.queue('add', u.id)
-    state.nodes.queue(u.id, 'peering', 'requestPeering')
+    state.nodes.queue(u.id, 'peering', 'dataPeering')
     return {}
-actions.register(requestPeering, cache=False)
+actions.register(dataPeering, cache=False)
 
-@returns_json
-def acceptPeering(request):
+
+def acceptPeering(data):
     '''
         takes {
             id
             message
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
@@ -302,15 +291,14 @@ def acceptPeering(request):
     return {}
 actions.register(acceptPeering, cache=False)
 
-@returns_json
-def rejectPeering(request):
+
+def rejectPeering(data):
     '''
         takes {
             id
             message
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
@@ -322,15 +310,14 @@ def rejectPeering(request):
     return {}
 actions.register(rejectPeering, cache=False)
 
-@returns_json
-def removePeering(request):
+
+def removePeering(data):
     '''
         takes {
             id
             message
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
@@ -342,13 +329,12 @@ def removePeering(request):
     return {}
 actions.register(removePeering, cache=False)
 
-@returns_json
-def cancelPeering(request):
+
+def cancelPeering(data):
     '''
         takes {
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     if len(data.get('id', '')) != 43:
         logger.debug('invalid user id')
         return {}
@@ -360,8 +346,8 @@ def cancelPeering(request):
     return {}
 actions.register(cancelPeering, cache=False)
 
-@returns_json
-def getActivity(request):
+
+def getActivity(data):
     '''
         return {
             activity

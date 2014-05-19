@@ -7,20 +7,19 @@ import json
 import os
 
 import ox
-from oxflask.api import actions
-from oxflask.shortcuts import returns_json
+from oxtornado import actions
+
 
 import item.api
 import user.api
 
-@returns_json
-def selectFolder(request):
+
+def selectFolder(data):
     '''
         returns {
             path
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     cmd = ['./ctl', 'ui', 'folder']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -30,14 +29,13 @@ def selectFolder(request):
     }
 actions.register(selectFolder, cache=False)
 
-@returns_json
-def selectFile(request):
+
+def selectFile(data):
     '''
         returns {
             path
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     cmd = ['./ctl', 'ui', 'file']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -48,8 +46,8 @@ def selectFile(request):
 actions.register(selectFile, cache=False)
 
 
-@returns_json
-def autocompleteFolder(request):
+
+def autocompleteFolder(data):
     '''
         takes {
             path
@@ -58,7 +56,6 @@ def autocompleteFolder(request):
             items
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     path = data['path']
     path = os.path.expanduser(path)
     if os.path.isdir(path):

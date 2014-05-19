@@ -94,6 +94,13 @@ if [ "$1" == "update" ]; then
     python2 oml update_static > /dev/null
     exit
 fi
+if [ "$1" == "python" ]; then
+    cd $BASE/$NAME
+    echo `pwd`
+    shift
+    python2 $@
+    exit $?
+fi
 
 cd $BASE/$NAME
 python2 oml $@

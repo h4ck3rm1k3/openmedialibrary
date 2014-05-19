@@ -5,8 +5,8 @@ from __future__ import division
 import os
 import json
 
-from oxflask.api import actions
-from oxflask.shortcuts import returns_json
+from oxtornado import actions
+
 from sqlalchemy.orm import load_only
 
 import query
@@ -22,8 +22,8 @@ import utils
 import logging
 logger = logging.getLogger('oml.item.api')
 
-@returns_json
-def find(request):
+
+def find(data):
     '''
         takes {
             query {
@@ -37,7 +37,6 @@ def find(request):
         }
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     q = query.parse(data)
     if 'group' in q:
         names = {}
@@ -88,8 +87,8 @@ def find(request):
     return response
 actions.register(find)
 
-@returns_json
-def get(request):
+
+def get(data):
     '''
         takes {
             id
@@ -97,15 +96,14 @@ def get(request):
         }
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     item = models.Item.get(data['id'])
     if item:
         response = item.json(data['keys'] if 'keys' in data else None)
     return response
 actions.register(get)
 
-@returns_json
-def edit(request):
+
+def edit(data):
     '''
         takes {
             id
@@ -114,7 +112,6 @@ def edit(request):
         setting identifier or base metadata is possible not both at the same time
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('edit %s', data)
     item = models.Item.get(data['id'])
     keys = filter(lambda k: k in models.Item.id_keys, data.keys())
@@ -139,14 +136,13 @@ def edit(request):
     return response
 actions.register(edit, cache=False)
 
-@returns_json
-def remove(request):
+
+def remove(data):
     '''
         takes {
             id
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('remove files %s', data)
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
@@ -154,8 +150,8 @@ def remove(request):
     return {}
 actions.register(remove, cache=False)
 
-@returns_json
-def findMetadata(request):
+
+def findMetadata(data):
     '''
         takes {
             title: string,
@@ -171,21 +167,19 @@ def findMetadata(request):
         key is one of the supported identifiers: isbn10, isbn13...
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('findMetadata %s', data)
     response['items'] = meta.find(**data)
     return response
 actions.register(findMetadata)
 
-@returns_json
-def getMetadata(request):
+
+def getMetadata(data):
     '''
         takes {
             key: value
         }
         key can be one of the supported identifiers: isbn10, isbn13, oclc, olid,...
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('getMetadata %s', data)
     key, value = data.iteritems().next()
     if key in ('isbn10', 'isbn13'):
@@ -196,15 +190,14 @@ def getMetadata(request):
     return response
 actions.register(getMetadata)
 
-@returns_json
-def download(request):
+
+def download(data):
     '''
         takes {
             id
         }
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     item = models.Item.get(data['id'])
     if item:
         item.queue_download()
@@ -213,15 +206,14 @@ def download(request):
     return response
 actions.register(download, cache=False)
 
-@returns_json
-def cancelDownloads(request):
+
+def cancelDownloads(data):
     '''
         takes {
             ids
         }
     '''
     response = {}
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     ids = data['ids']
     if ids:
         for item in models.Item.query.filter(models.Item.id.in_(ids)):
@@ -237,14 +229,14 @@ def cancelDownloads(request):
     return response
 actions.register(cancelDownloads, cache=False)
 
-@returns_json
-def scan(request):
+
+def scan(data):
     state.main.add_callback(state.websockets[0].put, json.dumps(['scan', {}]))
     return {}
 actions.register(scan, cache=False)
 
-@returns_json
-def _import(request):
+
+def _import(data):
     '''
         takes {
             path absolute path to import
@@ -252,14 +244,13 @@ def _import(request):
             mode copy|move
         }
     '''
-    data = json.loads(request.form['data']) if 'data' in request.form else {}
     logger.debug('api.import %s', data)
     state.main.add_callback(state.websockets[0].put, json.dumps(['import', data]))
     return {}
 actions.register(_import, 'import', cache=False)
 
-@returns_json
-def cancelImport(request):
+
+def cancelImport(data):
     state.activity['cancel'] = True
     return {}
 actions.register(cancelImport, cache=False)

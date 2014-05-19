@@ -14,6 +14,7 @@ import websocket
 
 import state
 import node.server
+import oxtornado
 
 def run():
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
@@ -30,6 +31,7 @@ def run():
     handlers = [
         (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
         (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
+        (r'/api/', oxtornado.ApiHandler, dict(app=app)),
         (r'/ws', websocket.Handler),
         (r".*", FallbackHandler, dict(fallback=tr)),
     ]
