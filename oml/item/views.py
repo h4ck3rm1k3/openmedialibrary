@@ -39,7 +39,7 @@ def reader(id, filename=''):
         html = 'html/txt.html'
     else:
         abort(404)
-    item.sort_accessed = item.accessed = datetime.now()
+    item.sort_accessed = item.accessed = datetime.utcnow()
     item.sort_timesaccessed = item.timesaccessed = (item.timesaccessed or 0) + 1
     item.save()
     return app.send_static_file(html)

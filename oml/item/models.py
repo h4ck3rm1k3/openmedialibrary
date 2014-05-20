@@ -49,8 +49,8 @@ class Work(db.Model):
 
     def __init__(self, id):
         self.id = id
-        self.created = datetime.now()
-        self.modified = datetime.now()
+        self.created = datetime.utcnow()
+        self.modified = datetime.utcnow()
 
 class Edition(db.Model):
 
@@ -69,8 +69,8 @@ class Edition(db.Model):
 
     def __init__(self, id):
         self.id = id
-        self.created = datetime.now()
-        self.modified = datetime.now()
+        self.created = datetime.utcnow()
+        self.modified = datetime.utcnow()
 
 user_items = db.Table('useritem',
     db.Column('user_id', db.String(43), db.ForeignKey('user.id')),
@@ -114,8 +114,8 @@ class Item(db.Model):
         if isinstance(id, list):
             id = base64.b32encode(hashlib.sha1(''.join(id)).digest())
         self.id = id
-        self.created = datetime.now()
-        self.modified = datetime.now()
+        self.created = datetime.utcnow()
+        self.modified = datetime.utcnow()
         self.info = {}
         self.meta = {}
 
@@ -262,7 +262,7 @@ class Item(db.Model):
         self.update_sort()
         self.update_find()
         self.update_lists()
-        #self.modified = datetime.now()
+        #self.modified = datetime.utcnow()
         self.save()
 
     def save(self):
@@ -273,7 +273,7 @@ class Item(db.Model):
         if data != self.meta:
             self.meta = data
             self.update()
-            self.modified = datetime.now()
+            self.modified = datetime.utcnow()
             self.save()
             user = state.user()
             if user in self.users:
@@ -302,7 +302,7 @@ class Item(db.Model):
         self.scrape()
         self.update()
         self.update_cover()
-        self.modified = datetime.now()
+        self.modified = datetime.utcnow()
         self.save()
         user = state.user()
         if user in self.users:
@@ -347,7 +347,7 @@ class Item(db.Model):
         u = state.user()
         if not u in self.users:
             self.transferprogress = 0
-            self.transferadded = datetime.now()
+            self.transferadded = datetime.utcnow()
             self.users.append(u)
 
     def save_file(self, content):
@@ -368,7 +368,7 @@ class Item(db.Model):
                 if u not in self.users:
                     self.users.append(u)
                 self.transferprogress = 1
-                self.added = datetime.now()
+                self.added = datetime.utcnow()
                 Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
                 f.move()
@@ -480,8 +480,8 @@ class File(db.Model):
 
     def __init__(self, sha1):
         self.sha1 = sha1
-        self.created = datetime.now()
-        self.modified = datetime.now()
+        self.created = datetime.utcnow()
+        self.modified = datetime.utcnow()
 
     def fullpath(self):
         prefs = settings.preferences

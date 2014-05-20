@@ -35,6 +35,7 @@ class Changelog(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
 
     created = db.Column(db.DateTime())
+    timestamp = db.Column(db.BigInteger())
 
     user_id = db.Column(db.String(43))
     revision = db.Column(db.BigInteger())
@@ -44,21 +45,17 @@ class Changelog(db.Model):
     @classmethod
     def record(cls, user, action, *args):
         c = cls()
-        c.created = datetime.now()
+        c.created = datetime.utcnow()
+        c.timestamp = int(c.created.strftime('%s'))
         c.user_id = user.id
         c.revision = cls.query.filter_by(user_id=user.id).count()
-        c.data = json.dumps([action, args])
-        timestamp = c.timestamp
-        _data = str(c.revision) + str(timestamp) + c.data
+        c.data = json.dumps([action] + list(args))
+        _data = str(c.revision) + str(c.timestamp) + c.data
         c.sig = settings.sk.sign(_data, encoding='base64')
         db.session.add(c)
         db.session.commit()
         if state.online:
             state.nodes.queue('peered', 'pushChanges', [c.json()])
-
-    @property
-    def timestamp(self):
-        return self.created.strftime('%s')
 
     @classmethod
     def apply_changes(cls, user, changes):
@@ -82,14 +79,15 @@ class Changelog(db.Model):
                 sig = settings.sk.sign(_data, encoding='base64')
             if valid(user.id, _data, sig):
                 c = cls()
-                c.created = datetime.fromtimestamp(float(timestamp))
+                c.created = datetime.utcnow()
+                c.timestamp = timestamp
                 c.user_id = user.id
                 c.revision = revision
                 c.data = data
                 c.sig = sig
-                action, args = json.loads(data)
-                logger.debug('apply change %s %s', action, args)
-                if getattr(c, 'action_' + action)(user, timestamp, *args):
+                args = json.loads(data)
+                logger.debug('apply change %s', args)
+                if getattr(c, 'action_' + args[0])(user, timestamp, *args[1:]):
                     logger.debug('change applied')
                     db.session.add(c)
                     db.session.commit()
@@ -119,7 +117,8 @@ class Changelog(db.Model):
         db.session.commit()
 
     def json(self):
-        return [self.revision, self.timestamp, self.sig, self.data]
+        timestamp = self.timestamp or self.created.strftime('%s')
+        return [self.revision, timestamp, self.sig, self.data]
 
     @classmethod
     def restore(cls, user_id, path=None):
@@ -150,7 +149,7 @@ class Changelog(db.Model):
             return True
         if not i:
             i = Item.get_or_create(itemid, info)
-            i.modified = datetime.fromtimestamp(float(timestamp))
+            i.modified = datetime.utcfromtimestamp(float(timestamp))
         if user not in i.users:
             i.users.append(user)
         i.update()
@@ -172,7 +171,7 @@ class Changelog(db.Model):
                 i.update_mainid(key, meta[key])
         else:
             i.update_meta(meta)
-        i.modified = datetime.fromtimestamp(float(timestamp))
+        i.modified = datetime.utffromtimestamp(float(timestamp))
         i.save()
         return True
 

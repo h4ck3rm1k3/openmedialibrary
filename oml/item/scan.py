@@ -58,7 +58,7 @@ def add_file(id, f, prefix):
         Changelog.record(user, 'edititem', item.id, {
             item.meta['mainid']: item.meta[item.meta['mainid']]
         })
-    item.added = datetime.now()
+    item.added = datetime.utcnow()
     item.scrape()
     item.update_cover()
     item.save()

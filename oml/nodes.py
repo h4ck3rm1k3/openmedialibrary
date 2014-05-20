@@ -265,7 +265,7 @@ class Node(Thread):
         headers = {
             'User-Agent': settings.USER_AGENT,
         }
-        t1 = datetime.now()
+        t1 = datetime.utcnow()
         logger.debug('download %s', url)
         '''
         r = requests.get(url, headers=headers)
@@ -290,7 +290,7 @@ class Node(Thread):
                 '''
                 content = r.read()
 
-            t2 = datetime.now()
+            t2 = datetime.utcnow()
             duration = (t2-t1).total_seconds()
             if duration:
                 self.download_speed = len(content) / duration

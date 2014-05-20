@@ -83,7 +83,7 @@ class ReaderHandler(OMLHandler):
                 self.set_status(404)
                 self.finish()
                 return
-            item.sort_accessed = item.accessed = datetime.now()
+            item.sort_accessed = item.accessed = datetime.utcnow()
             item.sort_timesaccessed = item.timesaccessed = (item.timesaccessed or 0) + 1
             item.save()
             return serve_static(self, os.path.join(settings.static_path, html), 'text/html')
