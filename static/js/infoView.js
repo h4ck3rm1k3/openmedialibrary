@@ -102,7 +102,7 @@ oml.ui.infoView = function(identifyData) {
     function formatValue(value, key, join) {
         value = Ox.encodeHTMLEntities(value);
         return value ? (Ox.isArray(value) ? value : [value]).map(function(value) {
-            return key ?
+            return key && !identifyData ?
                 '<a href="/' + key + '==' + value + '">' + value + '</a>'
                 : value;
         }).join(join || ', ') : '';
@@ -269,6 +269,8 @@ oml.ui.infoView = function(identifyData) {
                 data = result.data;
             }
 
+            Ox.print('BOOK DATA', data)
+
             var $mediaButton,
                 isEditable = !data.mainid && data.mediastate == 'available',
                 src = !identifyData
@@ -406,7 +408,7 @@ oml.ui.infoView = function(identifyData) {
                                 textAlign: 'justify'
                             })
                             .html(
-                                Ox.formatValue(data.classification, 'classification')
+                                formatValue(data.classification, 'classification')
                             )
                             .appendTo($info);
                     }
@@ -437,7 +439,7 @@ oml.ui.infoView = function(identifyData) {
                         })
                         .text(
                             [
-                                data.extension.toUpperCase(),
+                                (data.extension || '???').toUpperCase(), // FIXME
                                 Ox.formatValue(data.size, 'B')
                             ].join(', ')
                         )
