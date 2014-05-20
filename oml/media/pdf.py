@@ -37,12 +37,16 @@ def ql_cover(pdf):
         ]
         p = subprocess.Popen(cmd)
         p.wait()
-        image = glob('%s/*' % tmp)[0]
-        with open(image, 'rb') as fd:
-            data = fd.read()
+        image = glob('%s/*' % tmp)
+        if image:
+            image = image[0]
+            with open(image, 'rb') as fd:
+                data = fd.read()
+        else:
+            logger.debug('qlmanage did not create cover for %s', pdf)
+            data = None
         shutil.rmtree(tmp)
         return data
-
 
 def page(pdf, page):
     image = tempfile.mkstemp('.jpg')[1]
@@ -133,7 +137,10 @@ def extract_text(pdf):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if sys.platform == 'darwin':
-        stdout = stderr.split('kMDItemTextContent = "')[-1].split('\n')[0][:-2]
+        if 'kMDItemTextContent' in stderr:
+            stdout = stderr.split('kMDItemTextContent = "')[-1].split('\n')[0][:-2]
+        else:
+            stdout = ''
     return stdout.strip()
 
 def extract_isbn(text):

@@ -83,6 +83,8 @@ if [ "$1" == "ui" ]; then
     exit $?
 fi
 if [ "$1" == "update" ]; then
+    cd $BASE/$NAME
+    OLD=`$0 version`
     cd $BASE/platform
     echo Update platform..
     git pull
@@ -90,8 +92,10 @@ if [ "$1" == "update" ]; then
     cd $BASE/$NAME
     git pull
     find . -name '*.pyc' -exec rm "{}" \;
-    python2 oml setup
-    python2 oml update_static > /dev/null
+    $0 setup
+    $0 update_static > /dev/null
+    NEW=`$0 version`
+    $0 postupdate -o $OLD -n $NEW
     exit
 fi
 if [ "$1" == "python" ]; then

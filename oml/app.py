@@ -45,6 +45,8 @@ manager.add_command('update', commands.Update)
 #manager.add_command('start', commands.Start)
 #manager.add_command('stop', commands.Stop)
 manager.add_command('setup', commands.Setup)
+manager.add_command('version', commands.Version)
+manager.add_command('postupdate', commands.PostUpdate)
 manager.add_command('shell', Shell)
 manager.add_command('update_static', commands.UpdateStatic)
 

@@ -232,6 +232,7 @@ def sortLists(data):
         n += 1
         models.db.session.add(l)
     models.db.session.commit()
+    logger.debug('FIXME: broadcast orderlist event here')
     return {}
 actions.register(sortLists, cache=False)
 

@@ -3,17 +3,48 @@
 from __future__ import division
 
 import subprocess
+from os.path import join, exists, dirname
 import os
 
-from flask.ext.script import Command
+from flask.ext.script import Command, Option
+
+import settings
+
+root_dir = dirname(settings.base_dir)
+
+def run(*cmd):
+    p = subprocess.Popen(cmd)
+    p.wait()
+    return p.returncode
+
+def get(*cmd):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, error = p.communicate()
+    return stdout
 
 def r(*cmd):
     print ' '.join(cmd)
     return subprocess.call(cmd)
 
+def version(module):
+    os.chdir(join(root_dir, module))
+    version = get('git', 'log', '-1', '--format=%cd', '--date=iso').split(' ')[0].replace('-', '')
+    version += '-' + get('git', 'rev-list', 'HEAD', '--count').strip()
+    version += '-' + get('git', 'describe', '--always').strip()
+    os.chdir(root_dir)
+    return version
+
+
+class Version(Command):
+        """
+            Print current version
+        """
+        def run(self):
+            print version('openmedialibrary')
+
 class Debug(Command):
         """
-            Start Open Media Library in debug mode
+            Start in debug mode
         """
         def run(self):
             pass
@@ -39,25 +70,35 @@ class Update(Command):
         def run(self):
             pass
 
+class PostUpdate(Command):
+        """
+            Called by update to fix stuff
+        """
+        def get_options(self):
+            return [
+                Option('-o', '--old', dest='old'),
+                Option('-n', '--new', dest='new'),
+            ]
+
+        def run(selfi, old, new):
+            pass
+
 class Setup(Command):
         """
-            setup new node
+            Setup new node
         """
         def run(self):
             r('./ctl', 'db', 'upgrade')
             import setup
-            import settings
             setup.create_default_lists()
             settings.db.session.connection().execute("PRAGMA journal_mode=WAL")
             settings.db.session.commit()
 
 class UpdateStatic(Command):
         """
-            update static files
+            Update static files
         """
         def run(self):
-            import settings
-
             oxjs = os.path.join(settings.static_path, 'oxjs')
             if not os.path.exists(oxjs):
                 r('git', 'clone', 'https://git.0x2620.org/oxjs.git', oxjs)
@@ -68,38 +109,16 @@ class UpdateStatic(Command):
 
 class Release(Command):
         """
-            release new version
+            Release new version
         """
         def run(self):
             print 'checking...'
-            import settings
             import os
-            import subprocess
             import json
             import hashlib
             import ed25519
-            from os.path import join, exists, dirname
 
-            root_dir = dirname(settings.base_dir)
             os.chdir(root_dir)
-
-            def run(*cmd):
-                p = subprocess.Popen(cmd)
-                p.wait()
-                return p.returncode
-
-            def get(*cmd):
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, error = p.communicate()
-                return stdout
-
-            def version(module):
-                os.chdir(join(root_dir, module))
-                version = get('git', 'log', '-1', '--format=%cd', '--date=iso').split(' ')[0].replace('-', '')
-                version += '-' + get('git', 'rev-list', 'HEAD', '--count').strip()
-                version += '-' + get('git', 'describe', '--always').strip()
-                os.chdir(root_dir)
-                return version
 
             with open(os.path.expanduser('~/Private/openmedialibrary_release.key')) as fd:
                 SIG_KEY=ed25519.SigningKey(fd.read())
