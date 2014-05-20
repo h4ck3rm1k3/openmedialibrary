@@ -14,6 +14,7 @@ import query
 import models
 import settings
 import state
+from websocket import trigger_event
 
 import meta
 
@@ -251,5 +252,10 @@ actions.register(_import, 'import', cache=False)
 
 def cancelImport(data):
     state.activity['cancel'] = True
+    trigger_event('activity', {
+        'activity': 'import',
+        'progress': [0, 0],
+        'status': {'code': 200, 'text': 'canceled'}
+    })
     return {}
 actions.register(cancelImport, cache=False)
