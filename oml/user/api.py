@@ -252,7 +252,7 @@ def editUser(data):
 actions.register(editUser, cache=False)
 
 
-def dataPeering(data):
+def requestPeering(data):
     '''
         takes {
             id
@@ -268,9 +268,9 @@ def dataPeering(data):
     u.info['message'] = data.get('message', '')
     u.save()
     state.nodes.queue('add', u.id)
-    state.nodes.queue(u.id, 'peering', 'dataPeering')
+    state.nodes.queue(u.id, 'peering', 'requestPeering')
     return {}
-actions.register(dataPeering, cache=False)
+actions.register(requestPeering, cache=False)
 
 
 def acceptPeering(data):
