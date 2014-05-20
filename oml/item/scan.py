@@ -31,13 +31,14 @@ def remove_missing():
     with app.app_context():
         prefs = settings.preferences
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-        for f in File.query:
-            path = f.item.get_path()
-            if not os.path.exists(path):
-                dirty = True
-                f.item.remove_file()
-        if dirty:
-            db.session.commit()
+        if os.path.exists(prefix):
+            for f in File.query:
+                path = f.item.get_path()
+                if not os.path.exists(path):
+                    dirty = True
+                    f.item.remove_file()
+            if dirty:
+                db.session.commit()
 
 def add_file(id, f, prefix):
     user = state.user()

@@ -36,7 +36,7 @@ export oxCACHE
 hash -r 2>/dev/null
 
 if [ "$1" == "start" ]; then
-    cd $BASE/$NAME
+    cd "$BASE/$NAME"
     if [ -e $PID ]; then
         echo openmedialibrary already running
         exit 1
@@ -45,7 +45,7 @@ if [ "$1" == "start" ]; then
     exit $?
 fi
 if [ "$1" == "debug" ]; then
-    cd $BASE/$NAME
+    cd "$BASE/$NAME"
     if [ -e $PID ]; then
         echo openmedialibrary already running
         exit 1
@@ -61,8 +61,8 @@ if [ "$1" == "stop" ]; then
 fi
 if [ "$1" == "restart" ]; then
     if [ -e $PID ]; then
-        $0 stop
-        $0 start
+        "$0" stop
+        "$0" start
         exit $?
     else
         exit 1
@@ -71,9 +71,9 @@ fi
 if [ "$1" == "open" ]; then
     #time to switch to python and use webbrowser.open_tab?
     if [ $SYSTEM == "Darwin" ]; then
-        open http://$HOST/
+        open "http://$HOST/"
     else
-        xdg-open http://$HOST/
+        xdg-open "http://$HOST/"
     fi
     exit 0
 fi
@@ -83,29 +83,28 @@ if [ "$1" == "ui" ]; then
     exit $?
 fi
 if [ "$1" == "update" ]; then
-    cd $BASE/$NAME
-    OLD=`$0 version`
-    cd $BASE/platform
+    cd "$BASE/$NAME"
+    OLD=`"$0" version`
+    cd "$BASE/platform"
     echo Update platform..
     git pull
     echo Update $NAME..
-    cd $BASE/$NAME
+    cd "$BASE/$NAME"
     git pull
     find . -name '*.pyc' -exec rm "{}" \;
     $0 setup
     $0 update_static > /dev/null
-    NEW=`$0 version`
+    NEW=`"$0" version`
     $0 postupdate -o $OLD -n $NEW
     exit
 fi
 if [ "$1" == "python" ]; then
-    cd $BASE/$NAME
-    echo `pwd`
+    cd "$BASE/$NAME"
     shift
     python2 $@
     exit $?
 fi
 
-cd $BASE/$NAME
+cd "$BASE/$NAME"
 python2 oml $@
 exit $?
