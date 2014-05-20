@@ -7,7 +7,7 @@ import logging
 import json
 from datetime import datetime
 
-from utils import valid
+from utils import valid, datetime2ts, ts2datetime
 
 import settings
 from settings import db
@@ -46,7 +46,7 @@ class Changelog(db.Model):
     def record(cls, user, action, *args):
         c = cls()
         c.created = datetime.utcnow()
-        c.timestamp = int(c.created.strftime('%s'))
+        c.timestamp = datetime2ts(c.created)
         c.user_id = user.id
         c.revision = cls.query.filter_by(user_id=user.id).count()
         c.data = json.dumps([action] + list(args))
@@ -117,7 +117,7 @@ class Changelog(db.Model):
         db.session.commit()
 
     def json(self):
-        timestamp = self.timestamp or self.created.strftime('%s')
+        timestamp = self.timestamp or datetime2ts(self.created)
         return [self.revision, timestamp, self.sig, self.data]
 
     @classmethod
@@ -149,7 +149,7 @@ class Changelog(db.Model):
             return True
         if not i:
             i = Item.get_or_create(itemid, info)
-            i.modified = datetime.utcfromtimestamp(float(timestamp))
+            i.modified = ts2datetime(timestamp)
         if user not in i.users:
             i.users.append(user)
         i.update()
@@ -159,6 +159,7 @@ class Changelog(db.Model):
         from item.models import Item
         i = Item.get(itemid)
         if i.timestamp > timestamp:
+            logger.debug('ignore edititem change %s %s %s', timestamp, itemid, meta)
             return True
         keys = filter(lambda k: k in Item.id_keys, meta.keys())
         if keys:
@@ -171,7 +172,7 @@ class Changelog(db.Model):
                 i.update_mainid(key, meta[key])
         else:
             i.update_meta(meta)
-        i.modified = datetime.utffromtimestamp(float(timestamp))
+        i.modified = ts2datetime(timestamp)
         i.save()
         return True
 
