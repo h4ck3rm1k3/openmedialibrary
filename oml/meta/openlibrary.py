@@ -72,7 +72,7 @@ def get_ids(key, value):
     return ids
 
 def lookup(id, return_all=False):
-    #print 'openlibrary.lookup', id
+    logger.debug('lookup %s', id)
     info = api.get('/books/' + id).get('result', {})
     #url = 'https://openlibrary.org/books/%s.json' % id
     #info = json.loads(read_url(url))
@@ -83,6 +83,12 @@ def lookup(id, return_all=False):
         data['olid'] = [id]
     logger.debug('lookup %s => %s', id, data.keys())
     return data
+
+def get_type(obj):
+    type_ = obj.get('type')
+    if isinstance(type_, dict):
+        type_ = type_['key']
+    return type_
 
 def format(info, return_all=False):
     data = {}
@@ -96,7 +102,7 @@ def format(info, return_all=False):
             if key == 'authors':
                 if work:
                     value = resolve_names([r['author']
-                        for r in work['authors'] if r['type']['key'] == '/type/author_role'])
+                        for r in work.get('authors', []) if get_type(r) == '/type/author_role'])
                 else:
                     value = resolve_names(value)
             elif key == 'publish_country':

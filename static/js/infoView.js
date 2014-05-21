@@ -551,13 +551,26 @@ oml.ui.infoView = function(identifyData) {
                             .appendTo($div);
                     });
 
+                    // -------- Primary ID
+
+                    if (data.primaryid) {
+                        $('<div>')
+                            .css({
+                                marginTop: '4px',
+                            })
+                            .html(
+                                '<b>' + Ox.getObjectById(oml.config.itemKeys, data.primaryid[0]).title
+                                + ':</b> ' + data.primaryid[1]
+                            )
+                            .appendTo($info);
+                    }
+
                     // -------- Classification
 
                     if (data.classification) {
                         $('<div>')
                             .css({
                                 marginTop: '8px',
-                                textAlign: 'justify'
                             })
                             .html(
                                 formatValue(data.classification, 'classification')
