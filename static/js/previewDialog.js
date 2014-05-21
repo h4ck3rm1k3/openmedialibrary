@@ -7,7 +7,7 @@ oml.ui.previewDialog = function() {
         $image,
         $list = oml.$ui.list,
         item = Ox.last($list.options('selected')),
-        coverRatio = $list.value(item, 'coverRatio') || oml.config.coverRatio,
+        coverRatio = $list.value(item, 'coverRatio') || oml.config.iconRatio,
         size = getSize(coverRatio),
 
         that = Ox.Dialog({

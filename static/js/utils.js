@@ -133,6 +133,27 @@ oml.clickLink = function(e) {
     }
 };
 
+oml.createLinks = function($element) {
+    function isExternalLink(target) {
+        return target.hostname != document.location.hostname
+            || Ox.startsWith(target.pathname, '/static');
+    } 
+    $element.on({
+        click: function(e) {
+            var $target = $(e.target);
+            if ($target.is('a')) {
+                e.preventDefault();
+                if (isExternalLink(e.target)) {
+                    oml.openLink(e.target.href);
+                } else {
+                    oml.clickLink(e);
+                }
+            }
+            return false;
+        }
+    });
+};
+
 (function() {
 
     oml.doHistory = function(action, items, targets, callback) {
@@ -713,7 +734,15 @@ oml.getEditTooltip = function(title) {
 
 }());
 
-oml.getFileInfoColor = function(type, data) {
+oml.getFilterSizes = function() {
+    var ui = oml.user.ui;
+    return Ox.splitInt(
+        window.innerWidth - ui.showSidebar * ui.sidebarSize - 1,
+        5
+    );
+};
+
+oml.getIconInfoColor = function(type, data) {
     return type == 'extension' ? (
         data.extension == 'epub' ? [[32, 160, 32], [0, 128, 0], [128, 255, 128]]
         : data.extension == 'pdf' ? (
@@ -726,14 +755,6 @@ oml.getFileInfoColor = function(type, data) {
     ) : data.mediastate == 'available' ? [[32, 160, 32], [0, 128, 0], [128, 255, 128]]
     : data.mediastate == 'transferring' ? [[160, 160, 32], [128, 128, 0], [255, 255, 128]]
     : [[224, 32, 32], [192, 0, 0], [255, 192, 192]];
-};
-
-oml.getFilterSizes = function() {
-    var ui = oml.user.ui;
-    return Ox.splitInt(
-        window.innerWidth - ui.showSidebar * ui.sidebarSize - 1,
-        5
-    );
 };
 
 oml.getInfoHeight = function() {
@@ -909,8 +930,7 @@ oml.openLink = function(url) {
     if (Ox.startsWith(url, 'mailto:')) {
         window.open(url);
     } else {
-        //window.open('/url=' + encodeURIComponent(url), '_blank');
-        window.open(url, '_blank');
+        window.open('/url=' + encodeURIComponent(url), '_blank');
     }
 };
 

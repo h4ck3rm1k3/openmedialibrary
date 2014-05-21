@@ -130,7 +130,7 @@ oml.ui.folders = function() {
                             Ox.Button({
                                 style: 'symbol',
                                 title: 'info',
-                                tooltip: Ox._(!index ? 'Preferences' : 'Profile'),
+                                tooltip: Ox._(!index ? 'Preferences...' : 'Profile...'),
                                 type: 'image'
                             })
                             .bindEvent({

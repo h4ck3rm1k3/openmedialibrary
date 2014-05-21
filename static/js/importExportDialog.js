@@ -260,8 +260,8 @@ oml.ui.importExportDialog = function(selected) {
                     Ox.Select({
                         id: 'mode',
                         items: [
-                            {id: 'add', title: Ox._('Add (keep files in destination path)')},
-                            {id: 'replace', title: Ox._('Replace (delete files from destination path)')}
+                            {id: 'add', title: Ox._('Add (keep all exisiting files in destination path)')},
+                            {id: 'replace', title: Ox._('Replace (delete all existing files from destination path)')}
                         ],
                         label: Ox._('Export Mode'),
                         labelWidth: 128,

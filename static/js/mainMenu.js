@@ -83,7 +83,7 @@ oml.ui.mainMenu = function() {
                         },
                         {},
                         {
-                            id: 'iconSubmenu',
+                            id: 'iconsSubmenu',
                             title: 'Icons',
                             items: [
                                 {
@@ -105,26 +105,27 @@ oml.ui.mainMenu = function() {
                                 },
                                 {},
                                 {
-                                    id: 'showfileinfo',
-                                    title: 'Show File Info',
-                                    checked: ui.showFileInfo
+                                    id: 'showiconinfo',
+                                    title: 'Show Icon Info',
+                                    checked: ui.showIconInfo
                                 },
                                 {},
                                 {
-                                    group: 'fileinfo',
+                                    group: 'iconinfo',
                                     min: 1,
                                     max: 1,
-                                    disabled: !ui.showFileInfo,
                                     items: [
                                         {
                                             id: 'extension',
                                             title: Ox._('Show Extension'),
-                                            checked: ui.fileInfo == 'extension'
+                                            checked: ui.iconInfo == 'extension',
+                                            disabled: !ui.showIconInfo
                                         },
                                         {
                                             id: 'size',
                                             title: Ox._('Show Size'),
-                                            checked: ui.fileInfo == 'size'
+                                            checked: ui.iconInfo == 'size',
+                                            disabled: !ui.showIconInfo
                                         }
                                     ]
                                 }
@@ -283,10 +284,12 @@ oml.ui.mainMenu = function() {
                         ? data.checked : data.checked[0].id;
                 if (id == 'icons') {
                     oml.UI.set({icons: value});
-                } else if (id == 'showfileinfo') {
-                    oml.UI.set({showFileInfo: value});
-                } else if (id == 'fileinfo') {
-                    oml.UI.set({fileInfo: value});
+                } else if (id == 'icons') {
+                    oml.UI.set({icons: value});
+                } else if (id == 'showiconinfo') {
+                    oml.UI.set({showIconInfo: value});
+                } else if (id == 'iconinfo') {
+                    oml.UI.set({iconInfo: value});
                 } else if (id == 'sort') {
                     oml.UI.set({
                         listSort: [{
@@ -512,6 +515,12 @@ oml.ui.mainMenu = function() {
                 that[action]('deletelist');
                 */
             },
+            oml_iconinfo: function(data) {
+                // ...
+            },
+            oml_icons: function(data) {
+                that.checkItem('viewMenu_iconsSubmenu_' + data.value);
+            },
             oml_item: function(data) {
                 if (!!data.value != !!data.previousValue) {
                     that[data.value ? 'disableItem' : 'enableItem']('showfilters');
@@ -532,6 +541,11 @@ oml.ui.mainMenu = function() {
             },
             oml_showfilters: function(data) {
                 that.setItemTitle('showfilters', Ox._((data.value ? 'Hide' : 'Show') + ' Filters'));
+            },
+            oml_showiconinfo: function(data) {
+                var action = data.value ? 'enableItem' : 'disableItem';
+                that[action]('viewMenu_iconsSubmenu_extension');
+                that[action]('viewMenu_iconsSubmenu_size');
             },
             oml_showinfo: function(data) {
                 that.setItemTitle('showinfo', Ox._((data.value ? 'Hide' : 'Show') + ' Info'));

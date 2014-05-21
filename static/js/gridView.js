@@ -5,13 +5,14 @@ oml.ui.gridView = function() {
     var ui = oml.user.ui,
 
         that = Ox.IconList({
-            defaultRatio: oml.config.coverRatio,
+            defaultRatio: oml.config.iconRatio,
             draggable: true,
             item: function(data, sort, size) {
-                var color = oml.getFileInfoColor(ui.fileInfo, data).map(function(rgb) {
+                var color = oml.getIconInfoColor(ui.iconInfo, data).map(function(rgb) {
                         return rgb.concat(0.8);
                     }),
-                    ratio = data.coverRatio || oml.config.coverRatio,
+                    ratio = (ui.icons == 'cover' ? data.coverRatio : data.previewRatio)
+                        || oml.config.iconRatio,
                     width = Math.round(ratio >= 1 ? size : size * ratio),
                     height = Math.round(ratio <= 1 ? size : size / ratio),
                     sortKey = sort[0].key,
@@ -21,7 +22,7 @@ oml.ui.gridView = function() {
                     );
                 size = size || 128;
                 return {
-                    extra: ui.showFileInfo ? $('<div>')
+                    extra: ui.showIconInfo ? $('<div>')
                         .css({
                             width: width + 'px',
                             height: Math.round(size / 12.8) + 'px',
@@ -38,7 +39,7 @@ oml.ui.gridView = function() {
                             WebkitTransform: 'rotate(45deg)'
                         })
                         .html(
-                            ui.fileInfo == 'extension'
+                            ui.iconInfo == 'extension'
                             ? data.extension.toUpperCase()
                             : Ox.formatValue(data.size, 'B')
                         ) : null,
@@ -46,7 +47,7 @@ oml.ui.gridView = function() {
                     id: data.id,
                     info: info,
                     title: data.title,
-                    url: '/' + data.id + '/cover128.jpg',
+                    url: '/' + data.id + '/' + ui.icons + '128.jpg',
                     width: width
                 };
             },
@@ -56,13 +57,24 @@ oml.ui.gridView = function() {
                 }), callback);
             },
             keys: [
-                'author', 'coverRatio', 'extension', 'id',
-                'mediastate', 'size', 'textsize', 'title'
+                'author', 'coverRatio', 'extension', 'id', 'mediastate',
+                'previewRatio', 'size', 'textsize', 'title'
             ],
             selected: ui.listSelection,
             size: 128,
             sort: ui.listSort,
             unique: 'id'
+        })
+        .bindEvent({
+            oml_iconinfo: function() {
+                that.reloadList(true);
+            },
+            oml_icons: function() {
+                that.reloadList(true);
+            },
+            oml_showiconinfo: function() {
+                that.reloadList(true);
+            }
         });
 
     return that;

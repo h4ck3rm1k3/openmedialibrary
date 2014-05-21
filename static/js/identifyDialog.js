@@ -4,8 +4,8 @@ oml.ui.identifyDialog = function(data) {
 
     var ui = oml.user.ui,
 
-        ids = [
-            'isbn10', 'isbn13', 'asin', 'lccn', 'oclc', 'olid'
+        lookupItems = [
+            'isbn', 'asin', 'lccn', 'oclc', 'olid'
         ].map(function(id) {
             return {
                 id: id,
@@ -13,48 +13,113 @@ oml.ui.identifyDialog = function(data) {
             };
         }),
 
-        keys = [
-            'title', 'author', 'publisher', 'date', 'edition', 'language'
-        ].map(function(id) {
-            var key = Ox.getObjectById(oml.config.itemKeys, id);
-            return {
-                format: key.format,
-                id: id,
-                title: key.title,
-                visible: true
-            };
-        }),
+        selected = data.primaryid ? 'lookup' : 'find',
 
-        originalData = Ox.clone(data, true),
+        $lookupForm = Ox.Element(),
 
-        selected = data.mainid ? 'id' : 'title',
+        $lookupSelect = Ox.Select({
+                items: lookupItems,
+                overlap: 'right',
+                max: 1,
+                min: 1,
+                value: data.primaryid ? data.primaryid[0] : 'isbn',
+                width: 128
+            })
+            .bindEvent({
+                change: function(data) {
+                    $lookupInput.focusInput(true);
+                }
+            }),
 
-        idValue, titleValue,
+        $lookupInput = Ox.Input({
+                value: data.primaryid ? data.primaryid[1] : '',
+                width: 480
+            })
+            .bindEvent({
+                change: function(data) {
+                    // ...
+                },
+                submit: lookupMetadata
+            }),
 
-        $idInputs, $idButtons = {},
+        $lookupButton = Ox.Button({
+                overlap: 'left',
+                title: Ox._('Look Up'),
+                width: 128
+            })
+            .bindEvent({
+                click: lookupMetadata
+            }),
 
-        $idForm = renderIdForm(data),
+        $lookupElement = Ox.FormElementGroup({
+                elements: [
+                    Ox.FormElementGroup({
+                        elements: [
+                            $lookupSelect,
+                            $lookupInput
+                        ],
+                        float: 'left'
+                    }),
+                    $lookupButton
+                ],
+                float: 'right'
+            })
+            .css({
+                margin: '16px'
+            })
+            .appendTo($lookupForm),
 
-        $idPreview = data.mainid
+        $lookupPreview = data.primaryid
             ? oml.ui.infoView(data)
             : Ox.Element(),
 
-        $idPanel = Ox.SplitPanel({
+        $lookupPanel = Ox.SplitPanel({
             elements: [
-                {element: Ox.Element().append($idForm), size: 96},
-                {element: $idPreview}
+                {element: $lookupForm, size: 48},
+                {element: $lookupPreview}
             ],
             orientation: 'vertical'
         }),
 
-        $titleInputs, $titleButtons = {},
+        $findForm = Ox.Element(),
 
-        $titleForm = renderTitleForm(),
+        $findInput = Ox.Input({
+                label: Ox._('Title, Author etc.'),
+                labelWidth: 128,
+                width: 608,
+                value: [data.title].concat(data.author || []).join(' ')
+            })
+            .bindEvent({
+                submit: findMetadata
+            }),
 
-        $titlePanel = Ox.SplitPanel({
+        $findButton = Ox.Button({
+                overlap: 'left',
+                title: Ox._('Find'),
+                width: 128
+            })
+            .bindEvent({
+                click: findMetadata
+            }),
+
+        $findElement = Ox.FormElementGroup({
+                elements: [
+                    $findInput,
+                    $findButton
+                ],
+                float: 'right'
+            })
+            .css({
+                margin: '16px'
+            })
+            .appendTo($findForm),
+
+        $findList,
+
+        $findPanel = Ox.SplitPanel({
             elements: [
-                {element: $titleForm, size: 96},
-                {element: renderResults()}
+                {element: $findForm, size: 48},
+                {element: renderResults([])}
             ],
             orientation: 'vertical'
         }),
@@ -63,8 +128,8 @@ oml.ui.identifyDialog = function(data) {
 
         $buttons = Ox.ButtonGroup({
                 buttons: [
-                    {id: 'id', title: Ox._('Look Up by ID')},
-                    {id: 'title', title: Ox._('Find by Title')}
+                    {id: 'lookup', title: Ox._('Look Up by ID')},
+                    {id: 'find', title: Ox._('Find by Title')}
                 ],
                 selectable: true,
                 value: selected
@@ -78,14 +143,17 @@ oml.ui.identifyDialog = function(data) {
                 change: function(data) {
                     selected = data.value;
                     $innerPanel.options({selected: selected});
+                    $updateButton.options({
+                        disabled: selected == 'find' && !$findList
+                    });
                 }
             })
             .appendTo($bar),
 
         $innerPanel = Ox.SlidePanel({
             elements: [
-                {id: 'id', element: $idPanel},
-                {id: 'title', element: $titlePanel}
+                {id: 'lookup', element: $lookupPanel},
+                {id: 'find', element: $findPanel}
             ],
             orientation: 'horizontal',
             selected: selected,
@@ -100,43 +168,89 @@ oml.ui.identifyDialog = function(data) {
             orientation: 'vertical'
         }),
 
-        that = Ox.Dialog({
-            buttons: [
-                Ox.Button({
-                    id: 'dontupdate',
-                    title: Ox._('No, Don\'t Update')
-                })
-                .bindEvent({
-                    click: function() {
-                        that.close();
+        $metadataSelect = Ox.Select({
+                items: [
+                    {id: 'original', title: Ox._('Show Original Metadata')},
+                    {id: 'edited', title: Ox._('Show Edited Metadata')}
+                ],
+                max: 1,
+                min: 1,
+                value: 'edited',
+                width: 192
+            })
+            .css({
+                margin: '4px'
+            })
+            .bindEvent({
+                change: function(data) {
+                    if (selected == 'lookup') {
+                        if (!$lookupButton.options('disabled')) {
+                            $lookupButton.triggerEvent('click');
+                        }
+                    } else {
+                        if ($findList) {
+                            $findList.triggerEvent('select', {
+                                ids: $findList.options('selected')
+                            });
+                        }
                     }
-                }),
-                Ox.Button({
-                    disabled: true,
-                    id: 'update',
-                    title: Ox._('Yes, Update')
-                })
-                .bindEvent({
-                    click: function() {
-                        Ox.print('$$$', idValue);
-                        var edit = Ox.extend(
-                            {id: data.id},
-                            $innerPanel.options('selected') == 'id'
-                                ? idValue || {mainid: ''}
-                                : titleValue
+                }
+            }),
+
+        $dontUpdateButton = Ox.Button({
+                id: 'dontupdate',
+                title: Ox._('No, Don\'t Update')
+            })
+            .bindEvent({
+                click: function() {
+                    that.close();
+                }
+            }),
+
+        $updateButton = Ox.Button({
+                disabled: true,
+                id: 'update',
+                title: Ox._('Yes, Update')
+            })
+            .bindEvent({
+                click: function() {
+                    // FIXME: Wrong if user messes with lookup elements before clicking update button
+                    var primaryId;
+                    if (selected == 'lookup') {
+                        primaryId = [
+                            $lookupSelect.value(),
+                            $lookupInput.value()
+                        ];
+                    } else {
+                        primaryId = $findList.value(
+                            $findList.options('selected')[0],
+                            'primaryid'
                         );
-                        that.options({content: Ox.LoadingScreen().start()});
-                        that.disableButtons();
-                        Ox.print('VALUE SENT:', edit)
-                        oml.api.edit(edit, function(result) {
+                    }
+                    that.options({content: Ox.LoadingScreen().start()});
+                    that.disableButtons();
+                    oml.api.edit({
+                        id: data.id,
+                        primaryid: primaryId
+                    }, function(result) {
+                        (
+                            $metadataSelect.value() == 'original'
+                            ? oml.api.resetMetadata : Ox.noop
+                        )({id: ui.item}, function(result) {
                             that.close();
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);
                             Ox.Request.clearCache(data.id);
                             oml.$ui.infoView.updateElement(data.id);
                         });
-                    }
-                })
+                    });
+                }
+            }),
+
+        that = Ox.Dialog({
+            buttons: [
+                $dontUpdateButton,
+                $updateButton
             ],
             closeButton: true,
             content: $outerPanel,
@@ -147,379 +261,126 @@ oml.ui.identifyDialog = function(data) {
             width: 768
         });
 
+    $($metadataSelect.find('.OxButton')[0]).css({margin: 0});
+    $metadataSelect.appendTo($(that.find('.OxBar')[2]));
+
     function disableButtons() {
-        Ox.forEach(selected == 'id' ? $idButtons : $titleButtons, function($button) {
-            $button.options({disabled: true});
+        $lookupSelect.options('items').forEach(function(item) {
+            $lookupSelect.disableItem(item.id);
         });
+        $lookupInput.options({disabled: true});
+        $lookupButton.options({disabled: true});
+        $findInput.options({disabled: true});
+        $findButton.options({disabled: true});
+        $metadataSelect.options('items').forEach(function(item) {
+            $metadataSelect.disableItem(item.id);
+        });
+        $updateButton.options({disabled: true});
     }
 
-    function findMetadata(data) {
+    function enableButtons() {
+        $lookupSelect.options('items').forEach(function(item) {
+            $lookupSelect.enableItem(item.id);
+        });
+        $lookupInput.options({disabled: false});
+        $lookupButton.options({disabled: false});
+        $findInput.options({disabled: false});
+        $findButton.options({disabled: false});
+        $metadataSelect.options('items').forEach(function(item) {
+            $metadataSelect.enableItem(item.id);
+        });
+        $updateButton.options({disabled: false});
+    }
+
+    function findMetadata() {
         disableButtons();
-        $titlePanel.replaceElement(1, Ox.LoadingScreen().start());
-        oml.api.findMetadata(data, function(result) {
+        $findPanel.replaceElement(1, Ox.LoadingScreen().start());
+        oml.api.findMetadata({
+            query: $findInput.value()
+        }, function(result) {
             var items = result.data.items.map(function(item, index) {
-                    return Ox.extend({index: (index + 1).toString()}, item);
-                });
-            updateTitleButtons();
-            $titlePanel.replaceElement(1, renderResults(items));
+                return Ox.extend({index: index.toString()}, item);
+            });
+            enableButtons();
+            $updateButton.options({disabled: !items.length});
+            $findPanel.replaceElement(1, renderResults(items));
         });
     }
 
-    function getMetadata(key, value) {
+    function lookupMetadata() {
         disableButtons();
-        $idPanel.replaceElement(1, Ox.LoadingScreen().start());
-        oml.api.getMetadata(Ox.extend({}, key, value), function(result) {
-            $idForm = renderIdForm(result.data);
-            $idPreview = Ox.isEmpty(data) ? Ox.Element() : oml.ui.infoView(result.data);
-            $idPanel
-                .replaceElement(0, $idForm)
-                .replaceElement(1, $idPreview);
+        $lookupPanel.replaceElement(1, Ox.LoadingScreen().start());
+        oml.api.getMetadata(Ox.extend(
+            {includeEdits: $metadataSelect.value() == 'edited'},
+            $lookupSelect.value(),
+            $lookupInput.value()
+        ), function(result) {
+            enableButtons();
+            $updateButton.options({disabled: Ox.isEmpty(data)});
+            $lookupPreview = Ox.isEmpty(data)
+                ? Ox.Element()
+                : oml.ui.infoView(result.data);
+            $lookupPanel.replaceElement(1, $lookupPreview);
         });
-    }
-
-    function idInputValues(key, values) {
-        var $input = $idInputs[ids.map(function(id) {
-                return id.id;
-            }).indexOf(key)];
-        if (Ox.isUndefined(values)) {
-            values = $input.options('elements').map(function($element) {
-                return $element.value();
-            });
-        } else {
-            $input.options('elements').forEach(function($element, index) {
-                $element.value(values[index]);
-            });
-        }
-        return values;    
-    }
-
-    function isEmpty(data) {
-        return Ox.every(data, Ox.isEmpty);
-    }
-
-    function isOriginal(data) {
-        return Ox.every(Object.keys(data), function(key) {
-            return data[key] == originalData[key];
-        });
-    }
-
-    function renderIdForm(data) {
-        var $element = Ox.Element();
-        $idInputs = ids.map(function(id, index) {
-            return Ox.FormElementGroup({
-                elements: [
-                    Ox.Checkbox({
-                        overlap: 'right',
-                        title: Ox._(id.title),
-                        value: id.id == data.mainid,
-                        width: 80
-                    })
-                    .bindEvent({
-                        change: function(data) {
-                            var value = $idInputs[index].options('elements')[1].value();
-                            if (data.value) {
-                                if (value) {
-                                    idValue = Ox.extend({}, id.id, value);
-                                    $idInputs.forEach(function($input, i) {
-                                        if (i != index) {
-                                            $input.options('elements')[0].value(false);
-                                        }
-                                    });
-                                    getMetadata(id.id, value, function() {
-                                        // ...
-                                    });
-                                } else {
-                                    this.value(false);
-                                }
-                            } else {
-                                this.value(true);
-                            }
-                        }
-                    }),
-                    Ox.Input({
-                        value: data[id.id] || '',
-                        width: 160
-                    })
-                    .bindEvent({
-                        submit: function(data) {
-                            if (data.value) {
-                                idValue = Ox.extend({}, id.id, data.value);
-                                $idInputs.forEach(function($input, i) {
-                                    $input.options('elements')[0].options({
-                                        disabled: true,
-                                        value: i == index
-                                    });
-                                    $input.options('elements')[1].options({
-                                        disabled: true
-                                    });
-                                });
-                                getMetadata(id.id, data.value, function() {
-                                    Ox.print('GOT METADATA');
-                                    updateIdButtons();
-                                });
-                            }
-                        }
-                    })
-                ],
-                float: 'left'
-            })
-            .css({
-                position: 'absolute',
-                left: 16 + Math.floor(index / 2) * 248 + 'px',
-                top: 16 + (index % 2) * 24 + 'px'
-            })
-            .appendTo($element);
-        });
-        $idButtons.clear = Ox.Button({
-                title: Ox._('Clear'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '160px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    ids.forEach(function(id) {
-                        idInputValues(id.id, [false, '']);
-                    });
-                    updateIdButtons();
-                }
-            })
-            .appendTo($element);
-        $idButtons.reset = Ox.Button({
-                disabled: true,
-                title: Ox._('Reset'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '88px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    ids.forEach(function(id) {
-                        idInputValues(id.id, [
-                            id.id == originalData.mainid,
-                            originalData[id.id]
-                        ]);
-                    });
-                    updateIdButtons();
-                }
-            })
-            .appendTo($element);
-        $idButtons.find = Ox.Button({
-                title: Ox._('Look Up'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '16px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    var key, value;
-                    Ox.forEach(ids, function(id) {
-                        var values = idInputValues(id.id);
-                        if (values[0]) {
-                            key = id.id;
-                            value = values[1];
-                            return false;
-                        }
-                    });
-                    getMetadata(key, value, function() {
-                        // ...
-                    })
-                    Ox.print('NOT IMPLEMENTED')
-                }
-            })
-            .appendTo($element);
-        updateIdButtons();
-        return $element;
     }
 
     function renderResults(items) {
-        var $list = Ox.TableList({
-                columns: [
-                    {
+        var $resultsPanel;
+        if (items.length) {
+            $findList = Ox.TableList({
+                    columns: [{
                         format: function(value, data) {
-                            return value
-                                ? '<b>' + Ox.getObjectById(ids, value).title
-                                    + ':</b> ' + data[data.mainid]
-                                : '<b>No ID</b>'
+                            return '<b>' + Ox.getObjectById(
+                                lookupItems, data.primaryid[0]
+                            ).title + ':</b> ' + data.primaryid[1]
                         },
-                        id: 'mainid',
+                        id: 'index',
                         visible: true,
                         width: 192 - Ox.UI.SCROLLBAR_SIZE
-                    }
-                ],
-                items: [{
-                    'index': '0',
-                    'mainid': ''
-                }].concat(items || []),
-                keys: ['mainid', 'isbn10', 'isbn13'],
-                min: 1,
-                max: 1,
-                scrollbarVisible: true,
-                sort: [{key: 'index', operator: '+'}],
-                unique: 'index'
-            })
-            .bindEvent({
-                select: function(data) {
-                    var index = data.ids[0],
-                        mainid = $list.value(index, 'mainid');
-                    if (!mainid) {
-                        titleValue = {};
-                        keys.forEach(function(key) {
-                            titleValue[key.id] = titleInputValue(key.id);
+                    }],
+                    items: items,
+                    keys: ['primaryid'].concat(lookupItems.map(function(item) {
+                        return item.id;
+                    })),
+                    min: 1,
+                    max: 1,
+                    scrollbarVisible: true,
+                    selected: ['0'],
+                    sort: [{key: 'index', operator: '+'}],
+                    unique: 'index'
+                })
+                .bindEvent({
+                    select: function(data) {
+                        var index = data.ids[0],
+                            primaryId = $findList.value(index, 'primaryid');
+                        Ox.print('EEEE', index, primaryId);
+                        disableButtons();
+                        $resultsPanel.replaceElement(1, Ox.LoadingScreen().start());
+                        oml.api.getMetadata(Ox.extend(
+                            {includeEdits: $metadataSelect.value() == 'edited'},
+                            primaryId[0],
+                            primaryId[1]
+                        ), function(result) {
+                            enableButtons();
+                            $resultsPanel.replaceElement(1, oml.ui.infoView(result.data));
                         });
-                        $results.replaceElement(1, oml.ui.infoView(titleValue));
-                    } else {
-                        titleValue = Ox.extend({}, mainid, $list.value(index, mainid));
-                        $results.replaceElement(1, Ox.LoadingScreen().start());
-                        oml.api.getMetadata(titleValue, function(result) {
-                            if (index == $list.options('selected')[0]) {
-                                $results.replaceElement(1, oml.ui.infoView(result.data));
-                                that.options('buttons')[1].options({disabled: false});
-                            }
-                        });   
                     }
-                }
-            }),
-            $results = Ox.SplitPanel({
+                }),
+            $resultsPanel = Ox.SplitPanel({
                 elements: [
-                    {element: $list, size: 192},
+                    {element: $findList || Ox.Element(), size: 192},
                     {element: Ox.Element()}
                 ],
                 orientation: 'horizontal'
             });
-        return $results;
-    }
-
-    function renderTitleForm() {
-        var $element = Ox.Element();
-        $titleInputs = keys.map(function(key, index) {
-            return Ox.Input({
-                    label: Ox._(key.title),
-                    labelWidth: 80,
-                    value: data[key.id],
-                    width: 240
-                })
-                .css({
-                    position: 'absolute',
-                    left: 16 + Math.floor(index / 2) * 248 + 'px',
-                    top: 16 + (index % 2) * 24 + 'px'
-                })
-                .bindEvent({
-                    submit: function(data) {
-                        $titleButtons.find.triggerEvent('click');
-                    }
-                })
-                .appendTo($element);
-        });
-        $titleButtons.clear = Ox.Button({
-                title: Ox._('Clear'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '160px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    keys.forEach(function(key) {
-                        titleInputValue(key.id, '');
-                    });
-                    updateTitleButtons();
-                }
-            })
-            .appendTo($element);
-        $titleButtons.reset = Ox.Button({
-                disabled: true,
-                title: Ox._('Reset'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '88px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    keys.forEach(function(key) {
-                        titleInputValue(key.id, originalData[key.id]);
-                    });
-                    updateTitleButtons();
-                }
-            })
-            .appendTo($element);
-        $titleButtons.find = Ox.Button({
-                title: Ox._('Find'),
-                width: 64
-            })
-            .css({
-                position: 'absolute',
-                right: '16px',
-                top: '64px'
-            })
-            .bindEvent({
-                click: function() {
-                    var data = {};
-                    keys.forEach(function(key) {
-                        data[key.id] = titleInputValue(key.id);
-                    });
-                    findMetadata(data);
-                }
-            })
-            .appendTo($element);
-        return $element;
-    }
-
-    function titleInputValue(key, value) {
-        var $input =  $titleInputs[keys.map(function(key) {
-                return key.id;
-            }).indexOf(key)];
-        if (Ox.isUndefined(value)) {
-            value = $input.value();
-            if (key == 'author') {
-                value = value ? value.split(', ') : [];
-            }
+            setTimeout(function() {
+                $findList.triggerEvent('select', {ids: ['0']});
+            });
         } else {
-            $input.value(
-                key == 'author' ? (value || []).join(', ') : value
-            );
+            $findList = void 0;
+            $resultsPanel = Ox.Element();
         }
-        return value;
-    }
-
-    function updateIdButtons() {
-        var data = {}, empty, original;
-        ids.forEach(function(id) {
-            data[id.id] = idInputValues(id.id)[1];
-        });
-        empty = isEmpty(data);
-        original = isOriginal(data);
-        $idButtons.clear.options({disabled: empty});
-        $idButtons.reset.options({disabled: original});
-        $idButtons.find.options({disabled: empty});
-        that && that[original ? 'disableButton' : 'enableButton']('update');
-    }
-
-    function updateTitleButtons() {
-        var data = {}, empty, original;
-        keys.forEach(function(key) {
-            data[key.id] = titleInputValue(key.id);
-        });
-        empty = isEmpty(data);
-        original = isOriginal(data);
-        $titleButtons.clear.options({disabled: empty});
-        $titleButtons.reset.options({disabled: original});
-        $titleButtons.find.options({disabled: empty});
-        that[original ? 'disableButton' : 'enableButton']('update');
+        return $resultsPanel;
     }
 
     return that;

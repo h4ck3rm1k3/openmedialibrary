@@ -184,7 +184,12 @@
                 || document.documentElement, 
             script = document.createElement('script');
         script.onload = function() {
-            Ox.load({UI: {theme: theme}}, callback);
+            Ox.load({UI: {theme: theme}}, function() {
+                Ox.formatUpper = function(string) {
+                    return string.toUpperCase();
+                };
+                callback();
+            });
         };
         script.src = oxjsPath + '/Ox.js?' + omlVersion;
         script.type = 'text/javascript';

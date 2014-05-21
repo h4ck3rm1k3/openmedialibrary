@@ -1,5 +1,5 @@
 {
-    "coverRatio": 0.75,
+    "iconRatio": 0.75,
     "itemKeys": [
         {
             "id": "*",
@@ -110,6 +110,7 @@
             "title": "Extension",
             "type": "string",
             "columnWidth": 80,
+            "format": {"type": "upper", "args": []},
             "sort": true
         },
         {
@@ -194,51 +195,44 @@
             "sort": true
         },
         {
-            "id": "isbn10",
-            "title": "ISBN-10",
-            "type": "string",
-            "columnWidth": 96,
-            "sort": true
-        },
-        {
-            "id": "isbn13",
-            "title": "ISBN-13",
-            "type": "string",
+            "id": "isbn",
+            "title": "ISBN",
+            "type": ["string"],
             "columnWidth": 96,
             "sort": true
         },
         {
             "id": "asin",
             "title": "ASIN",
-            "type": "string",
+            "type": ["string"],
             "columnWidth": 96,
             "sort": true
         },
         {
             "id": "lccn",
             "title": "LCCN",
-            "type": "string",
+            "type": ["string"],
             "columnWidth": 96,
             "sort": true
         },
         {
             "id": "olid",
             "title": "OLID",
-            "type": "string",
+            "type": ["string"],
             "columnWidth": 96,
             "sort": true
         },
         {
             "id": "oclc",
             "title": "OCLC",
-            "type": "string",
+            "type": ["string"],
             "columnWidth": 96,
             "sort": true
         },
         {
-            "id": "mainid",
-            "title": "Main ID",
-            "type": "string"
+            "id": "primaryid",
+            "title": "Primary ID",
+            "type": ["string"]
         },
         {
             "id": "random",
@@ -319,7 +313,6 @@
             "username": ""
         },
         "ui": {
-            "coverSize": 256,
             "fileInfo": "extension",
             "filters": [
                 {"id": "author", "sort": [{"key": "items", "operator": "-"}]},
@@ -331,6 +324,8 @@
             "filtersSize": 176,
             "find": {"conditions": [], "operator": "&"},
             "icons": "cover",
+            "iconInfo": "extension",
+            "iconSize": 256,
             "item": "",
             "itemView": "info",
             "listColumns": ["title", "author", "publisher", "date"],
@@ -354,9 +349,9 @@
             "section": "books",
             "showBrowser": true,
             "showDebugMenu": false,
-            "showFileInfo": true,
             "showFolder": {},
             "showFilters": true,
+            "showIconInfo": true,
             "showInfo": true,
             "showSection": {
                 "notifications": {
