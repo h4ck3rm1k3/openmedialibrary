@@ -4749,7 +4749,7 @@ document.addEventListener('DOMContentLoaded', function webViewerLoad(evt) {
   PDFView.initialize();
 
   var params = PDFView.parseQueryString(document.location.search.substring(1));
-  var file = params.file || document.location.pathname.replace(/\/reader\//, '/pdf');
+  var file = params.file || document.location.pathname.replace(/\/reader\//, '/pdf/');
 
 
   var fileInput = document.createElement('input');

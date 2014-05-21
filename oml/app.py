@@ -19,7 +19,6 @@ import item.person
 
 import api
 
-import item.views
 import commands
 
 #FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
@@ -30,7 +29,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask('openmedialibrary', static_folder=settings.static_path)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s' % settings.db_path
-app.register_blueprint(item.views.app)
 db.init_app(app)
 
 migrate = Migrate(app, db)

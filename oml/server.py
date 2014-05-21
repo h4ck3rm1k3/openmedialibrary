@@ -3,8 +3,8 @@
 
 import os
 import sys
-from tornado.web import StaticFileHandler, Application, FallbackHandler
-from tornado.wsgi import WSGIContainer
+
+from tornado.web import StaticFileHandler, Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
@@ -17,7 +17,14 @@ import node.server
 import oxtornado
 
 from item.icons import IconHandler
-from item.handlers import EpubHandler
+from item.handlers import EpubHandler, ReaderHandler, FileHandler
+from item.handlers import OMLHandler, serve_static
+
+class MainHandler(OMLHandler):
+
+    def get(self, path):
+        path = os.path.join(settings.static_path, 'html/oml.html')
+        serve_static(self, path, 'text/html')
 
 def run():
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
@@ -29,16 +36,17 @@ def run():
         'debug': not PID 
     }
 
-    tr = WSGIContainer(app)
-
     handlers = [
         (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
         (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
         (r'/(.*)/epub/(.*)', EpubHandler, dict(app=app)),
+        (r'/(.*?)/reader/', ReaderHandler, dict(app=app)),
+        (r'/(.*?)/pdf/', FileHandler, dict(app=app)),
+        (r'/(.*?)/txt/', FileHandler, dict(app=app)),
         (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler, dict(app=app)),
         (r'/api/', oxtornado.ApiHandler, dict(app=app)),
         (r'/ws', websocket.Handler),
-        (r".*", FallbackHandler, dict(fallback=tr)),
+        (r"(.*)", MainHandler, dict(app=app)),
     ]
 
     http_server = HTTPServer(Application(handlers, **options))
