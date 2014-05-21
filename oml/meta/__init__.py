@@ -3,6 +3,7 @@
 from __future__ import division
 
 import stdnum.isbn
+import ox
 
 import abebooks
 import loc
@@ -21,27 +22,23 @@ providers = [
     ('loc', 'lccn'),
     ('worldcat', 'oclc'),
     ('lookupbyisbn', 'asin'),
-    ('abebooks', 'isbn10')
+    ('abebooks', 'isbn')
 ]
 
-def find(**kargs):
-    title = kargs.get('title')
-    author = kargs.get('author')
-    publisher = kargs.get('publisher')
-    date = kargs.get('date')
-    #results = google.find(title=title, author=author, publisher=publisher, date=date)
-    results = duckduckgo.find(title=title, author=author, publisher=publisher, date=date)
+def find(query):
+    #results = google.find(query)
+    results = duckduckgo.find(query)
     '''
-    results = openlibrary.find(title=title, author=author, publisher=publisher, date=date)
+    results = openlibrary.find(query)
     for r in results:
-        r['mainid'] = 'olid'
+        r['primaryid'] = 'olid'
     '''
     return results
 
 def lookup(key, value):
     if not isvalid_id(key, value):
         return {}
-    data = {key: value}
+    data = {key: [value]}
     ids = [(key, value)]
     provider_data = {}
     done = False
@@ -53,11 +50,17 @@ def lookup(key, value):
                     if not kv in ids:
                         ids.append(kv)
                         done = False
-    logger.debug('lookup %s=%s => %s', ids[0][0], ids[0][1], ids)
+    logger.debug('FIXME: sort ids')
+    ids.sort(key=lambda i: ox.sort_string(u''.join(i)))
+    logger.debug('IDS %s', ids)
     for k, v in ids:
         for provider, id in providers:
-            if id == k and provider not in provider_data:
-                provider_data[provider] = globals()[provider].lookup(v)
+            if id == k:
+                if provider not in provider_data:
+                    provider_data[provider] = {}
+                for k_, v_ in globals()[provider].lookup(v).iteritems():
+                    if k_ not in provider_data[provider]:
+                        provider_data[provider][k_] = v_
     for provider in sorted(
         provider_data.keys(),
         key=lambda x: -len(provider_data[x])
@@ -66,11 +69,16 @@ def lookup(key, value):
         for k_, v_ in provider_data[provider].iteritems():
             if not k_ in data:
                 data[k_] = v_
+    for k, v in ids:
+        if k not in data:
+            data[k] = []
+        if v not in data[k]:
+            data[k].append(v)
     return data
 
 def isvalid_id(key, value):
-    if key in ('isbn10', 'isbn13'):
-        if 'isbn%d'%len(value) != key or not stdnum.isbn.is_valid(value):
+    if key == 'isbn':
+        if len(value) not in (10, 13) or not stdnum.isbn.is_valid(value):
             return False
     if key == 'asin' and len(value) != 10:
         return False

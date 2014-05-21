@@ -15,7 +15,7 @@ import websocket
 import state
 import node.server
 import oxtornado
-from item.covers import CoverHandler
+from item.icons import IconHandler
 from item.handlers import EpubHandler
 
 def run():
@@ -34,7 +34,7 @@ def run():
         (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
         (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
         (r'/(.*)/epub/(.*)', EpubHandler, dict(app=app)),
-        (r'/(.*)/cover(\d*).jpg', CoverHandler, dict(app=app)),
+        (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler, dict(app=app)),
         (r'/api/', oxtornado.ApiHandler, dict(app=app)),
         (r'/ws', websocket.Handler),
         (r".*", FallbackHandler, dict(fallback=tr)),

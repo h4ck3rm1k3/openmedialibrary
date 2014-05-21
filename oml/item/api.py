@@ -113,24 +113,21 @@ def edit(data):
         setting identifier or base metadata is possible not both at the same time
     '''
     response = {}
-    logger.debug('edit %s', data)
     item = models.Item.get(data['id'])
-    keys = filter(lambda k: k in models.Item.id_keys, data.keys())
-    logger.debug('edit of %s id keys: %s', item, keys)
     if item and item.json()['mediastate'] == 'available':
-        if keys:
-            key = keys[0]
-            logger.debug('update mainid %s %s', key, data[key])
-            if key in ('isbn10', 'isbn13'):
-                data[key] = utils.normalize_isbn(data[key])
-            item.update_mainid(key, data[key])
-            response = item.json()
-        elif not item.meta.get('mainid'):
-            logger.debug('setting chustom metadata %s', data)
-            item.update_meta(data)
+        if 'primaryid' in data:
+            if data['primaryid']:
+                key, value = data['primaryid']
+                logger.debug('update primaryid %s %s', key, value)
+                if key == 'isbn':
+                    value = utils.normalize_isbn(value)
+                item.update_primaryid(key, value)
+            else:
+                item.update_primaryid()
             response = item.json()
         else:
-            logger.debug('invalid metadata %s', data)
+            item.edit_metadata(data)
+            response = item.json()
     else:
         logger.info('can only edit available items')
     return response
@@ -154,10 +151,7 @@ actions.register(remove, cache=False)
 def findMetadata(data):
     '''
         takes {
-            title: string,
-            author: [string],
-            publisher: string,
-            date: string
+            query: string,
         }
         returns {
             items: [{
@@ -168,28 +162,42 @@ def findMetadata(data):
     '''
     response = {}
     logger.debug('findMetadata %s', data)
-    response['items'] = meta.find(**data)
+    response['items'] = meta.find(data['query'])
     return response
 actions.register(findMetadata)
-
 
 def getMetadata(data):
     '''
         takes {
             key: value
+            includeEdits: boolean
         }
         key can be one of the supported identifiers: isbn10, isbn13, oclc, olid,...
     '''
     logger.debug('getMetadata %s', data)
+    if 'includeEdits' in data:
+        include_edits = data.pop('includeEdits')
+    else:
+        include_edits = False
     key, value = data.iteritems().next()
-    if key in ('isbn10', 'isbn13'):
+    if key == 'isbn':
         value = utils.normalize_isbn(value)
     response = meta.lookup(key, value)
+    if include_edits:
+        response.update(models.Metadata.load(key, value))
     if response:
-        response['mainid'] = key
+        response['primaryid'] = [key, value]
     return response
 actions.register(getMetadata)
 
+def resetMetadata(data):
+    item = models.Item.get(data['id'])
+    if item and 'primaryid' in item.meta:
+        meta = models.Metadata.get(*item.meta['primaryid'])
+        if meta:
+            meta.reset()
+    return {}
+actions.register(resetMetadata)
 
 def download(data):
     '''

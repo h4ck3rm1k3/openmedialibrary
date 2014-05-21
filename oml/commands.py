@@ -81,7 +81,24 @@ class PostUpdate(Command):
             ]
 
         def run(selfi, old, new):
-            pass
+            if old <= '20140506-2-796c77b' and new > '20140506-2-796c77b':
+                print 'migrate database content'
+                import item.models
+                for i in item.models.Item.query:
+                    if 'mainid' in i.meta:
+                        mainid = i.meta.pop('mainid')
+                        pid = {'isbn10': 'isbn', 'isbn13': 'isbn'}.get(mainid, mainid)
+                        i.meta['primaryid'] = [pid, i.meta[mainid]]
+                    isbns = i.meta.get('isbn', [])
+                    for key in ('isbn10', 'isbn13'):
+                        if key in i.meta:
+                             isbns.append(i.meta.pop(key))
+                    if isbns:
+                        i.meta['isbn'] = isbns
+                    for key in ('asin', 'lccn', 'olid', 'oclc'):
+                        if key in i.meta and isinstance(i.meta[key], basestring):
+                            i.meta[key] = [i.meta[key]]
+                    i.update()
 
 class Setup(Command):
         """

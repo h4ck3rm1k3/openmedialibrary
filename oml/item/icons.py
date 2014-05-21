@@ -16,9 +16,12 @@ from oxtornado import run_async
 from utils import resize_image
 
 
-from settings import covers_db_path
+from settings import icons_db_path
 
-class Covers(dict):
+import logging
+logger = logging.getLogger('oml.item.icons')
+
+class Icons(dict):
     def __init__(self, db):
         self._db = db
         self.create()
@@ -30,7 +33,7 @@ class Covers(dict):
     def create(self):
         conn = self.connect()
         c = conn.cursor()
-        c.execute(u'CREATE TABLE IF NOT EXISTS cover (id varchar(64) unique, data blob)')
+        c.execute(u'CREATE TABLE IF NOT EXISTS icon (id varchar(64) unique, data blob)')
         c.execute(u'CREATE TABLE IF NOT EXISTS setting (key varchar(256) unique, value text)')
         if int(self.get_setting(c, 'version', 0)) < 1:
             self.set_setting(c, 'version', 1)
@@ -53,7 +56,7 @@ class Covers(dict):
         return data
 
     def __getitem__(self, id, default=None):
-        sql = u'SELECT data FROM cover WHERE id=?'
+        sql = u'SELECT data FROM icon WHERE id=?'
         conn = self.connect()
         c = conn.cursor()
         c.execute(sql, (id, ))
@@ -66,7 +69,7 @@ class Covers(dict):
         return data
 
     def __setitem__(self, id, data):
-        sql = u'INSERT OR REPLACE INTO cover values (?, ?)'
+        sql = u'INSERT OR REPLACE INTO icon values (?, ?)'
         conn = self.connect()
         c = conn.cursor()
         data = sqlite3.Binary(data)
@@ -76,7 +79,7 @@ class Covers(dict):
         conn.close()
 
     def __delitem__(self, id):
-        sql = u'DELETE FROM cover WHERE id = ?'
+        sql = u'DELETE FROM icon WHERE id = ?'
         conn = self.connect()
         c = conn.cursor()
         c.execute(sql, (id, ))
@@ -84,51 +87,64 @@ class Covers(dict):
         c.close()
         conn.close()
 
-covers = Covers(covers_db_path)
+icons = Icons(icons_db_path)
 
 @run_async
-def get_cover(app, id, size, callback):
+def get_icon(app, id, type_, size, callback):
     with app.app_context():
         from item.models import Item
         item = Item.get(id)
         if not item:
             callback('')
         else:
+            if type_ == 'cover' and not item.meta.get('cover'):
+                type_ = 'preview'
+            if type_ == 'preview' and not item.files.count():
+                type_ = 'cover'
+            if size:
+                skey = '%s:%s:%s' % (type_, id, size)
+            key = '%s:%s' % (type_, id)
             data = None
             if size:
-                data = covers['%s:%s' % (id, size)]
+                data = icons[skey]
                 if data:
                     size = None
             if not data:
-                data = covers[id]
+                data = icons[key]
             if not data:
-                data = item.update_cover()
-                if not data:
-                    data = covers.black()
+                data = icons.black()
+                size = None
             if size:
-                data = covers['%s:%s' % (id, size)] = resize_image(data, size=size)
-            data = str(data)
-            if not 'coverRatio' in item.info:
-                img = Image.open(StringIO(data))
-                item.info['coverRatio'] = img.size[0]/img.size[1]
-                item.save()
-            data = data or ''
+                data = icons[skey] = resize_image(data, size=size)
+            data = str(data) or ''
             callback(data)
 
-class CoverHandler(tornado.web.RequestHandler):
+class IconHandler(tornado.web.RequestHandler):
 
     def initialize(self, app):
         self._app = app
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
-    def get(self, id, size=None):
-        size = int(size) if size else None
-        response = yield tornado.gen.Task(get_cover, self._app, id, size)
-        if not response:
+    def get(self, id, type_, size=None):
+        def fail():
             self.set_status(404)
             self.write('')
-        else:
-            self.set_header('Content-Type', 'image/jpeg')
-            self.write(response)
+            self.finish()
+
+        size = int(size) if size else None
+
+        if type_ not in ('cover', 'preview'):
+            fail()
+            return
+
+        self.set_header('Content-Type', 'image/jpeg')
+
+        response = yield tornado.gen.Task(get_icon, self._app, id, type_, size)
+        if not response:
+            fail()
+            return
+        if self._finished:
+            return
+        self.write(response)
         self.finish()

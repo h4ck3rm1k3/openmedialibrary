@@ -31,6 +31,9 @@ class Changelog(db.Model):
         editcontact           string
         addpeer               peerid peername
         removepeer            peerid peername
+
+        editmeta              key, value data (i.e. 'isbn', '0000000000', {title: 'Example'})
+        resetmeta             key, value
     '''
     id = db.Column(db.Integer(), primary_key=True)
 
@@ -164,13 +167,16 @@ class Changelog(db.Model):
         keys = filter(lambda k: k in Item.id_keys, meta.keys())
         if keys:
             key = keys[0]
-            if not meta[key] and i.meta.get('mainid') == key:
-                logger.debug('remove id mapping %s currently %s', key, meta[key], i.meta[key])
-                i.update_mainid(key, meta[key])
-            elif meta[key] and (i.meta.get('mainid') != key or meta[key] != i.meta.get(key)):
-                logger.debug('new mapping %s %s currently %s %s', key, meta[key], i.meta.get('mainid'), i.meta.get(i.meta.get('mainid')))
-                i.update_mainid(key, meta[key])
+            primary = [key, meta[key]]
+            if not meta[key] and i.meta.get('primaryid', [''])[0] == key:
+                logger.debug('remove id mapping %s %s', i.id, primary)
+                i.update_primaryid(*primary)
+            elif meta[key] and i.meta.get('primaryid') != primary:
+                logger.debug('edit mapping %s %s', i.id, primary)
+                i.update_primaryid(*primary)
         else:
+            if 'primaryid' in i.meta:
+                return True
             i.update_meta(meta)
         i.modified = ts2datetime(timestamp)
         i.save()
@@ -260,4 +266,21 @@ class Changelog(db.Model):
             del user.info['users'][peerid]
             user.save()
             #fixme, remove from User table if no other connection exists
+        return True
+
+    def action_editmeta(self, user, timestamp, key, value, data):
+        from item.models import Metadata
+        m = Metadata.get(key, value)
+        if not m or m.timestamp < timestamp:
+            if not m:
+                m = Metadata.get_or_create(key, value)
+            if m.edit(data):
+                m.update_items()
+        return True
+
+    def action_resetmeta(self, user, timestamp, key, value):
+        from item.models import Metadata
+        m = Metadata.get(key, value)
+        if m and m.timestamp < timestamp:
+            m.reset()
         return True

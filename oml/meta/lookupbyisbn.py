@@ -3,6 +3,8 @@ from ox import find_re, strip_tags, decode_html
 import re
 import stdnum.isbn
 
+from utils import find_isbns
+
 import logging
 logger = logging.getLogger('meta.lookupbyisbn')
 
@@ -10,18 +12,32 @@ base = 'http://www.lookupbyisbn.com'
 
 def get_ids(key, value):
     ids = []
-    if key in ('isbn10', 'isbn13', 'asin'):
+
+    def add_other_isbn(v):
+        if len(v) == 10:
+            ids.append(('isbn', stdnum.isbn.to_isbn13(v)))
+        if len(v) == 13 and v.startswith('978'):
+            ids.append(('isbn', stdnum.isbn.to_isbn10(v)))
+
+    if key in ('isbn', 'asin'):
         url = '%s/Search/Book/%s/1' % (base, value)
         data = read_url(url).decode('utf-8')
         m = re.compile('href="(/Lookup/Book/[^"]+?)"').findall(data)
         if m:
             asin = m[0].split('/')[-3]
-            ids.append(('asin', asin))
-    if key == 'isbn10':
-        ids.append(('isbn13', stdnum.isbn.to_isbn13(value)))
+            if not stdnum.isbn.is_valid(asin):
+                ids.append(('asin', asin))
+    if key == 'isbn':
+        add_other_isbn(value)
     if key == 'asin':
         if stdnum.isbn.is_valid(value):
-            ids.append(('isbn10', value))
+            ids.append(('isbn', value))
+            add_other_isbn(value)
+        else:
+            for isbn in amazon_lookup(value):
+                if stdnum.isbn.is_valid(isbn):
+                    ids.append(('isbn', isbn))
+                    add_other_isbn(isbn)
     if ids:
         logger.debug('get_ids %s, %s => %s', key, value, ids)
     return ids
@@ -29,7 +45,7 @@ def get_ids(key, value):
 def lookup(id):
     logger.debug('lookup %s', id)
     r = {
-        'asin': id
+        'asin': [id]
     }
     url = '%s/Lookup/Book/%s/%s/1' % (base, id, id)
     data = read_url(url).decode('utf-8')
@@ -64,3 +80,6 @@ def lookup(id):
         r['description'] = ''
     return r
 
+def amazon_lookup(asin):
+    html = read_url('http://www.amazon.com/dp/%s' % asin)
+    return list(set(find_isbns(find_re(html, 'Formats</h3>.*?</table'))))

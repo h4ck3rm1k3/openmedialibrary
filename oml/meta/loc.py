@@ -9,18 +9,25 @@ import xml.etree.ElementTree as ET
 
 from utils import normalize_isbn
 from marc_countries import COUNTRIES
+from dewey import get_classification
 
 import logging
 logger = logging.getLogger('meta.loc')
 
 def get_ids(key, value):
     ids = []
-    if key in ['isbn10', 'isbn13']:
+    if key == 'isbn':
         url = 'http://www.loc.gov/search/?q=%s&all=true' % value
         html = ox.cache.read_url(url)
         match = re.search('"http://lccn.loc.gov/(\d+)"', html)
         if match:
             ids.append(('lccn', match.group(1)))
+    elif key == 'lccn':
+        info = lookup(value)
+        for key in ('oclc', 'isbn'):
+            if key in info:
+                for value in info[key]:
+                    ids.append((key, value))
     if ids:
         logger.debug('get_ids %s,%s => %s', key, value, ids)
     return ids
@@ -33,7 +40,7 @@ def lookup(id):
     mods = ET.fromstring(data)
 
     info = {
-        'lccn': id
+        'lccn': [id]
     }
     title = mods.findall(ns + 'titleInfo')
     if not title:
@@ -55,16 +62,20 @@ def lookup(id):
             info['publisher'] = publisher[0]
         info['date'] = ''.join([e.text for e in origin[0].findall(ns + 'dateIssued')])
         for i in mods.findall(ns + 'identifier'):
-            if i.attrib['type'] == 'oclc':
-                info['oclc'] = i.text.replace('ocn', '')
-            if i.attrib['type'] == 'lccn':
-                info['lccn'] = i.text
-            if i.attrib['type'] == 'isbn':
-                isbn = normalize_isbn(i.text)
-                info['isbn%s'%len(isbn)] = isbn
+            key = i.attrib['type']
+            value = i.text
+            if key in ('oclc', 'lccn', 'isbn'):
+                if i.attrib['type'] == 'oclc':
+                    value = value.replace('ocn', '').replace('ocm', '')
+                if i.attrib['type'] == 'isbn':
+                    value = normalize_isbn(i.text)
+                if not key in info:
+                    info[key] = []
+                if value not in info[key]:
+                    info[key].append(value)
         for i in mods.findall(ns + 'classification'):
             if i.attrib['authority'] == 'ddc':
-                info['classification'] = i.text
+                info['classification'] = get_classification(i.text.split('/')[0])
         info['author'] = []
         for a in mods.findall(ns + 'name'):
             if a.attrib.get('usage') == 'primary':

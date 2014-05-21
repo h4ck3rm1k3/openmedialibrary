@@ -21,7 +21,7 @@ def cover(path):
     z = zipfile.ZipFile(path)
     data = None
     for f in z.filelist:
-        if 'cover' in f.filename and f.filename.split('.')[-1] in ('jpg', 'jpeg', 'png'):
+        if 'cover' in f.filename.lower() and f.filename.split('.')[-1] in ('jpg', 'jpeg', 'png'):
             logger.debug('using %s', f.filename)
             data = z.read(f.filename)
             break
@@ -31,7 +31,12 @@ def cover(path):
             info = ET.fromstring(z.read(opf[0]))
             manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
             for e in manifest.getchildren():
-                if 'html' in e.attrib['media-type']:
+                if 'image' in e.attrib['media-type']:
+                    filename = e.attrib['href']
+                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                    data = z.read(filename)
+                    break
+                elif 'html' in e.attrib['media-type']:
                     filename = e.attrib['href']
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
                     html = z.read(filename)
@@ -66,7 +71,7 @@ def info(epub):
                 if key == 'identifier':
                     value = normalize_isbn(value)
                     if stdnum.isbn.is_valid(value):
-                        data['isbn'] = value
+                        data['isbn'] = [value]
                 else:
                     data[key] = e.text
     text = extract_text(epub)
@@ -74,7 +79,7 @@ def info(epub):
     if not 'isbn' in data:
         isbn = extract_isbn(text)
         if isbn:
-            data['isbn'] = isbn
+            data['isbn'] = [isbn]
     if 'date' in data and 'T' in data['date']:
         data['date'] = data['date'].split('T')[0]
     return data

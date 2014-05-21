@@ -11,13 +11,8 @@ import logging
 logger = logging.getLogger('meta.google')
 
 
-def find(title, author=None, publisher=None, date=None):
-    logger.debug('find %s %s %s %s', title, author, publisher, date)
-    query = title
-    if author:
-        if isinstance(author, list):
-            author = ' '.join(author)
-        query += ' ' + author
+def find(query):
+    logger.debug('find %s', query)
     query += ' isbn'
     isbns = []
     for r in ox.web.google.find(query):
@@ -27,17 +22,14 @@ def find(title, author=None, publisher=None, date=None):
     done = set()
     for isbn in isbns:
         if isbn not in done:
-            key = 'isbn%d'%len(isbn)
-            #r = lookup(key, isbn)
-            #r['mainid'] = key
             r = {
-                key: isbn,
-                'mainid': key
+                'isbn': isbn,
+                'primaryid': ['isbn', isbn]
             }
             results.append(r)
             done.add(isbn)
             if len(isbn) == 10:
                 done.add(stdnum.isbn.to_isbn13(isbn))
-            if len(isbn) == 13:
+            if len(isbn) == 13 and isbn.startswith('978'):
                 done.add(stdnum.isbn.to_isbn10(isbn))
     return results

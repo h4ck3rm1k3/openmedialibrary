@@ -189,11 +189,10 @@ def addListItems(data):
     '''
     if data['list'] == ':':
         from item.models import Item
-        user = state.user()
         for item_id in data['items']:
             i = Item.get(item_id)
-            if user not in i.users:
-                i.queue_download()
+            i.queue_download()
+            i.update()
     elif data['list']:
         l = models.List.get_or_create(data['list'])
         if l:

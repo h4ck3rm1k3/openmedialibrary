@@ -38,7 +38,7 @@ class Downloads(Thread):
             while self._running:
                 if state.online:
                     self.download_next()
-                    time.sleep(10)
+                    time.sleep(0.5)
                 else:
                     time.sleep(20)
 

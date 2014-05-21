@@ -23,7 +23,7 @@ def info(path):
     text = extract_text(path)
     isbn = extract_isbn(text)
     if isbn:
-        data['isbn'] = isbn
+        data['isbn'] = [isbn]
     data['textsize'] = len(text)
     return data
 

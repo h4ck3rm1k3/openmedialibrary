@@ -15,21 +15,21 @@ base_url = 'http://www.worldcat.org'
 
 def get_ids(key, value):
     ids = []
-    if key in ['isbn10', 'isbn13']:
+    if key == 'isbn':
         url = '%s/search?qt=worldcat_org_bks&q=%s' % (base_url, value)
         html = read_url(url)
         matches = re.compile('/title.*?oclc/(\d+).*?"').findall(html)
         if matches:
             info = lookup(matches[0])
             ids.append(('oclc', matches[0]))
-            for k in ['isbn10', 'isbn13']:
-                if k in info and k != key:
-                    ids.append((k, info[k]))
+            for v in info.get('isbn', []):
+                if v != value:
+                    ids.append(('isbn', v))
     elif key == 'oclc':
         info = lookup(value)
-        for k in ['isbn10', 'isbn13']:
-            if k in info:
-                ids.append((k, info[k]))
+        if 'isbn' in info:
+            for value in info['isbn']:
+                ids.append(('isbn', value))
     if ids:
         logger.debug('get_ids %s %s', key, value)
         logger.debug('%s', ids)
@@ -37,7 +37,7 @@ def get_ids(key, value):
 
 def lookup(id):
     data = {
-        'oclc': id
+        'oclc': [id]
     }
     url = '%s/oclc/%s' % (base_url, id)
     html = read_url(url).decode('utf-8')
@@ -58,9 +58,14 @@ def lookup(id):
         for isbn in data.pop('isxn').split(' '):
             isbn = normalize_isbn(isbn)
             if stdnum.isbn.is_valid(isbn):
-                data['isbn%d'%len(isbn)] = isbn
+                if not 'isbn' in data:
+                    data['isbn'] = []
+                if isbn not in data['isbn']:
+                    data['isbn'].append(isbn)
     if 'author' in data:
         data['author'] = [data['author']]
+    if 'title' in data:
+        data['title'] = data['title'].replace(' : ', ': ')
     logger.debug('lookup %s => %s', id, data.keys())
     return data
 

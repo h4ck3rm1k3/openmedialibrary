@@ -10,6 +10,8 @@ import stdnum.isbn
 import socket
 import cStringIO
 import gzip
+import time
+from datetime import datetime
 
 import ox
 import ed25519
@@ -154,3 +156,11 @@ def remove_empty_tree(leaf):
             os.rmdir(leaf)
         else:
             break
+
+utc_0 = int(time.mktime(datetime(1970, 01, 01).timetuple()))
+
+def datetime2ts(dt):
+    return int(time.mktime(dt.utctimetuple())) - utc_0
+
+def ts2datetime(ts):
+    return datetime.utcfromtimestamp(float(ts))

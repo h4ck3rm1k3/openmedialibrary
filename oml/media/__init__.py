@@ -46,13 +46,7 @@ def metadata(f):
                 data[key] = info[key]
 
     if 'isbn' in data:
-        value = data.pop('isbn')
-        if len(value) == 10:
-            data['isbn10'] = value
-            data['mainid'] = 'isbn10'
-        else:
-            data['isbn13'] = value
-            data['mainid'] = 'isbn13'
+        data['primaryid'] = ['isbn', data['isbn'][0]]
     if not 'title' in data:
         data['title'] = os.path.splitext(os.path.basename(f))[0]
     if 'author' in data and isinstance(data['author'], basestring):

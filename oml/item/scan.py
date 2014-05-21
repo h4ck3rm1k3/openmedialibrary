@@ -46,22 +46,19 @@ def add_file(id, f, prefix):
     data = media.metadata(f)
     file = File.get_or_create(id, data, path)
     item = file.item
-    if 'mainid' in file.info:
-        del file.info['mainid']
+    if 'primaryid' in file.info:
+        del file.info['primaryid']
         db.session.add(file)
-    if 'mainid' in item.info:
-        item.meta['mainid'] = item.info.pop('mainid')
-        item.meta[item.meta['mainid']] = item.info[item.meta['mainid']]
+    if 'primaryid' in item.info:
+        item.meta['primaryid'] = item.info.pop('primaryid')
         db.session.add(item)
     item.users.append(user)
     Changelog.record(user, 'additem', item.id, item.info)
-    if item.meta.get('mainid'):
-        Changelog.record(user, 'edititem', item.id, {
-            item.meta['mainid']: item.meta[item.meta['mainid']]
-        })
+    if item.meta.get('primaryid'):
+        Changelog.record(user, 'edititem', item.id, dict([item.meta['primaryid']]))
     item.added = datetime.utcnow()
     item.scrape()
-    item.update_cover()
+    item.update_icons()
     item.save()
     return file
 
@@ -168,10 +165,6 @@ def run_import(options=None):
                 added += 1
             if state.activity.get('cancel'):
                 state.activity = {}
-                trigger_event('activity', {
-                    'activity': 'import',
-                    'status': {'code': 200, 'text': 'canceled'}
-                })
                 return
             state.activity = {
                 'activity': 'import',

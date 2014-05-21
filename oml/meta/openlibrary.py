@@ -7,6 +7,7 @@ from ox.cache import read_url
 import json
 
 from marc_countries import COUNTRIES
+from dewey import get_classification
 from utils import normalize_isbn
 
 import logging
@@ -16,11 +17,11 @@ KEYS = {
     'authors': 'author',
     'covers': 'cover',
     'dewey_decimal_class': 'classification',
-    'isbn_10': 'isbn10',
-    'isbn_13': 'isbn13',
-    'languages': 'language',
+    'isbn_10': 'isbn',
+    'isbn_13': 'isbn',
     'lccn': 'lccn',
     'number_of_pages': 'pages',
+    'languages': 'language',
     'oclc_numbers': 'oclc',
     'publish_country': 'country',
     'publish_date': 'date',
@@ -30,21 +31,7 @@ KEYS = {
     'title': 'title',
 }
 
-def find(*args, **kargs):
-    args = [a.replace(':', ' ') for a in args]
-    for k in ('date', 'publisher'):
-        if k in kargs:
-            logger.debug('ignoring %s on openlibrary %s', k, kargs[k])
-            del kargs[k]
-    for k, v in kargs.iteritems():
-        key = KEYS.keys()[KEYS.values().index(k)]
-        if v:
-            if not isinstance(v, list):
-                v = [v]
-            #v = ['%s:"%s"' % (key, value.replace(':', '\:')) for value in v]
-            v = ['"%s"' % value.replace(':', ' ') for value in v]
-            args += v
-    query = ' '.join(args)
+def find(query):
     query = query.strip()
     logger.debug('find %s', query)
     r = api.search(query)
@@ -54,7 +41,8 @@ def find(*args, **kargs):
     for olid, value in books.iteritems():
         olid = olid.split('/')[-1]
         book = format(value)
-        book['olid'] = olid
+        book['olid'] = [olid]
+        book['primaryid'] = ['olid', olid]
         results.append(book)
     return results
 
@@ -62,15 +50,17 @@ def find(*args, **kargs):
 def get_ids(key, value):
     ids = []
     if key == 'olid':
-        data = lookup(value, True)
-        for id in ('isbn10', 'isbn13', 'lccn', 'oclc'):
+        data = lookup(value)
+        for id in ('isbn', 'lccn', 'oclc'):
             if id in data:
                 for v in data[id]:
                     if (id, v) not in ids:
                         ids.append((id, v))
-    elif key in ('isbn10', 'isbn13', 'oclc', 'lccn'):
+    elif key in ('isbn', 'oclc', 'lccn'):
         logger.debug('get_ids %s %s', key, value)
-        r = api.things({'type': '/type/edition', key.replace('isbn', 'isbn_'): value})
+        if key == 'isbn':
+            key = 'isbn_%s'%len(value)
+        r = api.things({'type': '/type/edition', key: value})
         for b in r.get('result', []):
             if b.startswith('/books'):
                 olid = b.split('/')[-1]
@@ -87,7 +77,10 @@ def lookup(id, return_all=False):
     #url = 'https://openlibrary.org/books/%s.json' % id
     #info = json.loads(read_url(url))
     data = format(info, return_all)
-    data['olid'] = id
+    if 'olid' not in data:
+        data['olid'] = []
+    if id not in data['olid']:
+        data['olid'] = [id]
     logger.debug('lookup %s => %s', id, data.keys())
     return data
 
@@ -105,14 +98,20 @@ def format(info, return_all=False):
                 value = 'https://covers.openlibrary.org/b/id/%s.jpg' % value[0]
             elif key == 'languages':
                 value = resolve_names(value)
-            elif not return_all and isinstance(value, list) and key not in ('publish_places'):
+            elif key in ('isbn_10', 'isbn_13'):
+                if not isinstance(value, list):
+                    value = [value]
+                value = map(normalize_isbn, value)
+                if KEYS[key] in data:
+                    value = data[KEYS[key]] + value
+            elif isinstance(value, list) and key not in ('publish_places', 'lccn', 'oclc_numbers'):
                 value = value[0]
-            if key in ('isbn_10', 'isbn_13'):
-                if isinstance(value, list):
-                    value = map(normalize_isbn, value)
-                else:
-                    value = normalize_isbn(value)
             data[KEYS[key]] = value
+    if 'classification' in data:
+        value = data['classification']
+        if isinstance(value, list):
+            value = value[0]
+        data['classification'] = get_classification(value.split('/')[0])
     return data
 
 def resolve_names(objects, key='name'):

@@ -28,7 +28,7 @@ import utils
 
 from oxflask.db import MutableDict
 
-from covers import covers
+from icons import icons
 from changelog import Changelog
 from websocket import trigger_event
 from utils import remove_empty_folders
@@ -105,7 +105,7 @@ class Item(db.Model):
 
     @property
     def timestamp(self):
-        return self.modified.strftime('%s')
+        return utils.datetime2ts(self.modified)
 
     def __repr__(self):
         return self.id
@@ -155,7 +155,7 @@ class Item(db.Model):
         if self.meta:
             j.update(self.meta)
 
-        for key in self.id_keys + ['mainid']:
+        for key in self.id_keys + ['primaryid']:
             if key not in self.meta and key in j:
                 del j[key]
         '''
@@ -213,7 +213,7 @@ class Item(db.Model):
             db.session.add(f)
 
         for key in config['itemKeys']:
-            if key.get('find') or key.get('filter'):
+            if key.get('find') or key.get('filter') or key.get('type') in [['string'], 'string']:
                 value = self.json().get(key['id'], None)
                 if key.get('filterMap') and value:
                     value = re.compile(key.get('filterMap')).findall(value)
@@ -248,7 +248,7 @@ class Item(db.Model):
             db.session.add(f)
 
     def update(self):
-        for key in ('mediastate', 'coverRatio'):
+        for key in ('mediastate', 'coverRatio', 'previewRatio'):
             if key in self.meta:
                 if key not in self.info:
                     self.info[key] = self.meta[key]
@@ -259,6 +259,9 @@ class Item(db.Model):
             self.info['mediastate'] = 'transferring'
         else:
             self.info['mediastate'] = 'available' if settings.USER_ID in users else 'unavailable'
+        #fixme: also load metadata for other ids?
+        if 'primaryid' in self.meta:
+            self.meta.update(Metadata.load(*self.meta['primaryid']))
         self.update_sort()
         self.update_find()
         self.update_lists()
@@ -269,86 +272,123 @@ class Item(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language')
+
     def update_meta(self, data):
-        if data != self.meta:
-            self.meta = data
+        update = False
+        record = {}
+        for key in self.meta_keys:
+            if key in data:
+                self.meta[key] = data[key]
+                record[key] = data[key]
+                update = True
+        for key in self.meta.keys():
+            if key not in self.meta_keys:
+                del self.meta[key]
+                update = True
+        if update:
             self.update()
             self.modified = datetime.utcnow()
             self.save()
             user = state.user()
             if user in self.users:
-                Changelog.record(user, 'edititem', self.id, data)
+                Changelog.record(user, 'edititem', self.id, record)
 
-    def update_mainid(self, key, id):
+    def update_primaryid(self, key=None, id=None):
+        if key is None and id is None:
+            if 'primaryid' not in self.meta:
+                return
+            else:
+                key = self.meta['primaryid'][0]
         record = {}
         if id:
             self.meta[key] = id
-            self.meta['mainid'] = key
+            self.meta['primaryid'] = [key, id]
             record[key] = id
         else:
             if key in self.meta:
                 del self.meta[key]
-            if 'mainid' in self.meta:
-                del self.meta['mainid']
+            if 'primaryid' in self.meta:
+                del self.meta['primaryid']
             record[key] = ''
         for k in self.id_keys:
             if k != key:
                 if k in self.meta:
                     del self.meta[k]
-        logger.debug('mainid %s %s', 'mainid' in self.meta, self.meta.get('mainid'))
-        logger.debug('key %s %s', key, self.meta.get(key))
+        logger.debug('set primaryid %s %s', key, id)
 
         # get metadata from external resources
         self.scrape()
         self.update()
-        self.update_cover()
+        self.update_icons()
         self.modified = datetime.utcnow()
         self.save()
         user = state.user()
         if user in self.users:
             Changelog.record(user, 'edititem', self.id, record)
 
-    def extract_cover(self):
+    def edit_metadata(self, data):
+        if 'primaryid' in self.meta:
+            m = Metadata.get_or_create(*self.meta['primaryid'])
+            m.edit(data)
+            m.update_items()
+        else:
+            self.update_meta(data)
+
+    def extract_preview(self):
         path = self.get_path()
         if path:
             return getattr(media, self.info['extension']).cover(path)
 
-    def update_cover(self):
+    def update_icons(self):
+        def get_ratio(data):
+            img = Image.open(StringIO(data))
+            return img.size[0]/img.size[1]
+        key = 'cover:%s'%self.id
         cover = None
         if 'cover' in self.meta and self.meta['cover']:
             cover = ox.cache.read_url(self.meta['cover'])
             #covers[self.id] = requests.get(self.meta['cover']).content
             if cover:
-                covers[self.id] = cover
+                icons[key] = cover
+                self.info['coverRatio'] = get_ratio(cover)
         else:
-            if covers[self.id]:
-                del covers[self.id]
+            if icons[key]:
+                del icons[key]
         path = self.get_path()
-        if not cover and path:
-            cover = self.extract_cover()
-            if cover:
-                covers[self.id] = cover
-        if cover:
-            img = Image.open(StringIO(cover))
-            self.info['coverRatio'] = img.size[0]/img.size[1]
-        for p in (':128', ':256', ':512'):
-            del covers['%s%s' % (self.id, p)]
-        return cover
+        key = 'preview:%s'%self.id
+        if path:
+            preview = self.extract_preview()
+            if preview:
+                icons[key] = preview
+                self.info['previewRatio'] = get_ratio(preview)
+                if not cover:
+                    self.info['coverRatio'] = self.info['previewRatio']
+        elif cover:
+            self.info['previewRatio'] = self.info['coverRatio']
+        for key in ('cover', 'preview'):
+            key = '%s:%s' % (key, self.id)
+            for resolution in (128, 256, 512):
+                del icons['%s:%s' % (key, resolution)]
 
     def scrape(self):
-        mainid = self.meta.get('mainid')
-        logger.debug('scrape %s %s', mainid, self.meta.get(mainid))
-        if mainid:
-            m = meta.lookup(mainid, self.meta[mainid])
-            self.meta.update(m)
+        primaryid = self.meta.get('primaryid')
+        logger.debug('scrape %s', primaryid)
+        if primaryid:
+            m = meta.lookup(*primaryid)
+            m['primaryid'] = primaryid
+            self.meta = m
         self.update()
 
     def queue_download(self):
         u = state.user()
         if not u in self.users:
+            logger.debug('queue %s for download', self.id)
             self.transferprogress = 0
             self.transferadded = datetime.utcnow()
             self.users.append(u)
+        else:
+            logger.debug('%s already queued for download? %s %s', self.id, self.transferprogress, self.transferadded)
 
     def save_file(self, content):
         u = state.user()
@@ -372,7 +412,7 @@ class Item(db.Model):
                 Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
                 f.move()
-                self.update_cover()
+                self.update_icons()
                 trigger_event('transfer', {
                     'id': self.id, 'progress': 1
                 })
@@ -416,7 +456,7 @@ for key in config['itemKeys']:
             col = db.Column(db.String(1000), index=True)
         setattr(Item, 'sort_%s' % key['id'], col)
 
-Item.id_keys = ['isbn10', 'isbn13', 'lccn', 'olid', 'oclc', 'asin']
+Item.id_keys = ['isbn', 'lccn', 'olid', 'oclc', 'asin']
 Item.item_keys = config['itemKeys'] 
 Item.filter_keys = [k['id'] for k in config['itemKeys'] if k.get('filter')]
 
@@ -529,3 +569,71 @@ class File(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+class Metadata(db.Model):
+
+    created = db.Column(db.DateTime())
+    modified = db.Column(db.DateTime())
+
+    id = db.Column(db.Integer(), primary_key=True)
+
+    key = db.Column(db.String(256))
+    value = db.Column(db.String(256))
+
+    data = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
+
+    def __repr__(self):
+        return '='.join([self.key, self.value])
+
+    @property
+    def timestamp(self):
+        return utils.datetime2ts(self.modified)
+
+    @classmethod
+    def get(cls, key, value):
+        return cls.query.filter_by(key=key, value=value).first()
+
+    @classmethod
+    def get_or_create(cls, key, value):
+        m = cls.get(key, value)
+        if not m:
+            m = cls(key=key, value=value)
+            m.created = datetime.utcnow()
+            m.data = {}
+            m.save()
+        return m
+
+    def save(self):
+        self.modified = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
+
+    def reset(self):
+        user = state.user()
+        Changelog.record(user, 'resetmeta', self.key, self.value)
+        db.session.delete(self)
+        db.session.commit()
+        self.update_items()
+
+    def edit(self, data):
+        changed = {}
+        for key in data:
+            if key not in data or data[key] != self.data.get(key):
+                self.data[key] = data[key]
+                changed[key] = data[key]
+        if changed:
+            self.save()
+            user = state.user()
+            Changelog.record(user, 'editmeta', self.key, self.value, changed)
+        return changed
+
+    def update_items(self):
+        for f in Find.query.filter_by(key=self.key, value=self.value):
+            f.item.scrape()
+
+    @classmethod
+    def load(self, key, value):
+        m = self.get(key, value)
+        if m:
+            return m.data
+        return {}

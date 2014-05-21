@@ -99,7 +99,7 @@ def info(pdf):
         if 'identifier' in data:
             value = normalize_isbn(data['identifier'])
             if stdnum.isbn.is_valid(value):
-                data['isbn'] = value
+                data['isbn'] = [value]
                 del data['identifier']
     '''
     cmd = ['pdfinfo', pdf]
@@ -120,7 +120,7 @@ def info(pdf):
         if not 'isbn' in data:
             isbn = extract_isbn(text)
             if isbn:
-                data['isbn'] = isbn
+                data['isbn'] = [isbn]
     return data
 
 '''

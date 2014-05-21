@@ -13,7 +13,7 @@ base = 'http://www.abebooks.com'
 
 def get_ids(key, value):
     ids = []
-    if key in ('isbn10', 'isbn13'):
+    if key == 'isbn':
         url = '%s/servlet/SearchResults?isbn=%s&sts=t' % (base, id)
         data = read_url(url)
         urls = re.compile('href="(/servlet/BookDetailsPL[^"]+)"').findall(data)
