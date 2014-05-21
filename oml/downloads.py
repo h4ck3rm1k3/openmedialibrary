@@ -35,6 +35,8 @@ class Downloads(Thread):
     def run(self):
         time.sleep(2)
         with self._app.app_context():
+            import item.scan
+            item.scan.run_scan()
             while self._running:
                 if state.online:
                     self.download_next()
