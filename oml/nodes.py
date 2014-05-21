@@ -25,6 +25,7 @@ import directory
 from websocket import trigger_event
 from localnodes import LocalNodes
 from ssl_request import get_opener
+import state
 
 import logging
 logger = logging.getLogger('oml.nodes')
@@ -124,6 +125,7 @@ class Node(Thread):
         sig = settings.sk.sign(content, encoding=ENCODING)
         headers = {
             'User-Agent': settings.USER_AGENT,
+            'X-Node-Protocol': settings.NODE_PROTOCOL,
             'Accept': 'text/plain',
             'Accept-Encoding': 'gzip',
             'Content-Type': 'application/json',
@@ -154,6 +156,15 @@ class Node(Thread):
         data = r.read()
         if r.headers.get('content-encoding', None) == 'gzip':
             data = gzip.GzipFile(fileobj=StringIO(data)).read()
+
+        version = r.headers.get('X-Node-Protocol', None)
+        if version != settings.NODE_PROTOCOL:
+            logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
+            self.online = False
+            if version > settings.NODE_PROTOCOL:
+                state.update_required = True
+            return None
+
         sig = r.headers.get('X-Ed25519-Signature')
         if sig and self._valid(data, sig):
             response = json.loads(data)
@@ -177,7 +188,17 @@ class Node(Thread):
     def can_connect(self):
         try:
             logger.debug('try to connect to %s', self.url)
+            headers = {
+                'User-Agent': settings.USER_AGENT,
+                'X-Node-Protocol': settings.NODE_PROTOCOL,
+                'Accept-Encoding': 'gzip',
+            }
+            self._opener.addheaders = zip(headers.keys(), headers.values())
             r = self._opener.open(self.url, timeout=1)
+            version = r.headers.get('X-Node-Protocol', None)
+            if version != settings.NODE_PROTOCOL:
+                logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
+                return False
             c = r.read()
             logger.debug('ok')
             return True
@@ -261,6 +282,7 @@ class Node(Thread):
         return True
 
     def download(self, item):
+        from item.models import Transfer
         url = '%s/get/%s' % (self.url, item.id)
         headers = {
             'User-Agent': settings.USER_AGENT,
@@ -281,11 +303,12 @@ class Node(Thread):
                 '''
                 content = ''
                 for chunk in iter(lambda: r.read(1024*1024), ''):
+                    t = Transfer.get(item.id)
                     content += chunk
-                    item.transferprogress = len(content) / item.info['size']
-                    item.save()
+                    t.progress = len(content) / item.info['size']
+                    t.save()
                     trigger_event('transfer', {
-                        'id': item.id, 'progress': item.transferprogress
+                        'id': item.id, 'progress': t.progress
                     })
                 '''
                 content = r.read()
@@ -337,7 +360,7 @@ class Nodes(Thread):
     def queue(self, *args):
         self._q.put(list(args))
 
-    def check_online(self, id):
+    def is_online(self, id):
         return id in self._nodes and self._nodes[id].online
 
     def download(self, id, item):

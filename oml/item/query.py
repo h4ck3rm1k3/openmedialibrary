@@ -5,7 +5,8 @@ from __future__ import division
 import settings
 import models
 import utils
-import oxflask.query
+from queryparser import Parser
+
 
 from sqlalchemy.sql.expression import nullslast
 
@@ -18,12 +19,12 @@ def parse(data):
         if key in data:
             query[key] = data[key]
     #print data
-    query['qs'] = oxflask.query.Parser(models.Item).find(data)
+    query['qs'] = Parser(models.Item).find(data)
     if not 'group' in query:
         query['qs'] = order(query['qs'], query['sort'])
     return query
 
-def order(qs, sort, prefix='sort_'):
+def order(qs, sort, prefix='sort.'):
     order_by = []
     if len(sort) == 1:
         additional_sort = settings.config['user']['ui']['listSort']
@@ -51,5 +52,5 @@ def order(qs, sort, prefix='sort_'):
             _order_by.append(nulls)
             _order_by.append(order)
         order_by = _order_by
-        qs = qs.order_by(*order_by)
+        qs = qs.join(models.Sort).order_by(*order_by)
     return qs

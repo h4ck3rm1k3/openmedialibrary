@@ -15,6 +15,8 @@ import logging
 import Image
 import ox
 
+from db import MutableDict
+
 import settings
 from settings import db, config
 
@@ -26,7 +28,6 @@ import meta
 import state
 import utils
 
-from oxflask.db import MutableDict
 
 from icons import icons
 from changelog import Changelog
@@ -35,42 +36,6 @@ from utils import remove_empty_folders
 
 logger = logging.getLogger('oml.item.model')
 
-class Work(db.Model):
-
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
-
-    id = db.Column(db.String(32), primary_key=True)
-
-    meta = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
-
-    def __repr__(self):
-        return self.id
-
-    def __init__(self, id):
-        self.id = id
-        self.created = datetime.utcnow()
-        self.modified = datetime.utcnow()
-
-class Edition(db.Model):
-
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
-
-    id = db.Column(db.String(32), primary_key=True)
-
-    meta = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
-
-    work_id = db.Column(db.String(32), db.ForeignKey('work.id'))
-    work = db.relationship('Work', backref=db.backref('editions', lazy='dynamic'))
-
-    def __repr__(self):
-        return self.id
-
-    def __init__(self, id):
-        self.id = id
-        self.created = datetime.utcnow()
-        self.modified = datetime.utcnow()
 
 user_items = db.Table('useritem',
     db.Column('user_id', db.String(43), db.ForeignKey('user.id')),
@@ -87,21 +52,13 @@ class Item(db.Model):
     info = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
     meta = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
 
+    # why is this in db and not in i.e. info?
     added = db.Column(db.DateTime()) # added to local library
     accessed = db.Column(db.DateTime())
     timesaccessed = db.Column(db.Integer())
 
-    transferadded = db.Column(db.DateTime())
-    transferprogress = db.Column(db.Float())
-
     users = db.relationship('User', secondary=user_items,
         backref=db.backref('items', lazy='dynamic'))
-
-    edition_id = db.Column(db.String(32), db.ForeignKey('edition.id'))
-    edition = db.relationship('Edition', backref=db.backref('items', lazy='dynamic'))
-
-    work_id = db.Column(db.String(32), db.ForeignKey('work.id'))
-    work = db.relationship('Work', backref=db.backref('items', lazy='dynamic'))
 
     @property
     def timestamp(self):
@@ -146,8 +103,10 @@ class Item(db.Model):
         j['timesaccessed'] = self.timesaccessed
         j['accessed'] = self.accessed
         j['added'] = self.added
-        j['transferadded'] = self.transferadded
-        j['transferprogress'] = self.transferprogress
+        t = Transfer.get(self.id)
+        if t:
+            j['transferadded'] = t.added
+            j['transferprogress'] = t.progress
         j['users'] = map(str, list(self.users))
 
         if self.info:
@@ -158,13 +117,6 @@ class Item(db.Model):
         for key in self.id_keys + ['primaryid']:
             if key not in self.meta and key in j:
                 del j[key]
-        '''
-        if self.work_id:
-            j['work'] = {
-                'olid': self.work_id
-            }
-            j['work'].update(self.work.meta)
-        '''
         if keys:
             for k in j.keys():
                 if k not in keys:
@@ -176,6 +128,7 @@ class Item(db.Model):
         return f.fullpath() if f else None
 
     def update_sort(self):
+        s = Sort.get_or_create(self.id)
         for key in config['itemKeys']:
             if key.get('sort'):
                 value = self.json().get(key['id'], None)
@@ -202,7 +155,8 @@ class Item(db.Model):
                             value = ox.sort_string(value).lower()
                 elif isinstance(value, list): #empty list
                     value = ''
-                setattr(self, 'sort_%s' % key['id'], value)
+                setattr(s, key['id'], value)
+        db.session.add(s)
 
     def update_find(self):
 
@@ -255,11 +209,11 @@ class Item(db.Model):
                 del self.meta[key]
         users = map(str, list(self.users))
         self.info['mediastate'] = 'available' # available, unavailable, transferring
-        if self.transferadded and self.transferprogress < 1:
+        t = Transfer.get(self.id)
+        if t and t.added and t.progress < 1:
             self.info['mediastate'] = 'transferring'
         else:
             self.info['mediastate'] = 'available' if settings.USER_ID in users else 'unavailable'
-        #fixme: also load metadata for other ids?
         if 'primaryid' in self.meta:
             self.meta.update(Metadata.load(*self.meta['primaryid']))
         self.update_sort()
@@ -382,13 +336,12 @@ class Item(db.Model):
 
     def queue_download(self):
         u = state.user()
+        t = Transfer.get_or_create(self.id)
         if not u in self.users:
             logger.debug('queue %s for download', self.id)
-            self.transferprogress = 0
-            self.transferadded = datetime.utcnow()
             self.users.append(u)
         else:
-            logger.debug('%s already queued for download? %s %s', self.id, self.transferprogress, self.transferadded)
+            logger.debug('%s already queued for download? %s %s', self.id, t.progress, t.added)
 
     def save_file(self, content):
         u = state.user()
@@ -407,7 +360,9 @@ class Item(db.Model):
                     fd.write(content)
                 if u not in self.users:
                     self.users.append(u)
-                self.transferprogress = 1
+                t = Transfer.get_or_create(self.id)
+                t.progress = 1
+                t.save()
                 self.added = datetime.utcnow()
                 Changelog.record(u, 'additem', self.id, self.info)
                 self.update()
@@ -419,7 +374,9 @@ class Item(db.Model):
                 return True
         else:
             logger.debug('TRIED TO SAVE EXISTING FILE!!!')
-            self.transferprogress = 1
+            t = Transfer.get_or_create(self.id)
+            t.progress = 1
+            t.save()
             self.update()
         return False
 
@@ -443,6 +400,26 @@ class Item(db.Model):
             self.update()
         Changelog.record(user, 'removeitem', self.id)
 
+class Sort(db.Model):
+    item_id = db.Column(db.String(32), db.ForeignKey('item.id'), primary_key=True)
+    item = db.relationship('Item', backref=db.backref('sort', lazy='dynamic'))
+
+    def __repr__(self):
+        return '%s_sort' % self.item_id
+
+    @classmethod
+    def get(cls, item_id):
+        return cls.query.filter_by(item_id=item_id).first()
+
+    @classmethod
+    def get_or_create(cls, item_id):
+        f = cls.get(item_id)
+        if not f:
+            f = cls(item_id=item_id)
+            db.session.add(f)
+            db.session.commit()
+        return f
+
 for key in config['itemKeys']:
     if key.get('sort'):
         sort_type = key.get('sortType', key['type'])
@@ -454,7 +431,7 @@ for key in config['itemKeys']:
             col = db.Column(db.DateTime(), index=True)
         else:
             col = db.Column(db.String(1000), index=True)
-        setattr(Item, 'sort_%s' % key['id'], col)
+        setattr(Sort, '%s' % key['id'], col)
 
 Item.id_keys = ['isbn', 'lccn', 'olid', 'oclc', 'asin']
 Item.item_keys = config['itemKeys'] 
@@ -565,6 +542,36 @@ class File(db.Model):
             shutil.move(current_path, path)
             self.path = new_path
             self.save()
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+
+class Transfer(db.Model):
+
+    item_id = db.Column(db.String(32), db.ForeignKey('item.id'), primary_key=True)
+    item = db.relationship('Item', backref=db.backref('transfer', lazy='dynamic'))
+
+    added = db.Column(db.DateTime())
+    progress = db.Column(db.Float())
+
+    def __repr__(self):
+        return '='.join(map(str, [self.item_id, self.progress]))
+
+    @classmethod
+    def get(cls, item_id):
+        return cls.query.filter_by(item_id=item_id).first()
+
+    @classmethod
+    def get_or_create(cls, item_id):
+        t = cls.get(item_id)
+        if not t:
+            t = cls(item_id=item_id)
+            t.added = datetime.utcnow()
+            t.progress = 0
+            t.save()
+        return t
 
     def save(self):
         db.session.add(self)

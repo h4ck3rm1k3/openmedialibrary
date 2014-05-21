@@ -21,13 +21,13 @@ class Downloads(Thread):
 
     def download_next(self):
         import item.models
-        for i in item.models.Item.query.filter(
-                item.models.Item.transferadded!=None).filter(
-                item.models.Item.transferprogress<1).order_by(item.models.Item.transferadded):
-            for u in i.users:
-                if state.nodes.check_online(u.id):
-                    logger.debug('DOWNLOAD %s %s', i, u)
-                    r = state.nodes.download(u.id, i)
+        for t in item.models.Transfer.query.filter(
+            item.models.Transfer.added!=None,
+            item.models.Transfer.progress<1).order_by(item.models.Transfer.added):
+            for u in t.item.users:
+                if state.nodes.is_online(u.id):
+                    logger.debug('DOWNLOAD %s %s', t.item, u)
+                    r = state.nodes.download(u.id, t.item)
                     logger.debug('download ok? %s', r)
                     return True
         return False

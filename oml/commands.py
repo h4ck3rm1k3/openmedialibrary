@@ -81,24 +81,9 @@ class PostUpdate(Command):
             ]
 
         def run(selfi, old, new):
-            if old <= '20140506-2-796c77b' and new > '20140506-2-796c77b':
-                print 'migrate database content'
-                import item.models
-                for i in item.models.Item.query:
-                    if 'mainid' in i.meta:
-                        mainid = i.meta.pop('mainid')
-                        pid = {'isbn10': 'isbn', 'isbn13': 'isbn'}.get(mainid, mainid)
-                        i.meta['primaryid'] = [pid, i.meta[mainid]]
-                    isbns = i.meta.get('isbn', [])
-                    for key in ('isbn10', 'isbn13'):
-                        if key in i.meta:
-                             isbns.append(i.meta.pop(key))
-                    if isbns:
-                        i.meta['isbn'] = isbns
-                    for key in ('asin', 'lccn', 'olid', 'oclc'):
-                        if key in i.meta and isinstance(i.meta[key], basestring):
-                            i.meta[key] = [i.meta[key]]
-                    i.update()
+            if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
+                if not os.path.exists(settings.db_path):
+                    r('./ctl', 'setup')
 
 class Setup(Command):
         """
@@ -137,7 +122,7 @@ class Release(Command):
 
             os.chdir(root_dir)
 
-            with open(os.path.expanduser('~/Private/openmedialibrary_release.key')) as fd:
+            with open(os.path.expanduser('~/.openmedialibrary_release.key')) as fd:
                 SIG_KEY=ed25519.SigningKey(fd.read())
             SIG_ENCODING='base64'
 

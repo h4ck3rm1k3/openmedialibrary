@@ -18,7 +18,7 @@ config_dir = os.path.normpath(os.path.join(base_dir, '..', 'config'))
 if not os.path.exists(config_dir):
     os.makedirs(config_dir)
 
-db_path = os.path.join(config_dir, 'openmedialibrary.db')
+db_path = os.path.join(config_dir, 'data.db')
 icons_db_path = os.path.join(config_dir, 'icons.db')
 key_path = os.path.join(config_dir, 'node.key')
 ssl_cert_path = os.path.join(config_dir, 'node.ssl.crt')
@@ -67,8 +67,12 @@ else:
 USER_ID = vk.to_ascii(encoding='base64')
 
 if 'modules' in release and 'openmedialibrary' in release['modules']:
-    VERSION = release['modules']['openmedialibrary']['version']
+    MINOR_VERSION = release['modules']['openmedialibrary']['version']
 else:
-    VERSION = 'git'
+    MINOR_VERSION = 'git'
+
+NODE_PROTOCOL="0.1"
+VERSION="%s.%s" % (NODE_PROTOCOL, MINOR_VERSION)
+
 
 USER_AGENT = 'OpenMediaLibrary/%s' % VERSION

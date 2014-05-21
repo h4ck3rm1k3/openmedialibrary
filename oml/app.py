@@ -8,7 +8,6 @@ from flask.ext.migrate import Migrate, MigrateCommand
 import logging
 
 
-import oxflask.api
 
 import settings
 from settings import db
@@ -31,7 +30,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask('openmedialibrary', static_folder=settings.static_path)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s' % settings.db_path
-app.register_blueprint(oxflask.api.app)
 app.register_blueprint(item.views.app)
 db.init_app(app)
 

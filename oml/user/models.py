@@ -3,8 +3,8 @@
 
 import json
 
-from oxflask.db import MutableDict
-import oxflask.query
+from db import MutableDict
+from queryparser import Parser
 
 from changelog import Changelog
 import settings
@@ -19,11 +19,11 @@ class User(db.Model):
 
     created = db.Column(db.DateTime())
     modified = db.Column(db.DateTime())
+
     id = db.Column(db.String(43), primary_key=True)
     info = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
 
-    #nickname = db.Column(db.String(256), unique=True)
-    nickname = db.Column(db.String(256))
+    nickname = db.Column(db.String(256), unique=True)
 
     pending = db.Column(db.String(64)) # sent|received
     queued = db.Column(db.Boolean())
@@ -58,12 +58,12 @@ class User(db.Model):
         if self.pending:
             j['pending'] = self.pending
         j['peered'] = self.peered
-        j['online'] = self.check_online()
+        j['online'] = self.is_online()
         j['nickname'] = self.nickname
         return j
 
-    def check_online(self):
-        return state.nodes and state.nodes.check_online(self.id)
+    def is_online(self):
+        return state.nodes and state.nodes.is_online(self.id)
 
     def lists_json(self):
         return [{
@@ -72,7 +72,7 @@ class User(db.Model):
             'type': 'library',
             'items': self.items.count(),
             'user': self.nickname if self.id != settings.USER_ID else settings.preferences['username'],
-        }] + [l.json() for l in self.lists.order_by('position')]
+        }] + [l.json() for l in self.lists.order_by('index_')]
 
     def update_peering(self, peered, username=None):
         was_peering = self.peered
@@ -125,7 +125,7 @@ list_items = db.Table('listitem',
 class List(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String())
-    position = db.Column(db.Integer())
+    index_ = db.Column(db.Integer())
 
     type = db.Column(db.String(64))
     _query = db.Column('query', MutableDict.as_mutable(db.PickleType(pickler=json)))
@@ -171,7 +171,7 @@ class List(db.Model):
         l = cls(user_id=user_id, name=name)
         l._query = query
         l.type = 'smart' if l._query else 'static'
-        l.position = cls.query.filter_by(user_id=user_id).count()
+        l.index_ = cls.query.filter_by(user_id=user_id).count()
         if user_id == settings.USER_ID:
             p = User.get(settings.USER_ID)
             if not l._query:
@@ -251,7 +251,7 @@ class List(db.Model):
         from item.models import Item
         if self._query:
             data = self._query
-            return oxflask.query.Parser(Item).find({'query': data}).count()
+            return Parser(Item).find({'query': data}).count()
         else:
             return len(self.items)
 
@@ -260,7 +260,7 @@ class List(db.Model):
             'id': self.public_id,
             'user': self.user.nickname if self.user_id != settings.USER_ID else settings.preferences['username'],
             'name': self.name,
-            'index': self.position,
+            'index': self.index_,
             'items': self.items_count(),
             'type': self.type
         }

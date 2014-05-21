@@ -18,6 +18,7 @@ from utils import valid, get_public_ipv6
 import nodeapi
 import cert
 from websocket import trigger_event
+from oxtornado import run_async
 
 import logging
 logger = logging.getLogger('oml.node.server')
@@ -28,57 +29,73 @@ class NodeHandler(tornado.web.RequestHandler):
         self.app = app
 
 
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def post(self):
-        request = self.request
-        if request.method == 'POST':
-            '''
-                API
-                pullChanges     [userid] from [to]
-                pushChanges     [index, change]
-                requestPeering  username message
-                acceptPeering   username message
-                rejectPeering   message
-                removePeering   message
+        '''
+            API
+            pullChanges     [userid] from [to]
+            pushChanges     [index, change]
+            requestPeering  username message
+            acceptPeering   username message
+            rejectPeering   message
+            removePeering   message
 
-                ping            responds public ip
-            '''
-            key = str(request.headers['X-Ed25519-Key'])
-            sig = str(request.headers['X-Ed25519-Signature'])
-            data = request.body
-            content = {}
+            ping            responds public ip
+        '''
+        key = str(self.request.headers['X-Ed25519-Key'])
+        sig = str(self.request.headers['X-Ed25519-Signature'])
+        data = self.request.body
+        content = {}
+
+        self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)
+        if self.request.headers.get('X-Node-Protocol', None) > settings.NODE_PROTOCOL:
+            state.update_required = True
+        if self.request.headers.get('X-Node-Protocol', None) != settings.NODE_PROTOCOL:
+            content = settings.release
+        else:
             if valid(key, data, sig):
                 action, args = json.loads(data)
                 logger.debug('NODE action %s %s (%s)', action, args, key)
                 if action == 'ping':
                     content = {
-                        'ip': request.remote_addr
+                        'ip': self.request.remote_addr
                     }
                 else:
-                    with self.app.app_context():
-                        u = user.models.User.get(key)
-                        if action in (
-                            'requestPeering', 'acceptPeering', 'rejectPeering', 'removePeering'
-                        ) or (u and u.peered):
-                            content = getattr(nodeapi, 'api_' + action)(self.app, key, *args)
-                        else:
-                            if u and u.pending:
-                                logger.debug('ignore request from pending peer[%s] %s (%s)', key, action, args)
-                                content = {}
-                            else:
-                                logger.debug('PEER %s IS UNKNOWN SEND 403', key)
-                                self.set_status(403)
-                                content = {
-                                    'status': 'not peered'
-                                }
-            content = json.dumps(content)
-            sig = settings.sk.sign(content, encoding='base64')
-            self.set_header('X-Ed25519-Signature', sig)
-            self.write(content)
-            self.finish()
+                    content = yield tornado.gen.Task(api_call, self.app, action, key, args)
+                    if content is None:
+                        content = {'status': 'not peered'}
+                        logger.debug('PEER %s IS UNKNOWN SEND 403', key)
+                        self.set_status(403)
+        content = json.dumps(content)
+        sig = settings.sk.sign(content, encoding='base64')
+        self.set_header('X-Ed25519-Signature', sig)
+        self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)
+        self.write(content)
+        self.finish()
 
     def get(self):
+        self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)
+        if self.request.headers.get('X-Node-Protocol', None) > settings.NODE_PROTOCOL:
+            state.update_required = True
         self.write('Open Media Library')
         self.finish()
+
+@run_async
+def api_call(app, action, key, args, callback):
+    with app.app_context():
+        u = user.models.User.get(key)
+        if action in (
+            'requestPeering', 'acceptPeering', 'rejectPeering', 'removePeering'
+        ) or (u and u.peered):
+            content = getattr(nodeapi, 'api_' + action)(app, key, *args)
+        else:
+            if u and u.pending:
+                logger.debug('ignore request from pending peer[%s] %s (%s)', key, action, args)
+                content = {}
+            else:
+                content = None
+    callback(content)
 
 class ShareHandler(tornado.web.RequestHandler):
 
@@ -149,7 +166,7 @@ def check_nodes(app):
     if state.online:
         with app.app_context():
             for u in user.models.User.query.filter_by(queued=True):
-                if not state.nodes.check_online(u.id):
+                if not state.nodes.is_online(u.id):
                     logger.debug('queued peering message for %s trying to connect...', u.id)
                     state.nodes.queue('add', u.id)
 

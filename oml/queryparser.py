@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
 
-from sqlalchemy.sql.expression import and_, not_, or_, ClauseElement
 from datetime import datetime
 import unicodedata
-from sqlalchemy.sql import operators, extract
+from sqlalchemy.sql import operators
 from sqlalchemy.orm import load_only
 
 import utils
 import settings
 
 import logging
-logger = logging.getLogger('oxflask.query')
+logger = logging.getLogger('queryparser')
 
 def get_operator(op, type='str'):
     return {
@@ -115,7 +114,8 @@ class Parser(object):
             nickname, name = v.split(':', 1)
             if nickname:
                 p = self._user.query.filter_by(nickname=nickname).first()
-                v = '%s:%s' % (p.id, name)
+                if p:
+                    v = '%s:%s' % (p.id, name)
             else:
                 p = self._user.query.filter_by(id=settings.USER_ID).first()
                 v = ':%s' % name

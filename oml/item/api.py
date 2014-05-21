@@ -84,7 +84,7 @@ def find(data):
         #from sqlalchemy.sql import func
         #models.db.session.query(func.sum(models.Item.sort_size).label("size"))
         #response['size'] = x.scalar()
-        response['size'] = sum([i.sort_size or 0 for i in q['qs'].options(load_only('id', 'sort_size'))])
+        response['size'] = sum([i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))])
     return response
 actions.register(find)
 
@@ -225,8 +225,10 @@ def cancelDownloads(data):
     ids = data['ids']
     if ids:
         for item in models.Item.query.filter(models.Item.id.in_(ids)):
-            item.transferprogress = None
-            item.transferadded = None
+            t = models.Transfer.get(item.id)
+            t.progress = None
+            t.added = None
+            t.save()
             p = state.user()
             if p in item.users:
                 item.users.remove(p)

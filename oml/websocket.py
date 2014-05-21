@@ -8,7 +8,7 @@ from Queue import Queue
 import json
 from threading import Thread
 
-from oxflask.shortcuts import json_dumps
+from oxtornado import json_dumps
 
 import state
 
