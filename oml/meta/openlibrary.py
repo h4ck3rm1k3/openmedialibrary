@@ -86,11 +86,19 @@ def lookup(id, return_all=False):
 
 def format(info, return_all=False):
     data = {}
+    if 'works' in info:
+        work = api.get(info['works'][0]['key'])['result']
+    else:
+        work = None
     for key in KEYS:
         if key in info:
             value = info[key]
             if key == 'authors':
-                value = resolve_names(value)
+                if work:
+                    value = resolve_names([r['author']
+                        for r in work['authors'] if r['type']['key'] == '/type/author_role'])
+                else:
+                    value = resolve_names(value)
             elif key == 'publish_country':
                 value = value.strip()
                 value = COUNTRIES.get(value, value)
@@ -107,6 +115,8 @@ def format(info, return_all=False):
             elif isinstance(value, list) and key not in ('publish_places', 'lccn', 'oclc_numbers'):
                 value = value[0]
             data[KEYS[key]] = value
+    if 'subtitle' in info:
+        data['title'] += ' ' + info['subtitle']
     if 'classification' in data:
         value = data['classification']
         if isinstance(value, list):
