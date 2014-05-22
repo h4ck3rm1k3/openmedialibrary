@@ -398,6 +398,7 @@ class Item(db.Model):
         db.session.commit()
         if not self.users:
             db.session.delete(self)
+            Sort.query.filter_by(item_id=self.id).delete()
         else:
             self.update()
         Changelog.record(user, 'removeitem', self.id)

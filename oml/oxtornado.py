@@ -100,6 +100,10 @@ class ApiHandler(tornado.web.RequestHandler):
     def initialize(self, app):
         self._app = app
 
+    def get(self):
+        self.write('use POST')
+        self.finish()
+
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
