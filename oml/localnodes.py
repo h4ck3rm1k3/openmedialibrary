@@ -11,7 +11,7 @@ import sys
 import thread
 from threading import Thread
 
-from utils import valid, get_public_ipv6
+from utils import valid, get_public_ipv6, get_local_ipv4, get_interface
 from settings import preferences, server, USER_ID, sk
 import state
 
@@ -19,34 +19,26 @@ logger = logging.getLogger('oml.localnodes')
 
 def can_connect(data):
     try:
-        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        if ':' in data['host']:
+            s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        else:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(1)
         s.connect((data['host'], data['port']))
         s.close()
         return True
     except:
         pass
+    logger.debug('can_connect failed')
     return False
-
-def get_interface():
-    interface = ''
-    if sys.platform == 'darwin':
-        #cmd = ['/usr/sbin/netstat', '-rn']
-        cmd = ['/sbin/route', '-n', 'get', 'default']
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        interface = [[p.strip() for p in s.split(':', 1)] for s in stdout.strip().split('\n') if 'interface' in s]
-        if interface:
-            interface = '%%%s' % interface[0][1]
-        else:
-            interface = ''
-    return interface
 
 class LocalNodes(Thread):
     _active = True
     _nodes = {}
 
+    _MODE = 6
     _BROADCAST = "ff02::1"
+    _BROADCAST4 = "239.255.255.250"
     _PORT = 9851 
     TTL = 1
 
@@ -58,10 +50,7 @@ class LocalNodes(Thread):
         self.daemon = True
         self.start()
 
-    def send(self):
-        if not server['localnode_discovery']:
-            return
-
+    def get_packet(self):
         message = json.dumps({
             'username': preferences.get('username', 'anonymous'),
             'host': self.host,
@@ -70,10 +59,17 @@ class LocalNodes(Thread):
         })
         sig = sk.sign(message, encoding='base64')
         packet = json.dumps([sig, USER_ID, message])
+        return packet
 
+    def send(self):
+        if not server['localnode_discovery']:
+            return
+        if self._MODE == 4:
+            return self.send4()
+        packet = self.get_packet()
         ttl = struct.pack('@i', self.TTL)
         address = self._BROADCAST + get_interface()
-        addrs = socket.getaddrinfo(address, self._PORT, socket.AF_INET6,socket.SOCK_DGRAM)
+        addrs = socket.getaddrinfo(address, self._PORT, socket.AF_INET6, socket.SOCK_DGRAM)
         addr = addrs[0]
         (family, socktype, proto, canonname, sockaddr) = addr
         s = socket.socket(family, socktype, proto)
@@ -81,7 +77,27 @@ class LocalNodes(Thread):
         s.sendto(packet + '\0', sockaddr)
         s.close()
 
+    def send4(self):
+        logger.debug('send4')
+        packet = self.get_packet()
+        sockaddr = (self._BROADCAST4, self._PORT)
+        s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt (socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        s.sendto(packet + '\0', sockaddr)
+        s.close()
+        logger.debug('sent4')
+        '''
+        try:
+            s.sendto(packet + '\0', sockaddr)
+            s.close()
+        except:
+            logger.debug('send failed %s', )
+            return
+        '''
+
     def receive(self):
+        if self._MODE == 4:
+            return self.receive4()
         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(('', self._PORT))
@@ -94,14 +110,25 @@ class LocalNodes(Thread):
                 data = data[:-1] # Strip trailing \0's
             data = self.verify(data)
             if data:
-                #fixme use local link address
-                #print addr
-                if data['id'] != USER_ID:
-                    if data['id'] not in self._nodes:
-                        thread.start_new_thread(self.new_node, (data, ))
-                    #else:
-                    #    print 'UPDATE NODE', data
-                    self._nodes[data['id']] = data
+                self.update_node(data)
+
+    def receive4(self):
+        logger.debug('receive4')
+        s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        mreq = struct.pack("=4sl", socket.inet_aton(self._BROADCAST4), socket.INADDR_ANY)
+        s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+        s.bind(('', self._PORT))
+        while self._active:
+            data, addr = s.recvfrom(1024)
+            logger.debug('receive4')
+            while data[-1] == '\0':
+                data = data[:-1] # Strip trailing \0's
+            logger.debug('receive4 %s', data)
+            data = self.verify(data)
+            if data:
+                self.update_node(data)
 
     def verify(self, data):
         try:
@@ -117,6 +144,16 @@ class LocalNodes(Thread):
                     if key not in message:
                         return None
                 return message
+
+    def update_node(self, data):
+        #fixme use local link address
+        #print addr
+        if data['id'] != USER_ID:
+            if data['id'] not in self._nodes:
+                thread.start_new_thread(self.new_node, (data, ))
+            #else:
+            #    print 'UPDATE NODE', data
+            self._nodes[data['id']] = data
 
     def get(self, user_id):
         if user_id in self._nodes:
@@ -138,6 +175,10 @@ class LocalNodes(Thread):
 
     def run(self):
         self.host = get_public_ipv6()
+        if not self.host:
+            logger.debug('no ipv6 detected, fall back to local ipv4 sharing')
+            self.host = get_local_ipv4()
+            self._MODE = 4
         self.send()
         self.receive()
 

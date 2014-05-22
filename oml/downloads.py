@@ -38,11 +38,8 @@ class Downloads(Thread):
             import item.scan
             item.scan.run_scan()
             while self._running:
-                if state.online:
-                    self.download_next()
-                    time.sleep(0.5)
-                else:
-                    time.sleep(20)
+                self.download_next()
+                time.sleep(0.5)
 
     def join(self):
         self._running = False

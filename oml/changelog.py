@@ -57,7 +57,7 @@ class Changelog(db.Model):
         c.sig = settings.sk.sign(_data, encoding='base64')
         db.session.add(c)
         db.session.commit()
-        if state.online:
+        if state.nodes:
             state.nodes.queue('peered', 'pushChanges', [c.json()])
 
     @classmethod
@@ -192,8 +192,7 @@ class Changelog(db.Model):
         if i.users:
             i.update()
         else:
-            db.session.delete(i)
-            db.session.commit()
+            i.delete()
         return True
 
     def action_addlist(self, user, timestamp, name, query=None):

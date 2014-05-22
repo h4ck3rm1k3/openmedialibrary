@@ -309,7 +309,7 @@ oml.ui.folders = function() {
                 })
                 .css({height: items.length * 16 + 'px'})
                 .size();
-            oml.resizeFolders();
+            oml.resizeListFolders();
             callback && callback();
         });
     };

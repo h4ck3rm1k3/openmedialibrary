@@ -3,6 +3,7 @@
 from __future__ import division
 
 import os
+import sys
 import Image
 from StringIO import StringIO
 import re
@@ -12,6 +13,7 @@ import cStringIO
 import gzip
 import time
 from datetime import datetime
+import subprocess
 
 import ox
 import ed25519
@@ -119,6 +121,33 @@ def get_public_ipv6():
         s.close()
     except:
         ip = None
+    return ip
+
+def get_interface():
+    interface = ''
+    if sys.platform == 'darwin':
+        #cmd = ['/usr/sbin/netstat', '-rn']
+        cmd = ['/sbin/route', '-n', 'get', 'default']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        interface = [[p.strip() for p in s.split(':', 1)] for s in stdout.strip().split('\n') if 'interface' in s]
+        if interface:
+            interface = '%%%s' % interface[0][1]
+        else:
+            interface = ''
+    return interface
+
+def get_local_ipv4():
+    ip = socket.gethostbyaddr(socket.getfqdn())[-1][0]
+    if ip == '127.0.0.1':
+        cmd = ['ip', 'route', 'show']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        local = [l for l in stdout.split('\n') if 'default' in l]
+        if local:
+            dev = local[0].split(' ')[4]
+            local_ip = [l for l in stdout.split('\n') if dev in l and not 'default' in l]
+            return [p for p in local_ip[0].split(' ')[1:] if '.' in p][0]
     return ip
 
 def update_dict(root, data):

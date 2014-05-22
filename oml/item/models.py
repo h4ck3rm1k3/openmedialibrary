@@ -228,6 +228,13 @@ class Item(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def delete(self, commit=True):
+        db.session.delete(self)
+        Sort.query.filter_by(item_id=self.id).delete()
+        Transfer.query.filter_by(item_id=self.id).delete()
+        if commit:
+            db.session.commit()
+
     meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language')
 
     def update_meta(self, data):
@@ -397,8 +404,7 @@ class Item(db.Model):
             l.items.remove(self)
         db.session.commit()
         if not self.users:
-            db.session.delete(self)
-            Sort.query.filter_by(item_id=self.id).delete()
+            self.delete()
         else:
             self.update()
         Changelog.record(user, 'removeitem', self.id)

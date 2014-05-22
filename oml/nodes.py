@@ -78,20 +78,24 @@ class Node(Thread):
 
     @property
     def url(self):
-        local = self.get_local()
-        if local:
-            url = 'https://[%s]:%s' % (local['host'], local['port'])
-        elif not self.host:
-            return None
-        else:
+        if self.host:
             if ':' in self.host:
                 url = 'https://[%s]:%s' % (self.host, self.port)
             else:
                 url = 'https://%s:%s' % (self.host, self.port)
+        else:
+            url = None
         return url
 
     def resolve(self):
-        r = directory.get(self.vk)
+        logger.debug('resolve node')
+        r = self.get_local()
+        if not r:
+            try:
+                r = directory.get(self.vk)
+            except:
+                logger.debug('directory failed', exc_info=1)
+                r = None
         if r:
             self.host = r['host']
             if 'port' in r:
@@ -187,31 +191,32 @@ class Node(Thread):
 
     def can_connect(self):
         try:
-            logger.debug('try to connect to %s', self.url)
-            headers = {
-                'User-Agent': settings.USER_AGENT,
-                'X-Node-Protocol': settings.NODE_PROTOCOL,
-                'Accept-Encoding': 'gzip',
-            }
-            self._opener.addheaders = zip(headers.keys(), headers.values())
-            r = self._opener.open(self.url, timeout=1)
-            version = r.headers.get('X-Node-Protocol', None)
-            if version != settings.NODE_PROTOCOL:
-                logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
-                return False
-            c = r.read()
-            logger.debug('ok')
-            return True
+            url = self.url
+            if url:
+                logger.debug('try to connect to %s', url)
+                headers = {
+                    'User-Agent': settings.USER_AGENT,
+                    'X-Node-Protocol': settings.NODE_PROTOCOL,
+                    'Accept-Encoding': 'gzip',
+                }
+                self._opener.addheaders = zip(headers.keys(), headers.values())
+                r = self._opener.open(url, timeout=1)
+                version = r.headers.get('X-Node-Protocol', None)
+                if version != settings.NODE_PROTOCOL:
+                    logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
+                    return False
+                c = r.read()
+                logger.debug('ok')
+                return True
         except:
             pass
-        logger.debug('failed')
         return False
 
     def _go_online(self):
         self.resolve()
         u = self.user
         logger.debug('go_online peer=%s queued=%s (%s)', u.peered, u.queued, u.id)
-        if u.peered or u.queued:
+        if u.peered or u.queued and self.host:
             try:
                 self.online = False
                 logger.debug('try to connect to %s at [%s]:%s', self.user_id, self.host, self.port)
@@ -253,13 +258,14 @@ class Node(Thread):
 
     def pushChanges(self, changes):
         logger.debug('pushing changes to %s %s', self.user_id, changes)
-        try:
-            r = self.request('pushChanges', changes)
-        except:
-            self.online = False
-            self.trigger_status()
-            r = False
-        logger.debug('pushedChanges %s %s', r, self.user_id)
+        if self.online:
+            try:
+                r = self.request('pushChanges', changes)
+            except:
+                self.online = False
+                self.trigger_status()
+                r = False
+            logger.debug('pushedChanges %s %s', r, self.user_id)
 
     def peering(self, action):
         u = self.user

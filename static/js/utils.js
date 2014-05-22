@@ -5,6 +5,7 @@ oml.addList = function() {
         isDuplicate = args.length == 1,
         isSmart, isFrom, name, callback,
         list, listData, data,
+        ui = oml.user.ui,
         username = oml.user.preferences.username;
     Ox.Request.clearCache('getLists');
     oml.api.getLists(function(result) {

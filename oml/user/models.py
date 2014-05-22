@@ -100,7 +100,7 @@ class User(db.Model):
             for i in self.items:
                 i.users.remove(self)
                 if not i.users:
-                    db.session.delete(i)
+                    i.delete()
                 else:
                     i.update_lists()
             Changelog.query.filter_by(user_id=self.id).delete()
