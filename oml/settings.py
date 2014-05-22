@@ -44,7 +44,7 @@ server_defaults = {
     'extract_text': True,
     'localnode_discovery': True,
     'directory_service': 'http://[2a01:4f8:120:3201::3]:25519',
-    'lookup_service': 'http://data.openmedialibrary.com',
+    'meta_service': 'http://meta.openmedialibrary.com/api/',
 }
 
 for key in server_defaults:

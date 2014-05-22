@@ -23,7 +23,9 @@ from settings import db, config
 from person import get_sort_name
 
 import media
-import meta
+
+#import meta
+import metaremote as meta
 
 import state
 import utils

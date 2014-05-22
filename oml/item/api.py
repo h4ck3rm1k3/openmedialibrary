@@ -16,7 +16,8 @@ import settings
 import state
 from websocket import trigger_event
 
-import meta
+#import meta
+import metaremote as meta
 
 import utils
 

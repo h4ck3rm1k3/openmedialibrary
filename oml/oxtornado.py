@@ -87,7 +87,11 @@ def api_task(app, request, callback):
         f = actions.get(action)
         if f:
             with app.app_context():
-                response = f(data)
+                try:
+                    response = f(data)
+                except:
+                    logger.debug('FAILED %s %s', action, data, exc_info=1)
+                    response = json_response(status=500, text='%s failed' % action)
         else:
             response = json_response(status=400, text='Unknown action %s' % action)
     callback(response)
