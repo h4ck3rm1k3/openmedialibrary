@@ -140,14 +140,28 @@ def get_interface():
 def get_local_ipv4():
     ip = socket.gethostbyaddr(socket.getfqdn())[-1][0]
     if ip == '127.0.0.1':
-        cmd = ['ip', 'route', 'show']
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        local = [l for l in stdout.split('\n') if 'default' in l]
-        if local:
-            dev = local[0].split(' ')[4]
-            local_ip = [l for l in stdout.split('\n') if dev in l and not 'default' in l]
-            return [p for p in local_ip[0].split(' ')[1:] if '.' in p][0]
+        if sys.platform == 'linux2':
+            cmd = ['ip', 'route', 'show']
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            local = [l for l in stdout.split('\n') if 'default' in l]
+            if local:
+                dev = local[0].split(' ')[4]
+                local_ip = [l for l in stdout.split('\n') if dev in l and not 'default' in l]
+                return [p for p in local_ip[0].split(' ')[1:] if '.' in p][0]
+        else:
+            cmd = ['/sbin/route', '-n', 'get', 'default']
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            interface = [[p.strip() for p in s.split(':', 1)] for s in stdout.strip().split('\n') if 'interface' in s]
+            if interface:
+                interface = interface[0][1]
+                cmd = ['ifconfig', interface]
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+                stdout, stderr = p.communicate()
+                ips = [l for l in stdout.split('\n') if 'inet ' in l]
+                if ips:
+                    ip = ips[0].strip().split(' ')[1]
     return ip
 
 def update_dict(root, data):
