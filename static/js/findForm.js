@@ -36,7 +36,7 @@ oml.ui.findForm = function(list) {
                     id: list.id,
                     query: data.value
                 } : {}, function(result) {
-                    if (ui.updateAdvancedFindResults) {
+                    if (list || ui.updateAdvancedFindResults) {
                         updateResults();
                     }
                 });
@@ -45,8 +45,8 @@ oml.ui.findForm = function(list) {
         .appendTo(that);
 
     function updateResults() {
-        if (list) {
-            Ox.Request.clearCache(list.id);
+        if (list || ui.updateAdvancedFindResults) {
+            Ox.Request.clearCache();
             oml.$ui.list.reloadList();
             oml.$ui.filters.forEach(function($filter) {
                 $filter.reloadList();
