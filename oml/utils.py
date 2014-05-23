@@ -138,6 +138,7 @@ def get_interface():
     return interface
 
 def get_local_ipv4():
+    ip = None
     if sys.platform == 'darwin':
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
