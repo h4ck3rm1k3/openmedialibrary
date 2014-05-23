@@ -60,7 +60,8 @@ def lookup(id):
         publisher = [e.text for e in origin[0].findall(ns + 'publisher')]
         if publisher:
             info['publisher'] = publisher[0]
-        info['date'] = ''.join([e.text for e in origin[0].findall(ns + 'dateIssued')])
+        info['date'] = ''.join([e.text
+            for e in origin[0].findall(ns + 'dateIssued') if e.attrib.get('encoding') == 'marc'])
         for i in mods.findall(ns + 'identifier'):
             key = i.attrib['type']
             value = i.text
