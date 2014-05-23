@@ -6,8 +6,6 @@ import json
 import logging
 import socket
 import struct
-import subprocess
-import sys
 import thread
 from threading import Thread
 
