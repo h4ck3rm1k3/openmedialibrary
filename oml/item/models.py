@@ -375,6 +375,7 @@ class Item(db.Model):
                 self.update()
                 f.move()
                 self.update_icons()
+                self.save()
                 trigger_event('transfer', {
                     'id': self.id, 'progress': 1
                 })
