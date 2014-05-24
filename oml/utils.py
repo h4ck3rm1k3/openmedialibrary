@@ -25,6 +25,13 @@ logger = logging.getLogger('oml.utils')
 
 ENCODING='base64'
 
+def cleanup_id(key, value):
+    if key == 'isbn':
+        value = normalize_isbn(value)
+    if key in ('lccn', 'olid', 'oclc'):
+        value = ''.join([v for v in value if v!='-'])
+    return value
+
 def valid_olid(id):
     return id.startswith('OL') and id.endswith('M')
 

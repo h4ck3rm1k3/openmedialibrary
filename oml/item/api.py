@@ -20,6 +20,7 @@ from websocket import trigger_event
 import metaremote as meta
 
 import utils
+from utils import cleanup_id
 
 import logging
 logger = logging.getLogger('oml.item.api')
@@ -120,8 +121,7 @@ def edit(data):
             if data['primaryid']:
                 key, value = data['primaryid']
                 logger.debug('update primaryid %s %s', key, value)
-                if key == 'isbn':
-                    value = utils.normalize_isbn(value)
+                value = cleanup_id(key, value)
                 item.update_primaryid(key, value)
             else:
                 item.update_primaryid()
@@ -181,8 +181,7 @@ def getMetadata(data):
     else:
         include_edits = False
     key, value = data.iteritems().next()
-    if key == 'isbn':
-        value = utils.normalize_isbn(value)
+    value = cleanup_id(key, value)
     response = meta.lookup(key, value)
     if include_edits:
         response.update(models.Metadata.load(key, value))
