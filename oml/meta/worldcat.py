@@ -62,6 +62,12 @@ def lookup(id):
                     data['isbn'] = []
                 if isbn not in data['isbn']:
                     data['isbn'].append(isbn)
+    cover = doc.xpath('//img[@class="cover"]')
+    if cover:
+        data['cover'] = cover[0].attrib['src']
+        if data['cover'].startswith('//'):
+            data['cover'] = 'http:' + data['cover']
+
     if 'author' in data:
         data['author'] = [data['author']]
     if 'title' in data:

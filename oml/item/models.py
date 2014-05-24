@@ -345,12 +345,10 @@ class Item(db.Model):
 
     def queue_download(self):
         u = state.user()
-        t = Transfer.get_or_create(self.id)
         if not u in self.users:
+            t = Transfer.get_or_create(self.id)
             logger.debug('queue %s for download', self.id)
             self.users.append(u)
-        else:
-            logger.debug('%s already queued for download? %s %s', self.id, t.progress, t.added)
 
     def save_file(self, content):
         u = state.user()
