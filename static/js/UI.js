@@ -98,14 +98,11 @@ oml.UI = (function() {
             // set that list setting to
             var key = 'lists.' + that.encode(list) + '.' + listSetting;
             if (setting in args) {
-                // the setting passed to UI.set
-                args[key] = args[setting];
-            } else if (setting in add) {
-                // or the setting changed via find
-                args[key] = add[setting];
+                // the setting passed to UI.set or changed via find
+                add[key] = args[setting];
             } else if (!ui.lists[list]) {
                 // or the default setting
-                args[key] = oml.config.user.ui[setting];
+                add[key] = oml.config.user.ui[setting];
             }
         });
 
@@ -145,6 +142,9 @@ oml.UI = (function() {
                     }),
                     ui_ = ui;
                 while (keys.length > 1) {
+                    if (!(keys[0] in ui_)) {
+                        ui_[keys[0]] = {};
+                    }
                     ui_ = ui_[keys.shift()];
                 }
                 if (!Ox.isEqual(ui_[keys[0]], value)) {
