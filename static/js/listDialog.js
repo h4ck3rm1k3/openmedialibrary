@@ -75,7 +75,9 @@ oml.ui.listDialog = function() {
                         $nameInput.value(value);
                         // FIXME: UGLY
                         listNames[listNames.indexOf(listData.name)] = value;
+                        listData.id = ':' + value;
                         listData.name = value;
+                        listData.title = value;
                         // ...
                         oml.api.editList({
                             id: ui._list,
@@ -91,7 +93,7 @@ oml.ui.listDialog = function() {
                                         }],
                                         operator: '&'
                                     }
-                                }, false);
+                                }/*, false*/); // FIXME: ui._lists still outdated
                             });
                         });
                     }
