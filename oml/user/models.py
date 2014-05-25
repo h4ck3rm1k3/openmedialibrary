@@ -183,12 +183,29 @@ class List(db.Model):
         l.type = 'smart' if l._query else 'static'
         l.index_ = cls.query.filter_by(user_id=user_id).count()
         if user_id == settings.USER_ID:
-            p = User.get(settings.USER_ID)
             if not l._query:
-                Changelog.record(p, 'addlist', l.name)
+                Changelog.record(state.user(), 'addlist', l.name)
         db.session.add(l)
         db.session.commit()
         return l
+
+    @classmethod
+    def rename_user(cls, old, new):
+        for l in cls.query.filter(cls._query!=None):
+
+            def update_conditions(conditions):
+                changed = False
+                for c in conditions:
+                    if 'conditions' in c:
+                        changed = update_conditions(conditions)
+                    else:
+                        if c.get('key') == 'list' and c.get('value', '').startswith('%s:' % old):
+                            c['value'] = '%s:%s' % new, c['value'].split(':', 1)[1]
+                            changed = True
+                return changed
+
+            if update_conditions(l._query.get('conditions', [])):
+                l.save()
 
     def add_items(self, items):
         from item.models import Item

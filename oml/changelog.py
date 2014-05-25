@@ -210,12 +210,12 @@ class Changelog(db.Model):
 
     def action_orderlists(self, user, timestamp, lists):
         from user.models import List
-        position = 0
+        idx = 0
         for name in lists:
             l = List.get_or_create(user.id, name)
-            l.position = position
+            l.index_ = idx
             l.save()
-            position += 1
+            idx += 1
         return True
 
     def action_removelist(self, user, timestamp, name):
@@ -239,8 +239,12 @@ class Changelog(db.Model):
         return True
 
     def action_editusername(self, user, timestamp, username):
+        from user.models import List
+        old = user.nickname
         user.info['username'] = username
         user.update_name()
+        if old != user.nickname:
+            List.rename_user(old, user.nickname)
         user.save()
         return True
 

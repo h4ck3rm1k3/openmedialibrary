@@ -7,7 +7,7 @@ from copy import deepcopy
 import json
 
 from oxtornado import actions
-
+import ox
 
 import models
 
@@ -87,6 +87,7 @@ def getUsers(data):
     users = []
     for u in models.User.query.filter(models.User.id!=settings.USER_ID).all():
         users.append(u.json())
+    users.sort(key=lambda u: ox.sort_string(str(u.get('index', '')) + 'Z' + (u.get('name') or '')))
     return {
         "users": users
     }
@@ -229,13 +230,17 @@ def sortLists(data):
     '''
     n = 0
     logger.debug('sortLists %s', data)
+    lists = []
     for id in data['ids']:
         l = models.List.get(id)
-        l.position = n
+        l.index_ = n
         n += 1
+        if l.type == 'static':
+            lists.append(l.name)
         models.db.session.add(l)
     models.db.session.commit()
-    logger.debug('FIXME: broadcast orderlist event here')
+    if lists:
+        Changelog.record(state.user(), 'orderlists', lists)
     return {}
 actions.register(sortLists, cache=False)
 
@@ -253,12 +258,31 @@ def editUser(data):
             p.info['nickname'] = data['nickname']
         elif 'nickname' in p.info:
             del p.info['nickname']
+        old = p.nickname
         p.update_name()
+        if old != p.nickname:
+            models.List.rename_user(old, p.nickname)
         p.save()
         return p.json()
     return {}
 actions.register(editUser, cache=False)
 
+def sortUsers(data):
+    '''
+        takes {
+            ids
+        }
+    '''
+    n = 0
+    logger.debug('sortUsers %s', data)
+    for id in data['ids']:
+        u = models.User.get(id)
+        u.info['index'] = n
+        n += 1
+        models.db.session.add(u)
+    models.db.session.commit()
+    return {}
+actions.register(sortUsers, cache=False)
 
 def requestPeering(data):
     '''

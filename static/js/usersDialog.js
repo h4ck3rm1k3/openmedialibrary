@@ -493,6 +493,7 @@ oml.ui.usersDialog = function() {
                         ids: data.ids
                     }, function(result) {
                         Ox.print('USER ORDER CHANGED', result.data);
+                        oml.$ui.folders.updateElement();
                     });
                 },
                 select: function(data) {

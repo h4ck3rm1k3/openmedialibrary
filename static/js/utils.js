@@ -835,18 +835,17 @@ oml.getSortOperator = function(key) {
 };
 
 oml.getUsers = function(callback) {
-    var ui = oml.user.ui,
+    var ui = oml.user.ui;
+    Ox.Request.clearCache('getUsers');
+    oml.api.getUsers(function(result) {
         users = [{
             id: oml.user.id,
             name: '',
             online: oml.user.online
-        }];
-    Ox.Request.clearCache('getUsers');
-    oml.api.getUsers(function(result) {
-        users = users.concat(
-            result.data.users.filter(function(user) {
+        }].concat(
+            Ox.sortBy(result.data.users.filter(function(user) {
                 return user.peered;
-            })
+            }), 'index') 
         );
         ui._users = users;
         callback(users);
@@ -890,26 +889,62 @@ oml.reloadList = function() {
 };
 
 oml.renameUser = function(data) {
+
     var ui = oml.user.ui,
         index = Ox.getIndexById(ui._users, data.id),
         name = ui._users[index].name,
-        set = {};
+        set = {},
+        oldFind = Ox.clone(ui.find, true),
+        newFind = Ox.clone(ui.find, true);
+
     ui._users[index].name = data.name;
     ui._users[index].nickname = data.nickname;
-    oml.$ui.folders.updateUser(index);
-    set['showFolder.' + data.name] = ui.showFolder[name];
     set['showFolder.' + name] = null;
+    set['showFolder.' + data.name] = ui.showFolder[name];
     Ox.forEach(ui.lists, function(value, key) {
         var split = key.split(':'),
             username = split[0],
             listname = split.slice(1).join(':');
         if (username == name) {
-            set['lists.' + data.name + ':' + listname] = value;
             set['lists.' + key] = null;
+            set['lists.' + data.name + ':' + listname] = value;
         }
+    });
+
+    ui._lists.filter(function(list) {
+        return list.user === '' && list.type == 'smart';
+    }).forEach(function(list) {
+        updateConditions(list.query);
     });
     Ox.print('$$$ SET', set);
     oml.UI.set(set, false);
+
+    updateConditions(newFind);
+    if (!Ox.isEqual(oldFind, newFind)) {
+        oml.replaceURL = true;
+        oml.UI.set({find: newFind}, false);
+    }
+    oml.$ui.folders.updateUser(index);
+
+    function updateCondition(condition) {
+        if (condition.key == 'list') {
+            condition.value = condition.value.replace(
+                new RegExp('^' + Ox.escapeRegExp(name) + ':'),
+                data.name + ':'
+            );
+        }
+    }
+
+    function updateConditions(query) {
+        query.conditions.forEach(function(condition) {
+            if (!condition.conditions) {
+                updateCondition(condition);
+            } else {
+                condition.conditions.forEach(updateCondition);
+            }
+        });
+    }
+    
 };
 
 oml.resizeFilters = function() {

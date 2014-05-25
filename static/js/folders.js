@@ -306,8 +306,23 @@ oml.ui.folders = function() {
         });
     };
 
-    that.updateUser = function(index) {
-        oml.$ui.folder[index].options({title: ui._users[index].name})
+    that.updateUser = function(index, callback) {
+        var name = ui._users[index].name;
+        oml.$ui.folder[index].options({title: Ox.encodeHTMLEntities(name)});
+        oml.getLists(function(lists) {
+            var items = lists.filter(function(list) {
+                return list.user == name && list.type != 'library';
+            });
+            oml.$ui.folder[index].$content
+                .css({height: 16 + items.length * 16 + 'px'});
+            oml.$ui.folderList[index].options({
+                    items: items
+                })
+                .css({height: items.length * 16 + 'px'})
+                .size();
+            oml.resizeListFolders();
+            callback && callback();
+        });
         return that;
     };
 

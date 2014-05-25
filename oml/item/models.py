@@ -242,8 +242,9 @@ class Item(db.Model):
         record = {}
         for key in self.meta_keys:
             if key in data:
+                if self.meta.get(key) != data[key]:
+                    record[key] = data[key]
                 self.meta[key] = data[key]
-                record[key] = data[key]
                 update = True
         for key in self.meta.keys():
             if key not in self.meta_keys:
@@ -254,7 +255,7 @@ class Item(db.Model):
             self.modified = datetime.utcnow()
             self.save()
             user = state.user()
-            if user in self.users:
+            if record and user in self.users:
                 Changelog.record(user, 'edititem', self.id, record)
 
     def update_primaryid(self, key=None, id=None):
@@ -359,7 +360,11 @@ class Item(db.Model):
             return False
         if not f:
             path = 'Downloads/%s.%s' % (self.id, self.info['extension'])
-            f = File.get_or_create(self.id, self.info, path=path)
+            info = self.info.copy()
+            for key in ('mediastate', 'coverRatio', 'previewRatio'):
+                if key in info:
+                    del info[key]
+            f = File.get_or_create(self.id, info, path=path)
             path = self.get_path()
             if not os.path.exists(path):
                 ox.makedirs(os.path.dirname(path))
@@ -371,7 +376,7 @@ class Item(db.Model):
                 t.progress = 1
                 t.save()
                 self.added = datetime.utcnow()
-                Changelog.record(u, 'additem', self.id, self.info)
+                Changelog.record(u, 'additem', self.id, f.info)
                 self.update()
                 f.move()
                 self.update_icons()

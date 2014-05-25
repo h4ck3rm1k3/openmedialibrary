@@ -53,7 +53,7 @@ def add_file(id, f, prefix):
         item.meta['primaryid'] = item.info.pop('primaryid')
         db.session.add(item)
     item.users.append(user)
-    Changelog.record(user, 'additem', item.id, item.info)
+    Changelog.record(user, 'additem', item.id, f.info)
     if item.meta.get('primaryid'):
         Changelog.record(user, 'edititem', item.id, dict([item.meta['primaryid']]))
     item.added = datetime.utcnow()
