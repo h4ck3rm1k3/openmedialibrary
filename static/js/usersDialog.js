@@ -269,7 +269,6 @@ oml.ui.usersDialog = function() {
                             id: user.id,
                             nickname: data.value
                         }, function(result) {
-                            Ox.print('EDIT USER', result.data, folder);
                             oml.renameUser(result.data)
                             // FIXME: ugly
                             Ox.forEach($lists, function($list) {
@@ -488,11 +487,9 @@ oml.ui.usersDialog = function() {
             })
             .bindEvent({
                 move: function(data) {
-                    Ox.print('MOVE', data)
                     oml.api.sortUsers({
                         ids: data.ids
                     }, function(result) {
-                        Ox.print('USER ORDER CHANGED', result.data);
                         oml.$ui.folders.updateElement();
                     });
                 },

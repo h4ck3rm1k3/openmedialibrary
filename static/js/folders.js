@@ -79,7 +79,6 @@ oml.ui.folders = function() {
 
         getUsersAndLists(function(users, lists) {
 
-            Ox.print('GOT USERS AND LISTS', users, lists);
             userIndex = {};
 
             $lists.push(

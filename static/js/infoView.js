@@ -162,10 +162,9 @@ oml.ui.infoView = function(identifyData) {
                     })
                     .bindEvent({
                         click: function(data) {
-                            Ox.print('####', data);
+                            // ...
                         },
                         change: function(data) {
-                            Ox.print('$$$', data);
                             oml.api.edit({
                                 id: ui.item,
                                 primaryid: data.value ? data.value.split(':') : ''
@@ -307,7 +306,6 @@ oml.ui.infoView = function(identifyData) {
         iconSize = iconSize == 256 ? 512 : 256,
         css = getCSS(iconSize, ratio);
         //$icon.animate(css.icon, 250);
-        Ox.print('ANIMATE,', css)
         $info.animate(css.info, 250);
         $image.animate(css.image, 250);
         $reflectionImage.animate(css.image, 250);
@@ -680,7 +678,6 @@ oml.ui.infoView = function(identifyData) {
                     } else {
                         edit[key] = value;
                     }
-                    Ox.print('EDIT METADATA', key, value, edit);
                     oml.api.edit(edit, function(result) {
                         oml.$ui.browser.value(
                             result.data.id, key, result.data[key]

@@ -28,7 +28,6 @@ oml.ui.listInnerPanel = function() {
         })
         .bindEvent({
             oml_listview: function() {
-                Ox.print('LIST VIEW HAS CHANGED, REPLACING LIST')
                 that.replaceElement(1, oml.$ui.list = oml.ui.list());
             },
             oml_showfilters: function(data) {

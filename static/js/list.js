@@ -50,7 +50,6 @@ oml.ui.list = function() {
                     }
                 },
                 init: function(data) {
-                    Ox.print('MAIN LIST INIT', data);
                     if (ui.find.conditions.length == 0 || (
                         ui.find.conditions.length == 1
                         && ui.find.conditions[0].key == 'list'
@@ -114,7 +113,6 @@ oml.ui.list = function() {
                 },
                 oml_find: function() {
                     if (ui.listView == oml.UI.getPrevious().listView) {
-                        Ox.print('NEW FIND, SAME LIST VIEW, RELOADING')
                         that.reloadList();
                     }
                 },
@@ -132,8 +130,6 @@ oml.ui.list = function() {
                 },
                 oml_listsort: function(data) {
                     if (ui._list == oml.UI.getPrevious()._list) {
-                        Ox.print('NEW LIST SORT, SAME LIST, SETTING SORT OPTION')
-                        Ox.print('OLD:', that.options('sort'), 'NEW:', data.value);
                         that.options({sort: data.value});
                     }
                 },

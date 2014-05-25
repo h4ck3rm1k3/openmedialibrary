@@ -916,7 +916,6 @@ oml.renameUser = function(data) {
     }).forEach(function(list) {
         updateConditions(list.query);
     });
-    Ox.print('$$$ SET', set);
     oml.UI.set(set, false);
 
     updateConditions(newFind);
@@ -953,16 +952,6 @@ oml.resizeFilters = function() {
 
 oml.resizeListFolders = function() {
     // FIXME: does this have to be here?
-    /*
-    Ox.print(
-        'RESIZE LIST FOLDERS',
-        'SIDEBAR', oml.user.ui.sidebarSize,
-        'WIDTH', oml.getListFoldersWidth(),
-        'HEIGHT', oml.getListFoldersHeight(),
-        'INFO HEIGHT', oml.getInfoHeight(),
-        'AVAILABLE HEIGHT', window.innerHeight - 20 - 24 - 1 - oml.user.ui.showInfo * oml.getInfoHeight()
-    )
-    */
     var width = oml.getListFoldersWidth(),
         columnWidth = width - 58;
     oml.$ui.librariesList

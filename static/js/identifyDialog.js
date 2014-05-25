@@ -353,7 +353,6 @@ oml.ui.identifyDialog = function(data) {
                     select: function(data) {
                         var index = data.ids[0],
                             primaryId = $findList.value(index, 'primaryid');
-                        Ox.print('EEEE', index, primaryId);
                         disableButtons();
                         $resultsPanel.replaceElement(1, Ox.LoadingScreen().start());
                         oml.api.getMetadata(Ox.extend(
