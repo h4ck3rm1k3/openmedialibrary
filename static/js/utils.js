@@ -800,7 +800,7 @@ oml.getLists = function(callback) {
                  : list.type == 'library' ? Ox._('Library') : list.name;
             return Ox.extend(list, {
                 editable: list.user == username && list.type == 'static',
-                own: list.user == username,
+                own: list.user == '',
                 title: (list.user ? list.user + ': ' : '') + list.name
             });
         });
@@ -836,71 +836,22 @@ oml.getSortOperator = function(key) {
 };
 
 oml.getUsers = function(callback) {
-    var users = [{
-        id: oml.user.id,
-        nickname: oml.user.preferences.username,
-        online: oml.user.online
-    }];
-    oml.api.getUsers(function(result) {
-        users = users.concat(
-            result.data.users.filter(function(user) {
-                return user.peered;
-            })
-        );
-        callback(users);
-    });
-}
-
-oml.getUsersAndLists = function(callback) {
-    var lists = [{
-            id: '',
-            name: Ox._('All Libraries'),
-            type: 'libraries'
-        }],
-        ui = oml.user.ui,
-        username = oml.user.preferences.username,
+    var ui = oml.user.ui,
         users = [{
             id: oml.user.id,
-            nickname: username,
+            name: '',
             online: oml.user.online
         }];
     Ox.Request.clearCache('getUsers');
-    Ox.Request.clearCache('getLists');
     oml.api.getUsers(function(result) {
         users = users.concat(
             result.data.users.filter(function(user) {
                 return user.peered;
             })
         );
-        oml.api.getLists(function(result) {
-            users.forEach(function(user) {
-                lists = lists.concat([{
-                    id: (user.nickname == username ? '' : user.nickname) + ':',
-                    name: Ox._('Library'),
-                    type: 'library',
-                    user: user.nickname
-                }].concat(
-                    result.data.lists.filter(function(list) {
-                        return list.user == user.nickname;
-                    })
-                ));
-            });
-            lists = lists.map(function(list) {
-                // FIXME: 'editable' is notoriously vague
-                return Ox.extend(list, {
-                    editable: list.user == username && list.type == 'static',
-                    own: list.user == username,
-                    title: (list.user ? list.user + ': ' : '') + list.name
-                });
-            })
-            if (!ui.lists) {
-                oml.$ui.mainMenu.updateElement();
-            }
-            ui._lists = lists;
-            Ox.print('GOT LISTS ::::', lists);
-            callback(users, lists);
-        });
-    })
+        ui._users = users;
+        callback(users);
+    });
 };
 
 oml.getValidName = function(value, names, chars) {

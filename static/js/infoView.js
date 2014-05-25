@@ -8,6 +8,14 @@ oml.ui.infoView = function(identifyData) {
 
         css = getCSS(iconSize, oml.config.iconRatio),
 
+        ids = [
+            {key: 'isbn', url: 'https://google.com/search?q=ISBN+{0}'},
+            {key: 'asin', url: 'http://www.amazon.com/dp/{0}'},
+            {key: 'lccn', url: 'http://lccn.loc.gov/{0}'},
+            {key: 'oclc', url: 'https://www.worldcat.org/oclc/{0}'},
+            {key: 'olid', url: 'https://openlibrary.org/books/{0}'}
+        ],
+
         that = Ox.Element()
             .addClass('OxTextPage')
             .css({overflowY: 'auto'})
@@ -132,14 +140,12 @@ oml.ui.infoView = function(identifyData) {
                 }),
                 data.mediastate == 'available' && data.primaryid
                     ? Ox.Select({
-                        items: Ox.flatten([
-                            'isbn', 'asin', 'lccn', 'oclc', 'olid'
-                        ].map(function(key) {
-                            return (data[key] || []).map(function(value) {
+                        items: Ox.flatten(ids.map(function(id) {
+                            return (data[id.key] || []).map(function(value) {
                                 return {
-                                    id: key + ':' + value,
+                                    id: id.key + ':' + value,
                                     title: '<b>' + Ox.getObjectById(
-                                        oml.config.itemKeys, key
+                                        oml.config.itemKeys, id.key
                                     ).title + ':</b> ' + value
                                 };
                             });
@@ -632,12 +638,10 @@ oml.ui.infoView = function(identifyData) {
 
                     renderIdentifyButton(data).appendTo($data);
 
-                    [
-                        'isbn', 'asin', 'lccn', 'oclc', 'olid'
-                    ].forEach(function(id, index) {
+                    ids.forEach(function(id, index) {
                         var title;
-                        if (data[id] && !Ox.isEmpty(data[id])) {
-                            title = Ox.getObjectById(oml.config.itemKeys, id).title;
+                        if (data[id.key] && !Ox.isEmpty(data[id.key])) {
+                            title = Ox.getObjectById(oml.config.itemKeys, id.key).title;
                             $('<div>')
                                 .css({
                                     marginTop: (index == 0 ? 10 : 6) + 'px',
@@ -645,16 +649,17 @@ oml.ui.infoView = function(identifyData) {
                                 })
                                 .text(title)
                                 .appendTo($data);
-                            Ox.makeArray(data[id]/*FIXME!*/).forEach(function(value) {
-                                var isPrimary = data.primaryid[0] == id
+                            Ox.makeArray(data[id.key]/*FIXME!*/).forEach(function(value) {
+                                var isPrimary = data.primaryid[0] == id.key
                                     && data.primaryid[1] == value;
+                                value = Ox.encodeHTMLEntities(value);
                                 Ox.Element({
                                         tooltip: isPrimary ? 'Primary ID' : ''
                                     })
                                     .html(
-                                        Ox.encodeHTMLEntities(value) + (
-                                            isPrimary ? ' (*)' : ''
-                                        )
+                                        '<a href="' + Ox.formatString(id.url, [value])
+                                        + '" target="_blank">' + value + '</a>'
+                                        + (isPrimary ? ' (*)' : '')
                                     )
                                     .appendTo($data);
                             });

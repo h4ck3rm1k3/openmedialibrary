@@ -21,8 +21,15 @@ oml.ui.listViewButtons = function() {
         .bindEvent({
             change: function(data) {
                 oml.UI.set({listView: data.value});
+            },
+            oml_listview: function() {
+                that.updateElement();
             }
         });
+
+    that.updateElement = function() {
+        return that.options({value: ui.listView});
+    };
 
     return that;
 

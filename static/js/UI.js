@@ -59,6 +59,7 @@ oml.UI = (function() {
             // and list may then change listSort and listView,
             // which we don't want to trigger, since find triggers
             // (values we put in add will be changed, but won't trigger)
+            // FIXME: ABOVE COMMENT DOES NOT APPLY
             list = oml.getListState(args.find);
             ui._list = list;
             ui._filterState = oml.getFilterState(args.find);
@@ -74,66 +75,65 @@ oml.UI = (function() {
                     // then for each setting that corresponds to a list setting
                     if (!ui.lists[list]) {
                         // either add the default setting
-                        add[setting] = oml.config.user.ui[setting];
+                        args[setting] = oml.config.user.ui[setting];
                     } else {
                         // or the existing list setting
-                        add[setting] = ui.lists[list][listSetting]
+                        args[setting] = ui.lists[list][listSetting];
                     }
                 });
-            } else {
-                list = previousUI._list;
             }
-            // it is important to check for find first, so that
-            // if find changes list, list is correct here
-            item = args.item || ui.item;
-            listView = add.listView || args.listView;
+        } else {
+            list = previousUI._list;
+        }
+        // it is important to check for find first, so that
+        // if find changes list, list is correct here
+        item = args.item || ui.item;
+        listView = add.listView || args.listView;
 
-            if (!ui.lists[list]) {
-                add['lists.' + that.encode(list)] = {};
+        if (!ui.lists[list]) {
+            add['lists.' + that.encode(list)] = {};
+        }
+        Ox.forEach(listSettings, function(listSetting, setting) {
+            // for each setting that corresponds to a list setting
+            // set that list setting to
+            var key = 'lists.' + that.encode(list) + '.' + listSetting;
+            if (setting in args) {
+                // the setting passed to UI.set
+                args[key] = args[setting];
+            } else if (setting in add) {
+                // or the setting changed via find
+                args[key] = add[setting];
+            } else if (!ui.lists[list]) {
+                // or the default setting
+                args[key] = oml.config.user.ui[setting];
             }
-            Ox.forEach(listSettings, function(listSetting, setting) {
-                // for each setting that corresponds to a list setting
-                // set that list setting to
-                var key = 'lists.' + that.encode(list) + '.' + listSetting;
-                if (setting in args) {
-                    // the setting passed to UI.set
-                    add[key] = args[setting];
-                } else if (setting in add) {
-                    // or the setting changed via find
-                    add[key] = add[setting];
-                } else if (!ui.lists[list]) {
-                    // or the default setting
-                    add[key] = oml.config.user.ui[setting];
-                }
-            });
+        });
 
-            if (args.item) {
-                // when switching to an item, update list selection
-                add['listSelection'] = [args.item];
-                add['lists.' + that.encode(list) + '.selection'] = [args.item];
-                if (
-                    !args.itemView
-                    && ui.itemView == 'book'
-                    && !ui.mediaState[item]
-                    && !args['mediaState.' + item]
-                ) {
-                    // if the item view doesn't change, remains a media view,
-                    // media state doesn't exist yet, and won't be set, add
-                    // default media state
-                    add['mediaState.' + item] = {position: 0, zoom: 1};
-                }
-            }
-
+        if (args.item) {
+            // when switching to an item, update list selection
+            add['listSelection'] = [args.item];
+            add['lists.' + that.encode(list) + '.selection'] = [args.item];
             if (
-                args.itemView == 'book'
+                !args.itemView
+                && ui.itemView == 'book'
                 && !ui.mediaState[item]
                 && !args['mediaState.' + item]
             ) {
-                // when switching to a media view, media state doesn't exist
-                // yet, and won't be set, add default media state
+                // if the item view doesn't change, remains a media view,
+                // media state doesn't exist yet, and won't be set, add
+                // default media state
                 add['mediaState.' + item] = {position: 0, zoom: 1};
             }
+        }
 
+        if (
+            args.itemView == 'book'
+            && !ui.mediaState[item]
+            && !args['mediaState.' + item]
+        ) {
+            // when switching to a media view, media state doesn't exist
+            // yet, and won't be set, add default media state
+            add['mediaState.' + item] = {position: 0, zoom: 1};
         }
 
         // items in args trigger events, items in add do not

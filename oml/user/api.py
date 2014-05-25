@@ -58,6 +58,10 @@ def setPreferences(data):
         }
     '''
     update_dict(settings.preferences, data)
+    if 'username' in data:
+        u = state.user()
+        u.update_name()
+        u.save()
     return settings.preferences
 actions.register(setPreferences)
 
@@ -102,7 +106,7 @@ def getLists(data):
         'items': Item.query.count(),
         'name': 'Libraries',
         'type': 'libraries',
-        'user': '',
+        'user': None,
     })
     for u in models.User.query.filter((models.User.peered==True)|(models.User.id==settings.USER_ID)):
         lists += u.lists_json()
@@ -245,7 +249,11 @@ def editUser(data):
     '''
     if 'nickname' in data:
         p = models.User.get_or_create(data['id'])
-        p.set_nickname(data['nickname'])
+        if data['nickname']:
+            p.info['nickname'] = data['nickname']
+        elif 'nickname' in p.info:
+            del p.info['nickname']
+        p.update_name()
         p.save()
     return {}
 actions.register(editUser, cache=False)

@@ -113,7 +113,10 @@ oml.ui.list = function() {
                     oml.UI.set({listSelection: data.ids});
                 },
                 oml_find: function() {
-                    that.reloadList();
+                    if (ui.listView == oml.UI.getPrevious().listView) {
+                        Ox.print('NEW FIND, SAME LIST VIEW, RELOADING')
+                        that.reloadList();
+                    }
                 },
                 oml_item: function() {
                     if (!ui.item) {
@@ -123,10 +126,16 @@ oml.ui.list = function() {
                     }
                 },
                 oml_listselection: function(data) {
-                    that.options({selected: data.value});
+                    if (ui._list == oml.UI.getPrevious()._list) {
+                        that.options({selected: data.value});
+                    }
                 },
                 oml_listsort: function(data) {
-                    that.options({sort: data.value});
+                    if (ui._list == oml.UI.getPrevious()._list) {
+                        Ox.print('NEW LIST SORT, SAME LIST, SETTING SORT OPTION')
+                        Ox.print('OLD:', that.options('sort'), 'NEW:', data.value);
+                        that.options({sort: data.value});
+                    }
                 },
                 oml_sidebarsize: function(data) {
                     that.size();

@@ -6,25 +6,25 @@ oml.ui.viewer = function() {
 
         that = Ox.Element()
             .bindEvent({
-                oml_item: function(data) {
-                    that.updateElement();
-                },
                 oml_itemview: function(data) {
-                    that.updateElement();
+                    if (ui.item != item && ui.itemView == 'book') {
+                        that.updateElement(ui.item);
+                    }
                 }
             }),
 
-        $iframe;
+        $iframe, item;
 
     that.updateElement = function() {
-        if (ui.item && ui.itemView == 'book') {
+        item = ui.item;
+        if (item) {
             $iframe = $iframe || Ox.Element('<iframe>').css({
                 width: '100%',
                 height: '100%',
                 border: 0
             }).appendTo(that);
             $iframe.attr({
-                src: '/' + ui.item + '/reader/'
+                src: '/' + item + '/reader/'
             });
         }
         return that;

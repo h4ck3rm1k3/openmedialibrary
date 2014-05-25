@@ -240,6 +240,7 @@ class Changelog(db.Model):
 
     def action_editusername(self, user, timestamp, username):
         user.info['username'] = username
+        user.update_name()
         user.save()
         return True
 

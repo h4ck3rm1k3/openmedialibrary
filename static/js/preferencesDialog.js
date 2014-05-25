@@ -11,7 +11,6 @@ oml.ui.preferencesDialog = function() {
                     id: 'username',
                     title: 'Username',
                     value: preferences.username,
-                    placeholder: 'anonymous',
                     help: 'Your username doesn\'t have to be your real name, and you can change it at any time. You can also leave it blank, in which case you will appear as "anonymous". Any characters other than colons and leading, trailing or consecutive spaces are okay.'
                 },
                 {
@@ -430,7 +429,7 @@ oml.ui.preferencesDialog = function() {
                 var key = data.id,
                     value = data.data.value[0];
                 if (key == 'username') {
-                    value = getValidName(value, [], ':');
+                    value = oml.getValidName(value, [], ':');
                 }
                 if (key in oml.config.user.preferences) {
                     oml.Preferences.set(key, value);

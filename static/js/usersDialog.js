@@ -238,7 +238,7 @@ oml.ui.usersDialog = function() {
                         disabled: true,
                         label: Ox._('Download Link'),
                         labelWidth: 128,
-                        value: 'https://openmedialibrary.com/#download',
+                        value: 'http://openmedialibrary.com/#download',
                         width: 480
                     })
                     .css({
@@ -260,27 +260,16 @@ oml.ui.usersDialog = function() {
             Ox.Input({
                     label: Ox._('Nickname'),
                     labelWidth: 128,
-                    placeholder: 'anonymous',
-                    value: user.nickname || user.username || '',
+                    value: user.nickname,
                     width: 480
                 })
                 .bindEvent({
                     change: function(data) {
-                        var value = oml.getValidName(
-                                data.value || 'anonymous',
-                                // FIXME: WRONG
-                                users.filter(function(user_) {
-                                    return user_.nickname != user.nickname;
-                                }).map(function(u) {
-                                    return user_.nickname;
-                                }),
-                                ':'
-                            );
-                        this.value(value);
                         oml.api.editUser({
                             id: user.id,
-                            nickname: value
-                        }, function() {
+                            nickname: data.value
+                        }, function(result) {
+                            Ox.print('EDIT USER', result.data);
                             // ...
                         });
                     }
@@ -331,8 +320,7 @@ oml.ui.usersDialog = function() {
                         disabled: true,
                         label: Ox._('Username'),
                         labelWidth: 128,
-                        placeholder: 'anonymous',
-                        value: user.username || '',
+                        value: user.username,
                         width: 480
                     })
                     .css({
@@ -474,11 +462,9 @@ oml.ui.usersDialog = function() {
                     },
                     {
                         format: function(value) {
-                            return value
-                                ? Ox.encodeHTMLEntities(value)
-                                : '<span class="OxLight">anonymous</span>';
+                            return Ox.encodeHTMLEntities(value);
                         },
-                        id: folder.id == 'peers' ? 'nickname' : 'username',
+                        id: 'name',
                         visible: true,
                         width: 240
                     }
@@ -533,14 +519,16 @@ oml.ui.usersDialog = function() {
     }
 
     function updateUsers(callback) {
+
         Ox.Request.clearCache('getUsers');
+
         oml.api.getUsers(function(result) {
 
             users = result.data.users;
             peerIds = users.filter(function(user) {
                 return user.peered;
             }).map(function(user) {
-                return user.id
+                return user.id;
             });
             folders.forEach(function(folder) {
                 folder.items = [];
@@ -595,14 +583,13 @@ oml.ui.usersDialog = function() {
         });
 
     }
-    that.updateElement = function() {
 
+    that.updateElement = function() {
         that.options({
             content: Ox.LoadingScreen().start()
         });
         updateUsers();
         return that;
-
     };
 
     return that.updateElement();

@@ -221,6 +221,15 @@ oml.ui.mainMenu = function() {
                             title: Ox._('Advanced Sort'),
                             keyboard: 'shift control s',
                             disabled: true
+                        },
+                        {},
+                        {
+                            id: 'sorttitles',
+                            title: Ox._('Sort Titles...')
+                        },
+                        {
+                            id: 'sortnames',
+                            title: Ox._('Sort Names...')
                         }
                     ]
                 },

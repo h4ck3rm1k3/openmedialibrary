@@ -50,6 +50,11 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    @property
+    def name(self):
+        name = self.nickname if self.id != settings.USER_ID else ''
+        return name
+
     def json(self):
         j = {}
         if self.info:
@@ -59,7 +64,9 @@ class User(db.Model):
             j['pending'] = self.pending
         j['peered'] = self.peered
         j['online'] = self.is_online()
-        j['nickname'] = self.nickname
+        j['nickname'] = self.info.get('nickname')
+        j['username'] = self.info.get('username') if self.id != settings.USER_ID else settings.preferences['username']
+        j['name'] = self.name
         return j
 
     def is_online(self):
@@ -71,7 +78,7 @@ class User(db.Model):
             'name': 'Library',
             'type': 'library',
             'items': self.items.count(),
-            'user': self.nickname if self.id != settings.USER_ID else settings.preferences['username'],
+            'user': self.name
         }] + [l.json() for l in self.lists.order_by('index_')]
 
     def update_peering(self, peered, username=None):
@@ -80,11 +87,7 @@ class User(db.Model):
             self.pending = ''
             if username:
                 self.info['username'] = username
-            else:
-                username = self.info.get('username')
-            if not username:
-                username = 'anonymous'
-            self.set_nickname(username)
+            self.update_name()
             # FIXME: need to set peered to False to not trigger changelog event
             # before other side receives acceptPeering request
             self.peered = False
@@ -97,7 +100,7 @@ class User(db.Model):
         else:
             self.pending = ''
             self.peered = False
-            self.nickname = None
+            self.update_name()
             self.save()
             List.query.filter_by(user_id=self.id).delete()
             for i in self.items:
@@ -112,11 +115,15 @@ class User(db.Model):
                 Changelog.record(state.user(), 'removepeer', self.id)
         self.save()
 
-    def set_nickname(self, nickname):
-        username = nickname
+    def update_name(self):
+        if self.id == settings.USER_ID:
+            name = settings.preferences.get('username', 'anonymous')
+        else:
+            name = self.info.get('nickname') or self.info.get('username') or 'anonymous'
+        nickname = name
         n = 2
         while self.query.filter_by(nickname=nickname).filter(User.id!=self.id).first():
-            nickname = '%s [%d]' % (username, n)
+            nickname = '%s [%d]' % (name, n)
             n += 1
         self.nickname = nickname
 
@@ -261,7 +268,7 @@ class List(db.Model):
     def json(self):
         r = {
             'id': self.public_id,
-            'user': self.user.nickname if self.user_id != settings.USER_ID else settings.preferences['username'],
+            'user': self.user.name,
             'name': self.name,
             'index': self.index_,
             'items': self.items_count(),
