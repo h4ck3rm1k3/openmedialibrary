@@ -142,12 +142,15 @@ def resolve_names(objects, key='name'):
 class API(object):
     base = 'https://openlibrary.org/api'
 
-    def _request(self, action, data):
+    def _request(self, action, data, timeout=None):
         for key in data:
             if not isinstance(data[key], basestring):
                 data[key] = json.dumps(data[key])
         url = self.base + '/' + action + '?' + urlencode(data)
-        result = json.loads(read_url(url))
+        if timeout is None:
+            result = json.loads(read_url(url))
+        else:
+            result = json.loads(read_url(url, timeout=timeout))
         if 'status' in result and result['status'] == 'error' or 'error' in result:
             logger.info('FAILED %s %s', action, data)
             logger.info('URL %s', url)
