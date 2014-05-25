@@ -306,18 +306,21 @@ class Node(Thread):
             if r.headers.get('content-encoding', None) == 'gzip':
                 content = gzip.GzipFile(fileobj=r).read()
             else:
-                '''
                 content = ''
-                for chunk in iter(lambda: r.read(1024*1024), ''):
-                    t = Transfer.get(item.id)
+                ct = datetime.utcnow()
+                for chunk in iter(lambda: r.read(16*1024), ''):
                     content += chunk
-                    t.progress = len(content) / item.info['size']
-                    t.save()
-                    trigger_event('transfer', {
-                        'id': item.id, 'progress': t.progress
-                    })
+                    if (datetime.utcnow() - ct).total_seconds() > 1:
+                        ct = datetime.utcnow()
+                        t = Transfer.get(item.id)
+                        t.progress = len(content) / item.info['size']
+                        t.save()
+                        trigger_event('transfer', {
+                            'id': item.id, 'progress': t.progress
+                        })
                 '''
                 content = r.read()
+                '''
 
             t2 = datetime.utcnow()
             duration = (t2-t1).total_seconds()
