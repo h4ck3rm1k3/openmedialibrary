@@ -91,7 +91,7 @@ oml.ui.listDialog = function() {
                                         }],
                                         operator: '&'
                                     }
-                                });
+                                }, false);
                             });
                         });
                     }

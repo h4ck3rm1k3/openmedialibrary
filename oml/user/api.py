@@ -117,13 +117,19 @@ def getLists(data):
 actions.register(getLists)
 
 def validate_query(query):
-    for condition in query['conditions']:
-        if not list(sorted(condition.keys())) in (
-            ['conditions', 'operator'],
-            ['key', 'operator', 'value']
-        ):
-            raise Exception('invalid query condition', condition)
+    validate_conditions(query['conditions'])
 
+def validate_conditions(conditions):
+    for c in conditions:
+        if 'conditions' in c:
+            if list(sorted(c.keys())) != ['conditions', 'operator']:
+                raise Exception('invalid query condition', c)
+            validate_conditions(c)
+        else:
+            if list(sorted(c.keys())) != ['key', 'operator', 'value']:
+                raise Exception('invalid query condition', c)
+            if c['key'] == 'list' and ':' not in c['value']:
+                raise Exception('invalid query condition', c)
 
 def addList(data):
     '''
@@ -161,7 +167,9 @@ def editList(data):
     name = l.name
     if 'name' in data:
         l.name = data['name']
-    if 'query' in data:
+    if 'query' in data and l.type != 'smart':
+        raise Exception('query only for smart lists')
+    if 'query' in data and l.type == 'smart':
         validate_query(data['query'])
         l._query = data['query']
     if l.type == 'static' and name != l.name:

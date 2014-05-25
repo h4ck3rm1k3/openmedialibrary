@@ -251,6 +251,7 @@ class Node(Thread):
         with self._app.app_context():
             last = Changelog.query.filter_by(user_id=self.user_id).order_by('-revision').first()
             from_revision = last.revision + 1 if last else 0
+            logger.debug('pullChanges %s from %s', self.user.name, from_revision)
             changes = self.request('pullChanges', from_revision)
             if not changes:
                 return False

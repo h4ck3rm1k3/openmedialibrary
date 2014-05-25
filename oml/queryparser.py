@@ -126,7 +126,7 @@ class Parser(object):
                 l = None
             if l:
                 v = l.find_id
-            if l and l._query:
+            if l and l.type == 'smart':
                 data = l._query
                 q = self.parse_conditions(data.get('conditions', []),
                                     data.get('operator', '&'))
