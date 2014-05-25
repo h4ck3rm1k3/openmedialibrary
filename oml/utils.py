@@ -168,7 +168,7 @@ def get_local_ipv4():
         if local:
             dev = local[0].split(' ')[4]
             local_ip = [l for l in stdout.split('\n')
-                    if dev in l and not 'default' in l]
+                    if dev in l and not 'default' in l and 'src' in l]
             ip = [p for p in local_ip[0].split(' ')[1:] if '.' in p][0]
     return ip
 
