@@ -282,7 +282,7 @@ oml.ui.infoView = function(identifyData) {
                         click: function() {
                             data.mediastate = 'unavailable';
                             that.updateElement(data, $data);
-                            oml.api.cancelDownload({id: ui.item}, function() {
+                            oml.api.cancelDownloads({ids: [ui.item]}, function() {
                                 that.updateElement(ui.item, $data);
                             });
                         }

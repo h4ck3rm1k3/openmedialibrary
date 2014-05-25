@@ -12,6 +12,9 @@ oml.ui.info = function() {
                 overflowY: 'auto'
             })
             .bindEvent({
+                toggle: function(data) {
+                    oml.UI.set({showInfo: !data.collapsed});
+                },
                 oml_item: function() {
                     that.updateElement();
                 },

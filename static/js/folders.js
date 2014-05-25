@@ -306,8 +306,9 @@ oml.ui.folders = function() {
         });
     };
 
-    that.updateUser = function(id, name) {s
-        // ...
+    that.updateUser = function(index) {
+        oml.$ui.folder[index].options({title: ui._users[index].name})
+        return that;
     };
 
     oml.bindEvent({

@@ -270,6 +270,7 @@ oml.ui.usersDialog = function() {
                             nickname: data.value
                         }, function(result) {
                             Ox.print('EDIT USER', result.data, folder);
+                            oml.renameUser(result.data)
                             // FIXME: ugly
                             Ox.forEach($lists, function($list) {
                                 var selected = $list.options('selected');

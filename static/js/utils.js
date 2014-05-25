@@ -305,8 +305,7 @@ oml.enableDragAndDrop = function($list, canMove) {
         }),
         drag = {},
         scrollInterval,
-        ui = oml.user.ui,
-        username = oml.user.preferences.username;
+        ui = oml.user.ui;
 
     $list.bindEvent({
         draganddropstart: function(data) {
@@ -326,8 +325,8 @@ oml.enableDragAndDrop = function($list, canMove) {
                     drag.targets[id] = Ox.extend(data, {
                         editable: data.editable || (
                             data.type == 'library'
-                            && drag.source.user != username
-                            && data.user == username
+                            && drag.source.user != ''
+                            && data.user == ''
                         ),
                         selected: data.id == ui._list
                     }, data);
@@ -467,14 +466,14 @@ oml.enableDragAndDrop = function($list, canMove) {
     function getTitle() {
         var image, text,
             actionText = drag.action == 'copy' ? (
-                drag.source.user == username ? 'copy' : 'download'
+                drag.source.user == '' ? 'copy' : 'download'
             ) : 'move',
             itemText = Ox.isString(drag.item)
                 ? '"' + Ox.encodeHTMLEntities(Ox.truncate(drag.item, 32)) + '"'
                 : Ox._('{0} books', [drag.item]),
             targetText;
         if (drag.action == 'move') {
-            if (drag.source.user != username) {
+            if (drag.source.user != '') {
                 text = Ox._('You can only remove books<br>from your own lists.');
             } else if (drag.source.type == 'library') {
                 text = Ox._('You cannot move books<br>out of your library.');
@@ -488,8 +487,8 @@ oml.enableDragAndDrop = function($list, canMove) {
             if (
                 (
                     drag.target.type == 'library'
-                    && drag.source.user == username
-                    && drag.target.user == username
+                    && drag.source.user == ''
+                    && drag.target.user == ''
                 )
                 || drag.target.selected
             ) {
@@ -497,7 +496,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                     Ox._(itemText[0] == '"' ? '' : 'These ') + itemText,
                     targetText
                 ]);
-            } else if (drag.target.user != username) {
+            } else if (drag.target.user != '') {
                 text = Ox._(
                     'You can only {0} books<br>to your own {1}.',
                     [actionText, drag.target.type == 'library' ? 'library' : 'lists']
@@ -510,7 +509,7 @@ oml.enableDragAndDrop = function($list, canMove) {
             image = 'symbolClose'
         } else {
             image = drag.action == 'copy' ? (
-                drag.source.user == username ? 'symbolAdd' : 'symbolDownload'
+                drag.source.user == '' ? 'symbolAdd' : 'symbolDownload'
             ) : 'symbolRemove',
             text = Ox._(Ox.toTitleCase(actionText)) + ' ' + (
                 Ox.isString(drag.item)
@@ -519,7 +518,7 @@ oml.enableDragAndDrop = function($list, canMove) {
             ) + '<br>' + (
                 drag.target && drag.target.editable && !drag.target.selected
                 ? Ox._('to {0}.', [targetText])
-                : drag.source.user == username 
+                : drag.source.user == '' 
                 ? Ox._('to {0} list.', [ui._list == ':' ? 'a' : 'another'])
                 : Ox._('to your library or to one of your lists.')
             );
@@ -799,7 +798,7 @@ oml.getLists = function(callback) {
             list.name = list.type == 'libraries' ? Ox._('Libraries')
                  : list.type == 'library' ? Ox._('Library') : list.name;
             return Ox.extend(list, {
-                editable: list.user == username && list.type == 'static',
+                editable: list.user == '' && list.type == 'static',
                 own: list.user == '',
                 title: (list.user ? list.user + ': ' : '') + list.name
             });
@@ -888,6 +887,29 @@ oml.openLink = function(url) {
 
 oml.reloadList = function() {
     oml.$ui.list.updateElement();
+};
+
+oml.renameUser = function(data) {
+    var ui = oml.user.ui,
+        index = Ox.getIndexById(ui._users, data.id),
+        name = ui._users[index].name,
+        set = {};
+    ui._users[index].name = data.name;
+    ui._users[index].nickname = data.nickname;
+    oml.$ui.folders.updateUser(index);
+    set['showFolder.' + data.name] = ui.showFolder[name];
+    set['showFolder.' + name] = null;
+    Ox.forEach(ui.lists, function(value, key) {
+        var split = key.split(':'),
+            username = split[0],
+            listname = split.slice(1).join(':');
+        if (username == name) {
+            set['lists.' + data.name + ':' + listname] = value;
+            set['lists.' + key] = null;
+        }
+    });
+    Ox.print('$$$ SET', set);
+    oml.UI.set(set, false);
 };
 
 oml.resizeFilters = function() {
