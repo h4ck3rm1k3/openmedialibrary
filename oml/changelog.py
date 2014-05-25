@@ -89,7 +89,7 @@ class Changelog(db.Model):
                 c.data = data
                 c.sig = sig
                 args = json.loads(data)
-                logger.debug('apply change %s', args)
+                logger.debug('apply change from %s: %s', user.name, args)
                 if getattr(c, 'action_' + args[0])(user, timestamp, *args[1:]):
                     logger.debug('change applied')
                     db.session.add(c)

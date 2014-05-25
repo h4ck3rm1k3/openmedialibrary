@@ -111,6 +111,7 @@ class LocalNodesBase(Thread):
                 u = user.models.User.get_or_create(data['id'])
                 u.info['username'] = data['username']
                 u.info['local'] = data
+                u.update_name()
                 u.save()
                 state.nodes.queue('add', u.id)
             self.send()
