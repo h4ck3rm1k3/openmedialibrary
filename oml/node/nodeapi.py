@@ -50,10 +50,12 @@ def api_requestPeering(app, user_id, username, message):
         if user.pending == 'sent':
             user.info['message'] = message
             user.update_peering(True, username)
+            user.update_name()
         else:
             user.pending = 'received'
             user.info['username'] = username
             user.info['message'] = message
+            user.update_name()
         user.save()
         trigger_event('peering.request', user.json())
         return True
@@ -69,6 +71,7 @@ def api_acceptPeering(app, user_id, username, message):
             user.info = {}
         user.info['username'] = username
         user.info['message'] = message
+        user.update_name()
         user.update_peering(True, username)
         state.nodes.queue('add', user.id)
         return True
