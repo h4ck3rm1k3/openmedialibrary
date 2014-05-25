@@ -258,6 +258,7 @@ class Changelog(db.Model):
         peer = User.get_or_create(peerid)
         if not 'username' in peer.info:
             peer.info['username'] = username
+            peer.update_name()
             peer.save()
         return True
 

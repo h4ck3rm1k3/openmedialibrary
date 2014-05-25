@@ -406,6 +406,7 @@ class Item(db.Model):
             self.delete()
         else:
             self.update()
+        Transfer.query.filter_by(item_id=self.id).delete()
         Changelog.record(user, 'removeitem', self.id)
 
 class Sort(db.Model):
