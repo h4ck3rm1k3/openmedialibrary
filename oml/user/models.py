@@ -80,8 +80,11 @@ class User(db.Model):
             self.pending = ''
             if username:
                 self.info['username'] = username
-
-            self.set_nickname(self.info.get('username', 'anonymous'))
+            else:
+                username = self.info.get('username')
+            if not username:
+                username = 'anonymous'
+            self.set_nickname(username)
             # FIXME: need to set peered to False to not trigger changelog event
             # before other side receives acceptPeering request
             self.peered = False

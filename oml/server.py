@@ -33,7 +33,8 @@ def run():
     static_path = os.path.join(root_dir, 'static')
 
     options = {
-        'debug': not PID 
+        'debug': not PID,
+        'gzip': True
     }
 
     handlers = [
