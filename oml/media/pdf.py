@@ -25,29 +25,53 @@ def cover(pdf):
         return page(pdf, 1)
 
 def ql_cover(pdf):
-        tmp = tempfile.mkdtemp()
-        cmd = [
-            'qlmanage',
-            '-t',
-            '-s',
-            '1024',
-            '-o',
-            tmp,
-            pdf
-        ]
-        p = subprocess.Popen(cmd)
-        p.wait()
-        image = glob('%s/*' % tmp)
-        if image:
-            image = image[0]
-            with open(image, 'rb') as fd:
-                data = fd.read()
-        else:
-            logger.debug('qlmanage did not create cover for %s', pdf)
-            data = None
-        shutil.rmtree(tmp)
-        return data
+    tmp = tempfile.mkdtemp()
+    cmd = [
+        'qlmanage',
+        '-t',
+        '-s',
+        '1024',
+        '-o',
+        tmp,
+        pdf
+    ]
+    p = subprocess.Popen(cmd)
+    p.wait()
+    image = glob('%s/*' % tmp)
+    if image:
+        image = image[0]
+        with open(image, 'rb') as fd:
+            data = fd.read()
+    else:
+        logger.debug('qlmanage did not create cover for %s', pdf)
+        data = None
+    shutil.rmtree(tmp)
+    return data
 
+def page(pdf, page):
+    tmp = tempfile.mkdtemp()
+    cmd = [
+        'pdftocairo',
+        pdf,
+        '-jpeg',
+        '-f',  str(page), '-l', str(page),
+        '-scale-to', '1024', '-cropbox',
+        os.path.join(tmp, 'page')
+    ]
+    p = subprocess.Popen(cmd)
+    p.wait()
+    image = glob('%s/*' % tmp)
+    if image:
+        image = image[0]
+        with open(image, 'rb') as fd:
+            data = fd.read()
+    else:
+        logger.debug('pdftocairo %s %s', pdf, ' '.join(cmd))
+        data = None
+    shutil.rmtree(tmp)
+    return data
+
+'''
 def page(pdf, page):
     image = tempfile.mkstemp('.jpg')[1]
     cmd = [
@@ -69,6 +93,7 @@ def page(pdf, page):
         data = fd.read()
     os.unlink(image)
     return data
+'''
 
 def info(pdf):
     data = {}

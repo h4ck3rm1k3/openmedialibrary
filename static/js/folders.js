@@ -306,6 +306,10 @@ oml.ui.folders = function() {
         });
     };
 
+    that.updateUser = function(id, name) {s
+        // ...
+    };
+
     oml.bindEvent({
         activity: function(data) {
             if (data.activity == 'import') {

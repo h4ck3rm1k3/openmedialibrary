@@ -17,9 +17,9 @@ or SixSS (https://sixxs.net).
 Development
 -----------
 
-On Linux you need to always install python-imaging  python-lxml ghostscript:
+On Linux you need to always install PIL, pyhon-lxml and poppler-utils:
 
-    apt-get install python-imaging  python-lxml ghostscript poppler-utils
+    apt-get install python-imaging  python-lxml poppler-utils
 
 
 Now checkout the source and prepare for use:

@@ -269,8 +269,15 @@ oml.ui.usersDialog = function() {
                             id: user.id,
                             nickname: data.value
                         }, function(result) {
-                            Ox.print('EDIT USER', result.data);
-                            // ...
+                            Ox.print('EDIT USER', result.data, folder);
+                            // FIXME: ugly
+                            Ox.forEach($lists, function($list) {
+                                var selected = $list.options('selected');
+                                if (selected.length) {
+                                    $list.value(user.id, 'name', result.data.name);
+                                    return false;
+                                }
+                            });
                         });
                     }
                 })
@@ -479,6 +486,14 @@ oml.ui.usersDialog = function() {
                 height: folder.items.length * 16 + 'px'
             })
             .bindEvent({
+                move: function(data) {
+                    Ox.print('MOVE', data)
+                    oml.api.sortUsers({
+                        ids: data.ids
+                    }, function(result) {
+                        Ox.print('USER ORDER CHANGED', result.data);
+                    });
+                },
                 select: function(data) {
                     if (data.ids.length) {
                         selectItem($list);
@@ -554,7 +569,8 @@ oml.ui.usersDialog = function() {
                         folder.items.length
                         ? renderUserList(folder)
                         : renderSectionList(folder)
-                    ).appendTo($folders[index].$content)
+                    )
+                    .appendTo($folders[index].$content)
                 );
             });
 

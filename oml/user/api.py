@@ -255,6 +255,7 @@ def editUser(data):
             del p.info['nickname']
         p.update_name()
         p.save()
+        return p.json()
     return {}
 actions.register(editUser, cache=False)
 
