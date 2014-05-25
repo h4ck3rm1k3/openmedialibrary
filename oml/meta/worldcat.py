@@ -5,6 +5,7 @@ from __future__ import division
 from ox.cache import read_url
 import lxml.html
 import re
+import hashlib
 from utils import normalize_isbn
 import stdnum.isbn
 
@@ -67,6 +68,9 @@ def lookup(id):
         data['cover'] = cover[0].attrib['src']
         if data['cover'].startswith('//'):
             data['cover'] = 'http:' + data['cover']
+        cdata = read_url(data['cover'])
+        if  hashlib.sha1(cdata).hexdigest() == '70f16d3e077cdd47ef6b331001dbb1963677fa04':
+            del data['cover']
 
     if 'author' in data:
         data['author'] = [data['author']]
