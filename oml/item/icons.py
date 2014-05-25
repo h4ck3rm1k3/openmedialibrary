@@ -127,24 +127,21 @@ class IconHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self, id, type_, size=None):
-        def fail():
-            self.set_status(404)
-            self.write('')
-            self.finish()
 
         size = int(size) if size else None
 
         if type_ not in ('cover', 'preview'):
-            fail()
+            self.set_status(404)
+            self.finish()
             return
 
         self.set_header('Content-Type', 'image/jpeg')
 
         response = yield tornado.gen.Task(get_icon, self._app, id, type_, size)
         if not response:
-            fail()
+            self.set_status(404)
+            self.finish()
             return
         if self._finished:
             return
         self.write(response)
-        self.finish()

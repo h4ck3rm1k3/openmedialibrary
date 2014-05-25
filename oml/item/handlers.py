@@ -40,31 +40,35 @@ class EpubHandler(OMLHandler):
                     self.write(z.read(filename))
             self.finish()
 
-def serve_static(handler, path, mimetype):
+def serve_static(handler, path, mimetype, include_body=True):
     #fixme use static file handler / serve ranges
     handler.set_header('Content-Type', mimetype)
     handler.set_header('Content-Length', str(os.stat(path).st_size))
-    with open(path) as fd:
-        handler.write(fd.read())
+    if include_body:
+        with open(path) as fd:
+            handler.write(fd.read())
     handler.finish()
     return
 
 class FileHandler(OMLHandler):
 
-    def get(self, id):
+    def head(self, id):
+        self.get(id, include_body=False)
+
+    def get(self, id, include_body=True):
         with self._app.app_context():
             item = Item.get(id)
-            if not item:
+            path = item.get_path() if item else None
+            if not item or not path:
                 self.set_status(404)
                 self.finish()
                 return
-            path = item.get_path()
             mimetype={
                 'epub': 'application/epub+zip',
                 'pdf': 'application/pdf',
                 'txt': 'text/plain',
             }.get(path.split('.')[-1], None)
-            return serve_static(self, path, mimetype)
+            return serve_static(self, path, mimetype, include_body)
 
 class ReaderHandler(OMLHandler):
 
