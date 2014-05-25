@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Open Media Library</title>
+</head>
+<body>
+    Loading Open Media Library...
+    <script>
+        function load() {
+            var base = 'http://[::1]:9842',
+                img = new Image();
+            img.onload = function(event) {
+                document.location.href = base;
+            };
+            img.src = base + '/static/oxjs/build/Ox.UI/png/transparent.png?' + new Date;
+        };
+        load();
+        setTimeout(function() {
+                document.body.innerHTML = 'Looks like Open Media Library is not running. Please omlctl start';
+        }, 10000);
+    </script>
+</body>
+</html>
+
