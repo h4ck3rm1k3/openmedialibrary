@@ -125,6 +125,7 @@ def run_import(options=None):
             listitems = []
         assert isinstance(prefix, unicode)
         books = []
+        count = 0
         for root, folders, files in os.walk(prefix):
             for f in files:
                 #if f.startswith('._') or f == '.DS_Store':
@@ -134,7 +135,13 @@ def run_import(options=None):
                 ext = f.split('.')[-1]
                 if ext in extensions:
                     books.append(f)
-
+                    count += 1
+                    if count % 1000 == 0:
+                        state.activity = {
+                            'activity': 'import',
+                            'path': prefix,
+                            'progress': [0, count],
+                        }
         state.activity = {
             'activity': 'import',
             'path': prefix,
