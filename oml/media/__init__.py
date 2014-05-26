@@ -16,7 +16,7 @@ def get_id(f=None, data=None):
     if data:
         return base64.b32encode(hashlib.sha1(data).digest())
     else:
-        return base64.b32encode(ox.sha1sum(f).decode('hex'))
+        return base64.b32encode(ox.sha1sum(f, cached=True).decode('hex'))
 
 
 def metadata(f):
@@ -56,7 +56,7 @@ def metadata(f):
         data['title'] = os.path.splitext(os.path.basename(f))[0]
         if data['title'].startswith('Microsoft Word - '):
             data['title'] = data['title'][len('Microsoft Word - '):]
-        for postfix in ('.doc', 'docx', '.qxd', '.indd'):
+        for postfix in ('.doc', 'docx', '.qxd', '.indd', '.tex'):
             if data['title'].endswith(postfix):
                 data['title'] = data['title'][:-len(postfix)]
         if not data['title'].strip():
