@@ -10,7 +10,8 @@ oml.ui.findForm = function(list) {
             findKeys: oml.config.itemKeys.map(function(key) {
                 return Ox.extend({}, key, {
                     title: Ox._(key.title),
-                    type: key.id == 'mediastate' ? 'item' : key.type
+                    type: key.id == 'mediastate' ? 'item' : key.type,
+                    format: key.format && key.format.type == 'upper' ? void 0 : key.format
                 });
             }).concat([{
                 id: 'list',
