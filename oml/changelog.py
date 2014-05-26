@@ -161,6 +161,9 @@ class Changelog(db.Model):
     def action_edititem(self, user, timestamp, itemid, meta):
         from item.models import Item
         i = Item.get(itemid)
+        if not i:
+            logger.debug('ignore edititem for unknown item %s %s', timestamp, itemid)
+            return True
         if i.timestamp > timestamp:
             logger.debug('ignore edititem change %s %s %s', timestamp, itemid, meta)
             return True

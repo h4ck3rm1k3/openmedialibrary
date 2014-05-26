@@ -38,7 +38,12 @@ def lookup(id):
         doc = lxml.html.document_fromstring(html)
         for e in doc.xpath("//*[contains(@id, 'biblio')]"):
             key = e.attrib['id'].replace('biblio-', '')
-            value = e.text_content()
+            value = e.text_content().strip()
+            k = keys.get(key, key)
+            if k == 'date' and value == 'Publication Date:':
+                value = ''
+            elif k == 'publisher' and value == 'Publisher:':
+                value = ''
             if value and key not in ('bookcondition', 'binding', 'edition-amz'):
-                data[keys.get(key, key)] = value
+                data[k] = value
     return data

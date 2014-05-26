@@ -3,8 +3,10 @@
 from __future__ import division
 
 from urllib import urlencode
-from ox.cache import read_url
 import json
+from datetime import datetime
+
+from ox.cache import read_url
 
 from marc_countries import COUNTRIES
 from dewey import get_classification
@@ -90,6 +92,17 @@ def get_type(obj):
         type_ = type_['key']
     return type_
 
+def parse_date(s):
+    #"January 1, 1998"
+    for pattern, fmt in (('%B %d, %Y', '%Y-%m-%d'), ('%B %Y', '%Y-%m')):
+        try:
+            d = datetime.strptime(s, pattern)
+            s = d.strftime(fmt)
+            return s
+        except:
+            pass
+    return s
+
 def format(info, return_all=False):
     data = {}
     if 'works' in info:
@@ -120,6 +133,8 @@ def format(info, return_all=False):
                     value = data[KEYS[key]] + value
             elif isinstance(value, list) and key not in ('publish_places', 'lccn', 'oclc_numbers'):
                 value = value[0]
+            if key == 'publish_date':
+                value = parse_date(value)
             data[KEYS[key]] = value
     if 'subtitle' in info:
         data['title'] += ' ' + info['subtitle']

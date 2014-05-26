@@ -47,9 +47,19 @@ def metadata(f):
 
     if 'isbn' in data:
         data['primaryid'] = ['isbn', data['isbn'][0]]
+    if 'author' in data:
+        if isinstance(data['author'], basestring):
+            data['author'] = data['author'].split('; ')
+        if data['author'] in (['Administrator'], ['Default'], ['user']):
+            del data['author']
     if not 'title' in data:
         data['title'] = os.path.splitext(os.path.basename(f))[0]
-    if 'author' in data and isinstance(data['author'], basestring):
-        data['author'] = [data['author']]
+        if data['title'].startswith('Microsoft Word - '):
+            data['title'] = data['title'][len('Microsoft Word - '):]
+        for postfix in ('.doc', 'docx', '.qxd', '.indd'):
+            if data['title'].endswith(postfix):
+                data['title'] = data['title'][:-len(postfix)]
+        if not data['title'].strip():
+            del data['title']
     return data
 

@@ -75,9 +75,17 @@ def lookup(id):
             del data['cover']
 
     if 'author' in data:
-        data['author'] = [data['author']]
+        data['author'] = data['author'].split('; ')
     if 'title' in data:
         data['title'] = data['title'].replace(' : ', ': ')
+    if 'publisher' in data:
+        m = re.compile('(.+) : (.+), (\d{4})').findall(data['publisher'])
+        if m:
+            place, publisher, date = m[0]
+            data['publisher'] = publisher
+            data['date'] = date
+            data['places'] = [place]
+
     logger.debug('lookup %s => %s', id, data.keys())
     return data
 

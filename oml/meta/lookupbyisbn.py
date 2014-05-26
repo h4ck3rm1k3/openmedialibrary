@@ -50,6 +50,8 @@ def lookup(id):
     url = '%s/Lookup/Book/%s/%s/1' % (base, id, id)
     data = read_url(url).decode('utf-8')
     r["title"] = find_re(data, "<h2>(.*?)</h2>")
+    if r["title"] == 'Error!':
+        return {}
     keys = {
         'author': 'Author(s)',
         'publisher': 'Publisher',
