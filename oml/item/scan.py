@@ -136,12 +136,16 @@ def run_import(options=None):
                 if ext in extensions:
                     books.append(f)
                     count += 1
+                    if state.activity.get('cancel'):
+                        state.activity = {}
+                        return
                     if count % 1000 == 0:
                         state.activity = {
                             'activity': 'import',
                             'path': prefix,
                             'progress': [0, count],
                         }
+                        trigger_event('activity', state.activity)
         state.activity = {
             'activity': 'import',
             'path': prefix,
