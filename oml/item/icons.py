@@ -91,6 +91,34 @@ icons = Icons(icons_db_path)
 
 @run_async
 def get_icon(app, id, type_, size, callback):
+    if size:
+        skey = '%s:%s:%s' % (type_, id, size)
+        data = icons[skey]
+        if data:
+            callback(str(data))
+            return
+    key = '%s:%s' % (type_, id)
+    if not icons[key]:
+        type_ = 'preview' if type_ == 'cover' else 'cover'
+    if size:
+        skey = '%s:%s:%s' % (type_, id, size)
+    data = None
+    if size:
+        data = icons[skey]
+        if data:
+            size = None
+    if not data:
+        data = icons[key]
+    if not data:
+        data = icons.black()
+        size = None
+    if size:
+        data = icons[skey] = resize_image(data, size=size)
+    data = str(data) or ''
+    callback(data)
+
+@run_async
+def get_icon_app(app, id, type_, size, callback):
     with app.app_context():
         from item.models import Item
         item = Item.get(id)
