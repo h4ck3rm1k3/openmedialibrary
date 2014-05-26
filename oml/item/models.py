@@ -192,15 +192,15 @@ class Item(db.Model):
             f.item_id = self.id
             f.key = 'list'
             if p.id == settings.USER_ID:
-                f.value = ':'
+                f.findvalue = f.value = ':'
             else:
-                f.value = '%s:' % p.id
+                f.findvalue = f.value = '%s:' % p.id
             db.session.add(f)
         for l in self.lists:
             f = Find()
             f.item_id = self.id
             f.key = 'list'
-            f.value = l.find_id
+            f.findvalue = f.value = l.find_id
             db.session.add(f)
 
     def update(self):

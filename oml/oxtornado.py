@@ -102,7 +102,6 @@ class ApiHandler(tornado.web.RequestHandler):
 
     def get(self):
         self.write('use POST')
-        self.finish()
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -111,14 +110,12 @@ class ApiHandler(tornado.web.RequestHandler):
             logger.debug('reject cross site attempt to access api %s', self.request)
             self.set_status(403)
             self.write('')
-            self.finish()
             return
 
         response = yield tornado.gen.Task(api_task, self._app, self.request)
         response = json_dumps(json_response(response))
         self.set_header('Content-Type', 'application/json')
         self.write(response)
-        self.finish()
 
 class ApiActions(dict):
     properties = {}

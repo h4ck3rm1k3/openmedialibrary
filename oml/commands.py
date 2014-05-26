@@ -98,6 +98,11 @@ class PostUpdate(Command):
                             changed = True
                     if changed:
                         f.save()
+            if old <= '20140526-117-39ea043' and new > '20140526-117-39ea043':
+                import item.models
+                for i in item.models.Item.query:
+                    i.update_lists()
+                item.models.db.session.commit()
 
 class Setup(Command):
         """

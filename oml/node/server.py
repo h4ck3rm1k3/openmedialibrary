@@ -72,14 +72,12 @@ class NodeHandler(tornado.web.RequestHandler):
         self.set_header('X-Ed25519-Signature', sig)
         self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)
         self.write(content)
-        self.finish()
 
     def get(self):
         self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)
         if self.request.headers.get('X-Node-Protocol', None) > settings.NODE_PROTOCOL:
             state.update_required = True
         self.write('Open Media Library')
-        self.finish()
 
 @run_async
 def api_call(app, action, key, args, callback):
@@ -108,7 +106,7 @@ class ShareHandler(tornado.web.RequestHandler):
             i = item.models.Item.get(id)
             if not i:
                 self.set_status(404)
-                self.finish()
+                return
             path = i.get_path()
             mimetype = {
                 'epub': 'application/epub+zip',
@@ -123,8 +121,6 @@ class ShareHandler(tornado.web.RequestHandler):
                     if not data:
                         break
                     self.write(data)
-            self.finish()
-
 
 def publish_node(app):
     update_online()

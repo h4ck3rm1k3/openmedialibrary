@@ -15,7 +15,7 @@ logger = logging.getLogger('queryparser')
 def get_operator(op, type='str'):
     return {
         'str': {
-            '==': operators.ilike_op,
+            '==': operators.eq,
             '>': operators.gt,
             '>=': operators.ge,
             '<': operators.lt,
@@ -81,7 +81,6 @@ class Parser(object):
         if k == 'list':
             key_type = ''
 
-
         if (not exclude and op == '=' or op in ('$', '^')) and v == '':
             return None
         elif k == 'resolution':
@@ -104,7 +103,9 @@ class Parser(object):
         elif key_type in ("string", "text"):
             if isinstance(v, unicode):
                 v = unicodedata.normalize('NFKD', v).lower()
-            q = get_operator(op)(self._find.value, v.lower())
+            else:
+                v = v.lower()
+            q = get_operator(op)(self._find.findvalue, v)
             if k != '*':
                 q &= (self._find.key == k)
             if exclude:
@@ -119,7 +120,6 @@ class Parser(object):
             else:
                 p = self._user.query.filter_by(id=settings.USER_ID).first()
                 v = ':%s' % name
-            #print 'get list:', p.id, name, l, v
             if name:
                 l = self._list.query.filter_by(user_id=p.id, name=name).first()
             else:
@@ -132,7 +132,7 @@ class Parser(object):
                                     data.get('operator', '&'))
             else:
                 if exclude:
-                    q = (self._find.key == 'list') & (self._find.value == v)
+                    q = (self._find.key == 'list') & (self._find.findvalue == v)
                     ids = [i.id
                         for i in self._model.query.join(self._find).filter(q).group_by(self._model.id).options(load_only('id'))]
                     if ids:
@@ -141,7 +141,7 @@ class Parser(object):
                         q = (self._model.id != 0)
 
                 else:
-                    q = (self._find.key == 'list') & (self._find.value == v)
+                    q = (self._find.findvalue == v) & (self._find.key == 'list')
             return q
         elif key_type == 'date':
             def parse_date(d):

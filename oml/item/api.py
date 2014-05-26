@@ -87,11 +87,15 @@ def find(data):
             j = i.json()
             response['items'].append({k:j[k] for k in j if not data['keys'] or k in data['keys']})
     else:
-        response['items'] = q['qs'].count()
-        #from sqlalchemy.sql import func
-        #models.db.session.query(func.sum(models.Item.sort_size).label("size"))
-        #response['size'] = x.scalar()
-        response['size'] = sum([i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))])
+        key = 'stats:' + hashlib.sha1(json.dumps(data)).hexdigest()
+        stats = state.cache.get(key)
+        if stats is None:
+            stats = {}
+            size = [i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))]
+            stats['items'] = len(size)
+            stats['size'] = sum(size)
+            state.cache.set(key, stats, ttl=60)
+        response = stats
     return response
 actions.register(find)
 

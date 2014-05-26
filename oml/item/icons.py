@@ -160,7 +160,6 @@ class IconHandler(tornado.web.RequestHandler):
 
         if type_ not in ('cover', 'preview'):
             self.set_status(404)
-            self.finish()
             return
 
         self.set_header('Content-Type', 'image/jpeg')
@@ -168,7 +167,6 @@ class IconHandler(tornado.web.RequestHandler):
         response = yield tornado.gen.Task(get_icon, self._app, id, type_, size)
         if not response:
             self.set_status(404)
-            self.finish()
             return
         if self._finished:
             return

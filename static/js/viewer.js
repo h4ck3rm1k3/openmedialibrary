@@ -17,7 +17,7 @@ oml.ui.viewer = function() {
 
     that.updateElement = function() {
         item = ui.item;
-        if (item) {
+        if (item && item.length) {
             oml.api.get({id: item, keys: ['mediastate']}, function(result) {
                 if (result.data.mediastate == 'available') {
                     $iframe = $iframe || Ox.Element('<iframe>').css({
