@@ -15,6 +15,7 @@ import websocket
 import state
 import node.server
 import oxtornado
+from cache import Cache
 
 from item.icons import IconHandler
 from item.handlers import EpubHandler, ReaderHandler, FileHandler
@@ -59,6 +60,7 @@ def run():
             pid.write('%s' % os.getpid())
 
     state.main = IOLoop.instance()
+    state.cache = Cache(ttl=10)
 
     def start_node():
         import user

@@ -276,12 +276,17 @@ class List(db.Model):
         return self.public_id.encode('utf-8')
 
     def items_count(self):
-        from item.models import Item
-        if self._query:
-            data = self._query
-            return Parser(Item).find({'query': data}).count()
-        else:
-            return len(self.items)
+        key = 'list:' + self.public_id
+        value = state.cache.get(key)
+        if key is None:
+            from item.models import Item
+            if self._query:
+                data = self._query
+                value = Parser(Item).find({'query': data}).count()
+            else:
+                value = len(self.items)
+            state.cache.set(key, value)
+        return value
 
     def json(self):
         r = {

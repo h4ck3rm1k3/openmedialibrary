@@ -4,6 +4,7 @@ from __future__ import division
 
 import os
 import json
+import hashlib
 
 from oxtornado import actions
 
@@ -44,24 +45,28 @@ def find(data):
     if 'group' in q:
         names = {}
         groups = {}
-        items = [i.id for i in q['qs'].options(load_only('id'))]
-        qs = models.Find.query.filter_by(key=q['group'])
-        if items:
-            qs = qs.filter(models.Find.item_id.in_(items))
-            for f in qs.values('value', 'findvalue'):
-                value = f[0]
-                findvalue = f[1]
-                if findvalue not in groups:
-                    groups[findvalue] = 0
-                groups[findvalue] += 1
-                names[findvalue] = value
-            g = [{'name': names[k], 'items': groups[k]} for k in groups]
-        else:
-            g = []
-        if 'sort' in q:
-            g.sort(key=lambda k: k[q['sort'][0]['key']])
-            if q['sort'][0]['operator'] == '-':
-                g.reverse()
+        key = 'group:' + hashlib.sha1(json.dumps(data)).hexdigest()
+        g = state.cache.get(key)
+        if g is None:
+            items = [i.id for i in q['qs'].options(load_only('id'))]
+            qs = models.Find.query.filter_by(key=q['group'])
+            if items:
+                qs = qs.filter(models.Find.item_id.in_(items))
+                for f in qs.values('value', 'findvalue'):
+                    value = f[0]
+                    findvalue = f[1]
+                    if findvalue not in groups:
+                        groups[findvalue] = 0
+                    groups[findvalue] += 1
+                    names[findvalue] = value
+                g = [{'name': names[k], 'items': groups[k]} for k in groups]
+            else:
+                g = []
+            if 'sort' in q:
+                g.sort(key=lambda k: k[q['sort'][0]['key']])
+                if q['sort'][0]['operator'] == '-':
+                    g.reverse()
+            state.cache.set(key, g)
         if 'positions' in data:
             response['positions'] = {}
             ids = [k['name'] for k in g]
