@@ -148,6 +148,10 @@ class Item(db.Model):
                         value = map(get_sort_name, value)
                         value = ox.sort_string(u'\n'.join(value))
                     elif sort_type == 'title':
+                        if isinstance(value, dict):
+                            value = value.values()
+                        if isinstance(value, list):
+                            value = u''.join(value)
                         value = utils.sort_title(value).lower()
                     else:
                         if isinstance(value, list):
@@ -176,6 +180,8 @@ class Item(db.Model):
                     if value: value = value[0]
                 if value:
                     Find.query.filter_by(item_id=self.id, key=key['id']).delete()
+                    if isinstance(value, dict):
+                        value = ' '.join(value.values())
                     if not isinstance(value, list):
                         value = [value]
                     for v in value:
@@ -184,24 +190,6 @@ class Item(db.Model):
                     f = Find.get(self.id, key['id'])
                     if f:
                         db.session.delete(f)
-
-    def update_lists(self):
-        Find.query.filter_by(item_id=self.id, key='list').delete()
-        for p in self.users:
-            f = Find()
-            f.item_id = self.id
-            f.key = 'list'
-            if p.id == settings.USER_ID:
-                f.findvalue = f.value = ':'
-            else:
-                f.findvalue = f.value = '%s:' % p.id
-            db.session.add(f)
-        for l in self.lists:
-            f = Find()
-            f.item_id = self.id
-            f.key = 'list'
-            f.findvalue = f.value = l.find_id
-            db.session.add(f)
 
     def update(self):
         for key in ('mediastate', 'coverRatio', 'previewRatio'):
@@ -220,7 +208,6 @@ class Item(db.Model):
             self.meta.update(Metadata.load(*self.meta['primaryid']))
         self.update_sort()
         self.update_find()
-        self.update_lists()
         #self.modified = datetime.utcnow()
         self.save()
 
@@ -457,7 +444,7 @@ class Find(db.Model):
     item = db.relationship('Item', backref=db.backref('find', lazy='dynamic'))
     key = db.Column(db.String(200), index=True)
     value = db.Column(db.Text())
-    findvalue = db.Column(db.Text())
+    findvalue = db.Column(db.Text(), index=True)
 
     def __repr__(self):
         return (u'%s=%s' % (self.key, self.findvalue)).encode('utf-8')

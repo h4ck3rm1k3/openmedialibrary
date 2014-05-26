@@ -121,11 +121,6 @@ def info(pdf):
         except:
             logger.debug('FAILED TO PARSE %s', pdf, exc_info=1)
 
-        if 'identifier' in data:
-            value = normalize_isbn(data['identifier'])
-            if stdnum.isbn.is_valid(value):
-                data['isbn'] = [value]
-                del data['identifier']
     '''
     cmd = ['pdfinfo', pdf]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -139,6 +134,16 @@ def info(pdf):
         if not data[key]:
             del data[key]
     '''
+    if 'identifier' in data:
+        value = normalize_isbn(data['identifier'])
+        if stdnum.isbn.is_valid(value):
+            data['isbn'] = [value]
+            del data['identifier']
+
+    for key, value in data:
+        if isinstance(value, dict):
+            value = ' '.join(value.values())
+            data[key] = value
     text = extract_text(pdf)
     data['textsize'] = len(text)
     if settings.server['extract_text']:

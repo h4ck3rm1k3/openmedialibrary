@@ -87,15 +87,9 @@ def find(data):
             j = i.json()
             response['items'].append({k:j[k] for k in j if not data['keys'] or k in data['keys']})
     else:
-        key = 'stats:' + hashlib.sha1(json.dumps(data)).hexdigest()
-        stats = state.cache.get(key)
-        if stats is None:
-            stats = {}
-            size = [i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))]
-            stats['items'] = len(size)
-            stats['size'] = sum(size)
-            state.cache.set(key, stats, ttl=60)
-        response = stats
+        size = [i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))]
+        response['items'] = len(size)
+        response['size'] = sum(size)
     return response
 actions.register(find)
 
@@ -154,9 +148,14 @@ def remove(data):
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
             i.remove_file()
-    return {}
+    return {
+        'items': []
+    }
 actions.register(remove, cache=False)
 
+def autocomplete(data):
+    return {}
+actions.register(remove, cache=False)
 
 def findMetadata(data):
     '''

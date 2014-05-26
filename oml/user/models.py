@@ -108,8 +108,6 @@ class User(db.Model):
                 i.users.remove(self)
                 if not i.users:
                     i.delete()
-                else:
-                    i.update_lists()
             Changelog.query.filter_by(user_id=self.id).delete()
             self.save()
             if was_peering:
@@ -219,12 +217,6 @@ class List(db.Model):
                 i.update()
         db.session.add(self)
         db.session.commit()
-        for item_id in items:
-            i = Item.get(item_id)
-            if i:
-                i.update_lists()
-                db.session.add(i)
-        db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)
 
@@ -236,12 +228,6 @@ class List(db.Model):
                 self.items.remove(i)
             i.update()
         db.session.add(self)
-        db.session.commit()
-        for item_id in items:
-            i = Item.get(item_id)
-            i.update_lists()
-            db.session.add(i)
-        db.session.commit()
         db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'removelistitems', self.name, items)

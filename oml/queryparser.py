@@ -108,40 +108,35 @@ class Parser(object):
             q = get_operator(op)(self._find.findvalue, v)
             if k != '*':
                 q &= (self._find.key == k)
+            self._joins.append(self._find)
             if exclude:
                 q = ~q
             return q
         elif k == 'list':
             nickname, name = v.split(':', 1)
             if nickname:
-                p = self._user.query.filter_by(nickname=nickname).first()
-                if p:
-                    v = '%s:%s' % (p.id, name)
+                u = self._user.query.filter_by(nickname=nickname).first()
             else:
-                p = self._user.query.filter_by(id=settings.USER_ID).first()
-                v = ':%s' % name
+                u = self._user.query.filter_by(id=settings.USER_ID).first()
             if name:
-                l = self._list.query.filter_by(user_id=p.id, name=name).first()
+                l = self._list.query.filter_by(user_id=u.id, name=name).first()
             else:
                 l = None
-            if l:
-                v = l.find_id
-            if l and l.type == 'smart':
+            if not l:
+                if not u:
+                    q = (self._user.id == 0)
+                else:
+                    q = (self._user.id == u.id)
+                self._joins.append(self._model.users)
+            elif l.type == 'smart':
                 data = l._query
                 q = self.parse_conditions(data.get('conditions', []),
                                     data.get('operator', '&'))
             else:
-                if exclude:
-                    q = (self._find.key == 'list') & (self._find.findvalue == v)
-                    ids = [i.id
-                        for i in self._model.query.join(self._find).filter(q).group_by(self._model.id).options(load_only('id'))]
-                    if ids:
-                        q = ~self._model.id.in_(ids)
-                    else:
-                        q = (self._model.id != 0)
-
-                else:
-                    q = (self._find.findvalue == v) & (self._find.key == 'list')
+                q = (self._list.id == l.id)
+                self._joins.append(self._list.items)
+            if exclude:
+                q = ~q
             return q
         elif key_type == 'date':
             def parse_date(d):
@@ -228,10 +223,13 @@ class Parser(object):
         #join query with operator
         qs = self._model.query
         #only include items that have hard metadata
+        self._joins = []
         conditions = self.parse_conditions(data.get('query', {}).get('conditions', []),
                                      data.get('query', {}).get('operator', '&'))
         for c in conditions:
-            qs = qs.join(self._find).filter(c)
+            if self._joins:
+                qs = qs.join(self._joins.pop(0))
+            qs = qs.filter(c)
         qs = qs.group_by(self._model.id)
         return qs
 
