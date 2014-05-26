@@ -17,11 +17,6 @@ or SixSS (https://sixxs.net).
 Development
 -----------
 
-On Linux you need to always install PIL, pyhon-lxml and poppler-utils:
-
-    apt-get install python-imaging  python-lxml poppler-utils
-
-
 Now checkout the source and prepare for use:
 
     mkdir client
@@ -39,11 +34,16 @@ To update to latest version:
 
     ./ctl update
 
+On Linux you need a working python2 installation with PIL, pyhon-lxml and poppler-utils:
+
+    apt-get install python2.7 python-imaging  python-lxml poppler-utils
+
+
 Platform
 ----------
 
-If you install Open Media Library on a architecture thats not directly supported,
-you need a working python 2.7.x installation and the following packages:
+If you install Open Media Library on a architecture that is currently not upported,
+you need a working python 2.7 installation and the following packages:
 
     apt-get install \
         python-pypdf python-stdnum python-html5lib python-chardet python-openssl \
