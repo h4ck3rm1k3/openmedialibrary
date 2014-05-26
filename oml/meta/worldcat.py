@@ -84,7 +84,7 @@ def lookup(id):
             place, publisher, date = m[0]
             data['publisher'] = publisher
             data['date'] = date
-            data['places'] = [place]
+            data['place'] = [place]
 
     logger.debug('lookup %s => %s', id, data.keys())
     return data
