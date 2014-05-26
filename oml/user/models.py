@@ -182,11 +182,11 @@ class List(db.Model):
         l._query = query
         l.type = 'smart' if l._query else 'static'
         l.index_ = cls.query.filter_by(user_id=user_id).count()
+        db.session.add(l)
+        db.session.commit()
         if user_id == settings.USER_ID:
             if not l._query:
                 Changelog.record(state.user(), 'addlist', l.name)
-        db.session.add(l)
-        db.session.commit()
         return l
 
     @classmethod
