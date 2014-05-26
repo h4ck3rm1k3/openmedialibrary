@@ -33,7 +33,7 @@ def run():
     static_path = os.path.join(root_dir, 'static')
 
     options = {
-        'debug': not PID,
+        'debug': False,
         'gzip': True
     }
 
