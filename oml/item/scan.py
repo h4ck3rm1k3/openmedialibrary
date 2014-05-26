@@ -174,16 +174,19 @@ def run_import(options=None):
                 if listname:
                     listitems.append(item.id)
                 added += 1
+                state.activity = {
+                    'activity': 'import',
+                    'progress': [position, len(books)],
+                    'path': prefix,
+                    'added': added,
+                }
+                trigger_event('activity', state.activity)
+            elif listname:
+                listitems.append(file.item.id)
+
             if state.activity.get('cancel'):
                 state.activity = {}
                 return
-            state.activity = {
-                'activity': 'import',
-                'progress': [position, len(books)],
-                'path': prefix,
-                'added': added,
-            }
-            trigger_event('activity', state.activity)
         if listname and listitems:
             l = List.get(settings.USER_ID, listname)
             if l:
