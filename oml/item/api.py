@@ -241,7 +241,7 @@ actions.register(cancelDownloads, cache=False)
 
 
 def scan(data):
-    state.main.add_callback(state.websockets[0].put, json.dumps(['scan', {}]))
+    state.tasks.queue('scan', {})
     return {}
 actions.register(scan, cache=False)
 
@@ -255,7 +255,7 @@ def _import(data):
         }
     '''
     logger.debug('api.import %s', data)
-    state.main.add_callback(state.websockets[0].put, json.dumps(['import', data]))
+    state.tasks.queue('import', data)
     return {}
 actions.register(_import, 'import', cache=False)
 

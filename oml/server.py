@@ -64,6 +64,8 @@ def run():
         import user
         import downloads
         import nodes
+        import tasks
+        state.tasks = tasks.Tasks(app)
         state.node = node.server.start(app)
         state.nodes = nodes.Nodes(app)
         state.downloads = downloads.Downloads(app)

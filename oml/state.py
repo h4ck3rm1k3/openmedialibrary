@@ -1,5 +1,6 @@
 websockets = []
 nodes = False
+tasks = False
 main = None
 online = False
 host = None

@@ -43,6 +43,7 @@ class User(db.Model):
         if not user:
             user = cls(id=id, peered=False, online=False)
             user.info = {}
+            user.update_name()
             user.save()
         return user
 
