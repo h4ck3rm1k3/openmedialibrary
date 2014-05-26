@@ -278,7 +278,7 @@ class List(db.Model):
     def items_count(self):
         key = 'list:' + self.public_id
         value = state.cache.get(key)
-        if key is None:
+        if value is None:
             from item.models import Item
             if self._query:
                 data = self._query
