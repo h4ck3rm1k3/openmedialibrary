@@ -40,10 +40,10 @@ def remove_missing():
             if dirty:
                 db.session.commit()
 
-def add_file(id, f, prefix):
+def add_file(id, f, prefix, from_=None):
     user = state.user()
     path = f[len(prefix):]
-    data = media.metadata(f)
+    data = media.metadata(f, from_)
     file = File.get_or_create(id, data, path)
     item = file.item
     if 'primaryid' in file.info:
@@ -88,7 +88,7 @@ def run_scan():
             id = media.get_id(f)
             file = File.get(id)
             if not file:
-                file = add_file(id, f, prefix)
+                file = add_file(id, f, prefix, f)
                 added += 1
                 trigger_event('change', {})
 
@@ -168,7 +168,7 @@ def run_import(options=None):
                     shutil.move(f_import, f)
                 else:
                     shutil.copy(f_import, f)
-                file = add_file(id, f, prefix_books)
+                file = add_file(id, f, prefix_books, f_import)
                 file.move()
                 item = file.item
                 if listname:

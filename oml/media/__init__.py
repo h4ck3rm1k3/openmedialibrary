@@ -11,6 +11,7 @@ import ox
 import pdf
 import epub
 import txt
+import opf
 
 def get_id(f=None, data=None):
     if data:
@@ -19,11 +20,12 @@ def get_id(f=None, data=None):
         return base64.b32encode(ox.sha1sum(f, cached=True).decode('hex'))
 
 
-def metadata(f):
+def metadata(f, from_=None):
     ext = f.split('.')[-1]
     data = {}
     data['extension'] = ext
     data['size'] = os.stat(f).st_size
+
     if ext == 'pdf':
         info = pdf.info(f)
     elif ext == 'epub':
@@ -31,9 +33,15 @@ def metadata(f):
     elif ext == 'txt':
         info = txt.info(f)
 
+    opf_info = {}
+    metadata_opf = os.path.join(os.path.dirname(from_ or f), 'metadata.opf')
+    if os.path.exists(metadata_opf):
+        opf_info = opf.info(metadata_opf)
+
     for key in (
-        'title', 'author', 'date', 'publisher', 'isbn',
-        'textsize', 'pages'
+        'title', 'author', 'date', 'publisher',
+        'language', 'textsize', 'pages',
+        'isbn', 'asin'
     ):
         if key in info:
             value = info[key]
@@ -44,9 +52,12 @@ def metadata(f):
                     value = None
             if value:
                 data[key] = info[key]
-
+        if key in opf_info:
+            data[key] = opf_info[key]
     if 'isbn' in data:
         data['primaryid'] = ['isbn', data['isbn'][0]]
+    elif 'asin' in data:
+        data['primaryid'] = ['asin', data['asin'][0]]
     if 'author' in data:
         if isinstance(data['author'], basestring):
             data['author'] = data['author'].split('; ')
