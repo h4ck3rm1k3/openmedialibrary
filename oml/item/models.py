@@ -169,6 +169,8 @@ class Item(db.Model):
 
         def add(k, v):
             f = Find(item_id=self.id, key=k)
+            if isinstance(v, str):
+                v = v.decode('utf-8')
             f.findvalue = unicodedata.normalize('NFKD', v).lower()
             f.value = v
             db.session.add(f)
