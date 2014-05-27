@@ -11,6 +11,7 @@ from datetime import datetime
 from StringIO import StringIO
 import shutil
 import logging
+import unicodedata
 
 import Image
 import ox
@@ -168,7 +169,7 @@ class Item(db.Model):
 
         def add(k, v):
             f = Find(item_id=self.id, key=k)
-            f.findvalue = v.lower().strip()
+            f.findvalue = unicodedata.normalize('NFKD', v).lower()
             f.value = v
             db.session.add(f)
 
