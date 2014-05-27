@@ -18,3 +18,8 @@ class Cache(dict):
         ttl = ttl or self._ttl
         self._added[key] = time.time() + ttl
         dict.__setitem__(self, key, value)
+
+    def delete(self, key):
+        if key in self._addedd:
+            del self._added[key]
+            del self[key]

@@ -4,7 +4,6 @@
 from datetime import datetime
 import unicodedata
 from sqlalchemy.sql import operators
-from sqlalchemy.orm import load_only
 
 import utils
 import settings
@@ -41,6 +40,7 @@ class Parser(object):
     def __init__(self, model):
         self._model = model
         self._find = model.find.mapper.class_
+        self._sort = model.sort.mapper.class_
         self._user = model.users.mapper.class_
         self._list = model.lists.mapper.class_
         self.item_keys = model.item_keys
@@ -145,13 +145,15 @@ class Parser(object):
                 return datetime(*[int(i) for i in d])
             #using sort here since find only contains strings
             v = parse_date(v.split('-'))
-            vk = getattr(self._model, 'sort_%s' % k)
+            vk = getattr(self._sort, k)
             q = get_operator(op, 'int')(vk, v)
+            self._joins.append(self._sort)
             if exclude:
                 q = ~q
             return q
         else: #integer, float, time
-            q = get_operator(op, 'int')(getattr(self._model, 'sort_%s'%k), v)
+            q = get_operator(op, 'int')(getattr(self._sort, k), v)
+            self._joins.append(self._sort)
             if exclude:
                 q = ~q
             return q
@@ -232,4 +234,3 @@ class Parser(object):
             qs = qs.filter(c)
         qs = qs.group_by(self._model.id)
         return qs
-

@@ -60,7 +60,10 @@ def metadata(f, from_=None):
         data['primaryid'] = ['asin', data['asin'][0]]
     if 'author' in data:
         if isinstance(data['author'], basestring):
-            data['author'] = data['author'].split('; ')
+            if data['author'].strip():
+                data['author'] = data['author'].strip().split('; ')
+            else:
+                del data['author']
         if data['author'] in (['Administrator'], ['Default'], ['user']):
             del data['author']
     if not 'title' in data:
