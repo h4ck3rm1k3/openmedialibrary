@@ -838,7 +838,7 @@ oml.getUsers = function(callback) {
     var ui = oml.user.ui;
     Ox.Request.clearCache('getUsers');
     oml.api.getUsers(function(result) {
-        users = [{
+        var users = [{
             id: oml.user.id,
             name: '',
             online: oml.user.online
