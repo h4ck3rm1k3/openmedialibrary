@@ -98,11 +98,12 @@ def get_icon(app, id, type_, size, callback):
             callback(str(data))
             return
     key = '%s:%s' % (type_, id)
-    if not icons[key]:
+    data = icons[key]
+    if not data:
         type_ = 'preview' if type_ == 'cover' else 'cover'
+        key = '%s:%s' % (type_, id)
     if size:
         skey = '%s:%s:%s' % (type_, id, size)
-    data = None
     if size:
         data = icons[skey]
         if data:
