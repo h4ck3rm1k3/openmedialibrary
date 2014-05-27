@@ -113,7 +113,9 @@ class ApiHandler(tornado.web.RequestHandler):
             return
 
         response = yield tornado.gen.Task(api_task, self._app, self.request)
-        response = json_dumps(json_response(response))
+        if not 'status' in response:
+            response = json_response(response)
+        response = json_dumps(response)
         self.set_header('Content-Type', 'application/json')
         self.write(response)
 
