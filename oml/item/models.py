@@ -270,7 +270,6 @@ class Item(db.Model):
 
         # get metadata from external resources
         self.scrape()
-        self.update()
         self.update_icons()
         self.modified = datetime.utcnow()
         self.save()

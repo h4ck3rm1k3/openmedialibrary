@@ -139,8 +139,7 @@ def info(pdf):
         if stdnum.isbn.is_valid(value):
             data['isbn'] = [value]
             del data['identifier']
-
-    for key, value in data:
+    for key, value in data.iteritems():
         if isinstance(value, dict):
             value = ' '.join(value.values())
             data[key] = value
@@ -151,6 +150,11 @@ def info(pdf):
             isbn = extract_isbn(text)
             if isbn:
                 data['isbn'] = [isbn]
+    if 'isbn' in data and isinstance(data['isbn'], basestring):
+        data['isbn'] = [data['isbn']]
+    if 'date' in data and len(data['date']) == 8 and data['date'].isdigit():
+        d = data['date']
+        data['date'] = '%s-%s-%s' % (d[:4], d[4:6], d[6:])
     return data
 
 '''
