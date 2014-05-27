@@ -21,12 +21,6 @@ import api
 
 import commands
 
-#FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
-#logging.basicConfig(format=FORMAT)
-#logger = logging.getLogger('oml.app')
-#logger.warning('test')
-logging.basicConfig(level=logging.DEBUG)
-
 app = Flask('openmedialibrary', static_folder=settings.static_path)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s' % settings.db_path
 db.init_app(app)
@@ -38,8 +32,8 @@ manager.add_command('db', MigrateCommand)
 manager.add_command('release', commands.Release)
 manager.add_command('debug', commands.Debug)
 manager.add_command('update', commands.Update)
-#manager.add_command('start', commands.Start)
-#manager.add_command('stop', commands.Stop)
+manager.add_command('start', commands.Start)
+manager.add_command('stop', commands.Stop)
 manager.add_command('setup', commands.Setup)
 manager.add_command('version', commands.Version)
 manager.add_command('postupdate', commands.PostUpdate)

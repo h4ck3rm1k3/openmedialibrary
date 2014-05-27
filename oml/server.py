@@ -11,6 +11,7 @@ from tornado.ioloop import IOLoop
 from app import app
 import settings
 import websocket
+import logging
 
 import state
 import node.server
@@ -32,6 +33,12 @@ def run():
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
     static_path = os.path.join(root_dir, 'static')
+    #FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+    #logging.basicConfig(format=FORMAT)
+    #logger = logging.getLogger('oml.app')
+    #logger.warning('test')
+    if not PID:
+        logging.basicConfig(level=logging.DEBUG)
 
     options = {
         'debug': False,

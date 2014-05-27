@@ -41,7 +41,8 @@ if [ "$1" == "start" ]; then
         echo openmedialibrary already running
         exit 1
     fi
-    python2 oml server PID &
+    python2 oml server $PID
+    rm -f $PID
     exit $?
 fi
 if [ "$1" == "debug" ]; then
