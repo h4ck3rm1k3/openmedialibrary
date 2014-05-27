@@ -8,6 +8,7 @@ import socket
 import struct
 import thread
 from threading import Thread
+import time
 
 from utils import valid, get_public_ipv6, get_local_ipv4, get_interface
 from settings import preferences, server, USER_ID, sk
@@ -63,15 +64,21 @@ class LocalNodesBase(Thread):
         pass
 
     def receive(self):
-        s = self.get_socket()
-        s.bind(('', self._PORT))
         while self._active:
-            data, addr = s.recvfrom(1024)
-            while data[-1] == '\0':
-                data = data[:-1] # Strip trailing \0's
-            data = self.verify(data)
-            if data:
-                self.update_node(data)
+            try:
+                s = self.get_socket()
+                s.bind(('', self._PORT))
+                while self._active:
+                    data, addr = s.recvfrom(1024)
+                    while data[-1] == '\0':
+                        data = data[:-1] # Strip trailing \0's
+                    data = self.verify(data)
+                    if data:
+                        self.update_node(data)
+            except:
+                logger.debug('receive failed. restart later', exc_info=1)
+                time.sleep(10)
+
 
     def verify(self, data):
         try:
@@ -138,7 +145,10 @@ class LocalNodes4(LocalNodesBase):
         sockaddr = (self._BROADCAST, self._PORT)
         s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt (socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self._TTL)
-        s.sendto(packet + '\0', sockaddr)
+        try:
+            s.sendto(packet + '\0', sockaddr)
+        except:
+            logger.debug('LocalNodes4.send failed', exc_info=1)
         s.close()
 
     def get_socket(self):
@@ -165,7 +175,10 @@ class LocalNodes6(LocalNodesBase):
         (family, socktype, proto, canonname, sockaddr) = addr
         s = socket.socket(family, socktype, proto)
         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl)
-        s.sendto(packet + '\0', sockaddr)
+        try:
+            s.sendto(packet + '\0', sockaddr)
+        except:
+            logger.debug('LocalNodes6.send failed', exc_info=1)
         s.close()
 
     def get_socket(self):
