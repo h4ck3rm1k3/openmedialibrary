@@ -35,6 +35,9 @@ export oxCACHE
 #must be called to update commands in $PATH
 hash -r 2>/dev/null
 
+# allow more open files
+ulimit -S -n 2048
+
 if [ "$1" == "start" ]; then
     cd "$BASE/$NAME"
     if [ -e $PID ]; then
