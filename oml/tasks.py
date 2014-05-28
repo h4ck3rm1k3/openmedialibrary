@@ -27,7 +27,6 @@ class Tasks(Thread):
         while self.connected:
             m = self.q.get()
             if m:
-                print m
                 action, data = m
                 if action == 'ping':
                     trigger_event('pong', data)
