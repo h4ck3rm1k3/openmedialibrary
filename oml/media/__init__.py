@@ -54,7 +54,7 @@ def metadata(f, from_=None):
                 data[key] = info[key]
         if key in opf_info:
             data[key] = opf_info[key]
-        if key in data[key]:
+        if key in data:
             if isinstance(data[key], basestring):
                 data[key] = data[key].replace('\x00', '')
             elif isinstance(data[key], list):

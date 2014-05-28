@@ -17,6 +17,7 @@ import state
 import node.server
 import oxtornado
 from cache import Cache
+import tasks
 
 from item.icons import IconHandler
 from item.handlers import EpubHandler, ReaderHandler, FileHandler
@@ -68,13 +69,12 @@ def run():
 
     state.main = IOLoop.instance()
     state.cache = Cache(ttl=10)
+    state.tasks = tasks.Tasks(app)
 
     def start_node():
         import user
         import downloads
         import nodes
-        import tasks
-        state.tasks = tasks.Tasks(app)
         state.node = node.server.start(app)
         state.nodes = nodes.Nodes(app)
         state.downloads = downloads.Downloads(app)

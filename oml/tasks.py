@@ -20,6 +20,7 @@ class Tasks(Thread):
         Thread.__init__(self)
         self.daemon = True
         self.start()
+        self.queue('scan')
 
     def run(self):
         import item.scan
@@ -46,6 +47,6 @@ class Tasks(Thread):
         self.q.join()
         return Thread.join(self)
 
-    def queue(self, action, data):
+    def queue(self, action, data=None):
         self.q.put((action, data))
 
