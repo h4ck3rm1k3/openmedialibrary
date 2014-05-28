@@ -530,6 +530,7 @@ class File(db.Model):
 
         filename = '%s.%s' % (title, extension)
         new_path = os.path.join(author[0].upper(), author, filename)
+        new_path = new_path.replace('\x00', '')
         if self.path == new_path:
             return
         h = ''

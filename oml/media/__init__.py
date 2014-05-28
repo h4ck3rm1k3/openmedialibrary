@@ -54,6 +54,11 @@ def metadata(f, from_=None):
                 data[key] = info[key]
         if key in opf_info:
             data[key] = opf_info[key]
+        if key in data[key]:
+            if isinstance(data[key], basestring):
+                data[key] = data[key].replace('\x00', '')
+            elif isinstance(data[key], list):
+                data[key] = [e.replace('\x00', '') if isinstance(e, basestring) else e for e in data[key]]
     if 'isbn' in data:
         data['primaryid'] = ['isbn', data['isbn'][0]]
     elif 'asin' in data:
