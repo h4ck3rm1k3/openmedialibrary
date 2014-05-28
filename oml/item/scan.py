@@ -5,6 +5,7 @@ from __future__ import division
 import os
 import shutil
 from datetime import datetime
+import time
 
 import ox
 
@@ -154,6 +155,7 @@ def run_import(options=None):
         trigger_event('activity', state.activity)
         position = 0
         added = 0
+        last = 0
         for f in ox.sorted_strings(books):
             position += 1
             if not os.path.exists(f):
@@ -170,10 +172,11 @@ def run_import(options=None):
                     shutil.copy(f_import, f)
                 file = add_file(id, f, prefix_books, f_import)
                 file.move()
-                item = file.item
-                if listname:
-                    listitems.append(item.id)
                 added += 1
+            if listname:
+                listitems.append(file.item.id)
+            if time.time() - last > 5:
+                last = time.time()
                 state.activity = {
                     'activity': 'import',
                     'progress': [position, len(books)],
@@ -181,8 +184,6 @@ def run_import(options=None):
                     'added': added,
                 }
                 trigger_event('activity', state.activity)
-            elif listname:
-                listitems.append(file.item.id)
 
             if state.activity.get('cancel'):
                 state.activity = {}
