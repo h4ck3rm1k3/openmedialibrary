@@ -3,7 +3,7 @@ HOST="[::1]:9842"
 NAME="openmedialibrary"
 PID="/tmp/$NAME.pid"
 
-cd `dirname "$0"`
+cd "`dirname "$0"`"
 if [ -e oml ]; then
     cd ..
 fi
