@@ -5,7 +5,6 @@
     <title>Open Media Library</title>
 </head>
 <body>
-    Loading Open Media Library...
     <script>
         function load() {
             var base = 'http://[::1]:9842',
@@ -17,9 +16,8 @@
         };
         load();
         setTimeout(function() {
-                document.body.innerHTML = 'Looks like Open Media Library is not running. Please omlctl start';
+                document.body.innerHTML = 'Looks like Open Media Library is not running.';
         }, 10000);
     </script>
 </body>
 </html>
-
