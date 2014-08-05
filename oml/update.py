@@ -17,7 +17,7 @@ import ox
 import settings
 
 ENCODING='base64'
-RELEASE_URL = "http://downloads.openmedialibrary.com/release.json"
+RELEASE_URL = 'http://downloads.openmedialibrary.com/release.json'
 
 def verify(release):
     vk = ed25519.VerifyingKey(settings.OML_UPDATE_KEY, encoding=ENCODING)
@@ -33,7 +33,7 @@ def verify(release):
     return True
 
 def download(url, filename):
-    print url, filename
+    print 'download', filename
     dirname = os.path.dirname(filename)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
