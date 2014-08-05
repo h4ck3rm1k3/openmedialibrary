@@ -10,7 +10,7 @@ from pdict import pdict
 
 base_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 static_path = os.path.join(base_dir, 'static')
-updates_path = os.path.join(base_dir, 'updates')
+updates_path = os.path.normpath(os.path.join(base_dir, '..', 'updates'))
 
 oml_config_path = os.path.join(base_dir, 'config.json')
 
@@ -65,6 +65,7 @@ else:
         os.chmod(key_path, 0400)
 
 USER_ID = vk.to_ascii(encoding='base64')
+OML_UPDATE_KEY='K55EZpPYbP3X+3mA66cztlw1sSaUMqGwfTDKQyP2qOU'
 
 if 'modules' in release and 'openmedialibrary' in release['modules']:
     MINOR_VERSION = release['modules']['openmedialibrary']['version']

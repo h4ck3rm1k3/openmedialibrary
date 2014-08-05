@@ -87,20 +87,24 @@ if [ "$1" == "ui" ]; then
     exit $?
 fi
 if [ "$1" == "update" ]; then
-    cd "$BASE/$NAME"
-    OLD=`"$0" version`
-    cd "$BASE/platform"
-    echo Update platform..
-    git pull
-    echo Update $NAME..
-    cd "$BASE/$NAME"
-    git pull
-    find . -name '*.pyc' -exec rm "{}" \;
-    $0 setup
-    $0 update_static > /dev/null
-    NEW=`"$0" version`
-    $0 postupdate -o $OLD -n $NEW
-    exit
+    if [ -e $BASE/$NAME/.git ]; then
+        cd "$BASE/$NAME"
+        OLD=`"$0" version`
+        cd "$BASE/platform"
+        echo Update platform..
+        git pull
+        echo Update $NAME..
+        cd "$BASE/$NAME"
+        git pull
+        find . -name '*.pyc' -exec rm "{}" \;
+        $0 setup
+        $0 update_static > /dev/null
+        NEW=`"$0" version`
+        $0 postupdate -o $OLD -n $NEW
+        exit
+    else
+        python2 oml update
+    fi
 fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"

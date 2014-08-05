@@ -27,13 +27,15 @@ def r(*cmd):
     return subprocess.call(cmd)
 
 def version(module):
-    os.chdir(join(root_dir, module))
-    version = get('git', 'log', '-1', '--format=%cd', '--date=iso').split(' ')[0].replace('-', '')
-    version += '-' + get('git', 'rev-list', 'HEAD', '--count').strip()
-    version += '-' + get('git', 'describe', '--always').strip()
-    os.chdir(root_dir)
+    if os.path.exists(join(root_dir, module, '.git')):
+        os.chdir(join(root_dir, module))
+        version = get('git', 'log', '-1', '--format=%cd', '--date=iso').split(' ')[0].replace('-', '')
+        version += '-' + get('git', 'rev-list', 'HEAD', '--count').strip()
+        version += '-' + get('git', 'describe', '--always').strip()
+        os.chdir(root_dir)
+    else:
+        version = settings.release['modules'][module]['version']
     return version
-
 
 class Version(Command):
         """
@@ -68,7 +70,11 @@ class Update(Command):
             Update to latest development version
         """
         def run(self):
-            pass
+            import update
+            if update.update():
+                print "OK"
+            else:
+                print "FAILED"
 
 class PostUpdate(Command):
         """
