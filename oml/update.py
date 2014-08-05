@@ -32,7 +32,8 @@ def verify(release):
         return False
     return True
 
-def download(self, url, filename):
+def download(url, filename):
+    print url, filename
     dirname = os.path.dirname(filename)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
@@ -59,20 +60,26 @@ def update():
     old = settings.release['modules']['openmedialibrary']['version']
     new = release['modules']['openmedialibrary']['version']
     if verify(release) and old < new:
+        ox.makedirs(settings.updates_path)
         with open(os.path.join(settings.updates_path, 'release.json'), 'w') as fd:
             fd.write(release_data)
-        os.chdir(settings.base_dir)
+        os.chdir(os.path.dirname(settings.base_dir))
         for module in release['modules']:
             if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
                 package_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
-                url = RELEASE_URL.replace('release.json', package_tar)
+                url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
                 download(url, package_tar)
                 if ox.sha1sum(package_tar) == release['modules'][module]['sha1']:
-                    shutil.move(module, '%s_old' % module)
+                    ox.makedirs('new')
+                    os.chdir('new')
                     tar = tarfile.open(package_tar)
                     tar.extractall()
                     tar.close()
+                    os.chdir(os.path.dirname(settings.base_dir))
+                    shutil.move(module, '%s_old' % module)
+                    shutil.move(os.path.join('new', module), module)
                     shutil.rmtree('%s_old' % module)
+                    shutil.rmtree('new')
                 else:
                     return False
                 os.unlink(package_tar)

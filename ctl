@@ -87,8 +87,8 @@ if [ "$1" == "ui" ]; then
     exit $?
 fi
 if [ "$1" == "update" ]; then
-    if [ -e $BASE/$NAME/.git ]; then
-        cd "$BASE/$NAME"
+    cd "$BASE/$NAME"
+    if [ -d "$BASE/$NAME/.git" ]; then
         OLD=`"$0" version`
         cd "$BASE/platform"
         echo Update platform..
@@ -101,10 +101,10 @@ if [ "$1" == "update" ]; then
         $0 update_static > /dev/null
         NEW=`"$0" version`
         $0 postupdate -o $OLD -n $NEW
-        exit
     else
         python2 oml update
     fi
+    exit
 fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"
