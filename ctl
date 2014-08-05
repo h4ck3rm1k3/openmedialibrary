@@ -73,11 +73,12 @@ if [ "$1" == "restart" ]; then
     fi
 fi
 if [ "$1" == "open" ]; then
+    "$0" start &
     #time to switch to python and use webbrowser.open_tab?
     if [ $SYSTEM == "Darwin" ]; then
-        open "http://$HOST/"
+        open "$BASE/$NAME/static/html/load.html"
     else
-        xdg-open "http://$HOST/"
+        xdg-open "$BASE/$NAME/static/html/load.html"
     fi
     exit 0
 fi
@@ -97,10 +98,10 @@ if [ "$1" == "update" ]; then
         cd "$BASE/$NAME"
         git pull
         find . -name '*.pyc' -exec rm "{}" \;
-        $0 setup
-        $0 update_static > /dev/null
+        "$0" setup
+        "$0" update_static > /dev/null
         NEW=`"$0" version`
-        $0 postupdate -o $OLD -n $NEW
+        "$0" postupdate -o $OLD -n $NEW
     else
         python2 oml update
     fi

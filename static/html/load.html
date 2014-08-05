@@ -16,8 +16,11 @@
         };
         load();
         setTimeout(function() {
+            load();
+            setTimeout(function() {
                 document.body.innerHTML = 'Looks like Open Media Library is not running.';
-        }, 10000);
+            }, 10000);
+        }, 3000);
     </script>
 </body>
 </html>
