@@ -63,18 +63,19 @@ def update():
             fd.write(release_data)
         os.chdir(settings.base_dir)
         for module in release['modules']:
-            package_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
-            url = RELEASE_URL.replace('release.json', package_tar)
-            download(url, package_tar)
-            if ox.sha1sum(package_tar) == release['modules'][module]['sha1']:
-                shutil.move(module, '%s_old' % module)
-                tar = tarfile.open(package_tar)
-                tar.extractall()
-                tar.close()
-                shutil.rmtree('%s_old' % module)
-            else:
-                return False
-            os.unlink(package_tar)
+            if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
+                package_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
+                url = RELEASE_URL.replace('release.json', package_tar)
+                download(url, package_tar)
+                if ox.sha1sum(package_tar) == release['modules'][module]['sha1']:
+                    shutil.move(module, '%s_old' % module)
+                    tar = tarfile.open(package_tar)
+                    tar.extractall()
+                    tar.close()
+                    shutil.rmtree('%s_old' % module)
+                else:
+                    return False
+                os.unlink(package_tar)
         with open(os.path.join(settings.config_dir, 'release.json'), 'w') as fd:
             fd.write(release_data)
         cmd = ['./ctl', 'stop']
