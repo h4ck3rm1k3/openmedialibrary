@@ -10,7 +10,6 @@ import urllib2
 import shutil
 import subprocess
 
-import requests
 import ed25519
 import ox
 
@@ -32,22 +31,27 @@ def verify(release):
         return False
     return True
 
-def download_module(url, filename):
-    print 'download', os.path.basename(filename)
-    dirname = os.path.dirname(filename)
-    if dirname and not os.path.exists(dirname):
-        os.makedirs(dirname)
-    with open(filename, 'w') as f:
-        with closing(urllib2.urlopen(url)) as u:
-            data = u.read(4096)
-            while data:
-                f.write(data)
+def get(url, filename=None):
+    request = urllib2.Request(url, headers={
+        'User-Agent': settings.USER_AGENT
+    })
+    with closing(urllib2.urlopen(request)) as u:
+        if not filename:
+            data = u.read()
+            return data
+        else:
+            dirname = os.path.dirname(filename)
+            if dirname and not os.path.exists(dirname):
+                os.makedirs(dirname)
+            with open(filename, 'w') as fd:
                 data = u.read(4096)
+                while data:
+                    fd.write(data)
+                    data = u.read(4096)
 
 def check():
     if settings.release:
-        r = requests.get(RELEASE_URL)
-        release_data = r.content
+        release_data = get(RELEASE_URL)
         release = json.loads(release_data)
         old = settings.release['modules']['openmedialibrary']['version']
         new = release['modules']['openmedialibrary']['version']
@@ -56,8 +60,7 @@ def check():
 def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
         return True
-    r = requests.get(RELEASE_URL)
-    release_data = r.content
+    release_data = get(RELEASE_URL)
     release = json.loads(release_data)
     old = settings.release['modules']['openmedialibrary']['version']
     new = release['modules']['openmedialibrary']['version']
@@ -70,7 +73,8 @@ def download():
                 module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
                 url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
                 if not os.path.exists(module_tar):
-                    download_module(url, module_tar)
+                    print 'download', os.path.basename(module_tar)
+                    get(url, module_tar)
                     if ox.sha1sum(module_tar) != release['modules'][module]['sha1']:
                         os.unlink(module_tar)
                         return False
