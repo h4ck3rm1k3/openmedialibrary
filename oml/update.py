@@ -32,8 +32,8 @@ def verify(release):
         return False
     return True
 
-def download(url, filename):
-    print 'download', filename
+def download_module(url, filename):
+    print 'download', os.path.basename(filename)
     dirname = os.path.dirname(filename)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
@@ -44,7 +44,7 @@ def download(url, filename):
                 f.write(data)
                 data = u.read(4096)
 
-def new_version():
+def check():
     if settings.release:
         r = requests.get(RELEASE_URL)
         release_data = r.content
@@ -53,7 +53,9 @@ def new_version():
         new = release['modules']['openmedialibrary']['version']
         return verify(release) and old < new
 
-def update():
+def download():
+    if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
+        return True
     r = requests.get(RELEASE_URL)
     release_data = r.content
     release = json.loads(release_data)
@@ -61,36 +63,60 @@ def update():
     new = release['modules']['openmedialibrary']['version']
     if verify(release) and old < new:
         ox.makedirs(settings.updates_path)
+        os.chdir(os.path.dirname(settings.base_dir))
+        current_files = {'release.json'}
+        for module in release['modules']:
+            if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
+                module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
+                url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
+                if not os.path.exists(module_tar):
+                    download_module(url, module_tar)
+                    if ox.sha1sum(module_tar) != release['modules'][module]['sha1']:
+                        os.unlink(module_tar)
+                        return False
+                current_files.add(os.path.basename(module_tar))
         with open(os.path.join(settings.updates_path, 'release.json'), 'w') as fd:
             fd.write(release_data)
+        for f in set(os.walk(settings.updates_path).next()[2])-current_files:
+            os.unlink(os.join(settings.updates_path, f))
+        return True
+    return True
+
+def install():
+    if not os.path.exists(os.path.join(settings.updates_path, 'release.json')):
+        return True
+    if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
+        return True
+    with open(os.path.join(settings.updates_path, 'release.json')) as fd:
+        release = json.load(fd)
+    old = settings.release['modules']['openmedialibrary']['version']
+    new = release['modules']['openmedialibrary']['version']
+    if verify(release) and old < new:
         os.chdir(os.path.dirname(settings.base_dir))
         for module in release['modules']:
             if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
-                package_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
-                url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
-                download(url, package_tar)
-                if ox.sha1sum(package_tar) == release['modules'][module]['sha1']:
-                    ox.makedirs('new')
-                    os.chdir('new')
-                    tar = tarfile.open(package_tar)
+                module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
+                if os.path.exists(module_tar) and ox.sha1sum(module_tar) == release['modules'][module]['sha1']:
+                    #tar fails if old platform is moved before extract
+                    new = '%s_new' % module
+                    ox.makedirs(new)
+                    os.chdir(new)
+                    tar = tarfile.open(module_tar)
                     tar.extractall()
                     tar.close()
                     os.chdir(os.path.dirname(settings.base_dir))
                     shutil.move(module, '%s_old' % module)
-                    shutil.move(os.path.join('new', module), module)
+                    shutil.move(os.path.join(new, module), module)
                     shutil.rmtree('%s_old' % module)
-                    shutil.rmtree('new')
+                    shutil.rmtree(new)
                 else:
                     return False
-                os.unlink(package_tar)
-        with open(os.path.join(settings.config_dir, 'release.json'), 'w') as fd:
-            fd.write(release_data)
-        cmd = ['./ctl', 'stop']
-        subprocess.call(cmd)
-        cmd = ['./ctl', 'setup']
-        subprocess.call(cmd)
-        cmd = ['./ctl', 'postupdate', '-o', old, '-n', new]
-        subprocess.call(cmd)
-        cmd = ['./ctl', 'start']
+        shutil.copy(os.path.join(settings.updates_path, 'release.json'), os.path.join(settings.config_path, 'release.json'))
+        for cmd in [
+                ['./ctl', 'stop'],
+                ['./ctl', 'setup'],
+                ['./ctl', 'postupdate', '-o', old, '-n', new]
+            ]:
+            subprocess.call(cmd)
         return True
     return True

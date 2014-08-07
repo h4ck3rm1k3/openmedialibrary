@@ -7,6 +7,8 @@ import time
 import logging
 
 import state
+import settings
+import update
 
 logger = logging.getLogger('oml.downloads')
 
@@ -19,8 +21,15 @@ class Downloads(Thread):
         self.daemon = True
         self.start()
 
+    def download_updates(self):
+        now = int(time.mktime(time.gmtime()))
+        if now > settings.server.get('last_update_check', 0) + 24*60*60:
+            settings.server['last_update_check'] = now
+            update.download()
+
     def download_next(self):
         import item.models
+        self.download_updates()
         for t in item.models.Transfer.query.filter(
             item.models.Transfer.added!=None,
             item.models.Transfer.progress<1).order_by(item.models.Transfer.added):

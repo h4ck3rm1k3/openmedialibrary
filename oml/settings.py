@@ -14,15 +14,15 @@ updates_path = os.path.normpath(os.path.join(base_dir, '..', 'updates'))
 
 oml_config_path = os.path.join(base_dir, 'config.json')
 
-config_dir = os.path.normpath(os.path.join(base_dir, '..', 'config'))
-if not os.path.exists(config_dir):
-    os.makedirs(config_dir)
+config_path = os.path.normpath(os.path.join(base_dir, '..', 'config'))
+if not os.path.exists(config_path):
+    os.makedirs(config_path)
 
-db_path = os.path.join(config_dir, 'data.db')
-icons_db_path = os.path.join(config_dir, 'icons.db')
-key_path = os.path.join(config_dir, 'node.key')
-ssl_cert_path = os.path.join(config_dir, 'node.ssl.crt')
-ssl_key_path = os.path.join(config_dir, 'node.ssl.key')
+db_path = os.path.join(config_path, 'data.db')
+icons_db_path = os.path.join(config_path, 'icons.db')
+key_path = os.path.join(config_path, 'node.key')
+ssl_cert_path = os.path.join(config_path, 'node.ssl.crt')
+ssl_key_path = os.path.join(config_path, 'node.ssl.key')
 
 db = SQLAlchemy()
 
@@ -32,10 +32,10 @@ if os.path.exists(oml_config_path):
 else:
     config = {}
 
-preferences = pdict(os.path.join(config_dir, 'preferences.json'), config['user']['preferences'])
-ui = pdict(os.path.join(config_dir, 'ui.json'), config['user']['ui'])
+preferences = pdict(os.path.join(config_path, 'preferences.json'), config['user']['preferences'])
+ui = pdict(os.path.join(config_path, 'ui.json'), config['user']['ui'])
 
-server = pdict(os.path.join(config_dir, 'server.json'))
+server = pdict(os.path.join(config_path, 'server.json'))
 server_defaults = {
     'port': 9842,
     'address': '::1',
@@ -51,7 +51,7 @@ for key in server_defaults:
     if key not in server:
         server[key] = server_defaults[key]
 
-release = pdict(os.path.join(config_dir, 'release.json'))
+release = pdict(os.path.join(config_path, 'release.json'))
 
 if os.path.exists(key_path):
     with open(key_path) as fd:

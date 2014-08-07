@@ -44,6 +44,9 @@ if [ "$1" == "start" ]; then
         echo openmedialibrary already running
         exit 1
     fi
+    if [ ! -d "$BASE/$NAME/.git" ]; then
+        python2 oml install_update
+    fi
     python2 oml server $PID
     rm -f $PID
     exit $?
@@ -97,7 +100,7 @@ if [ "$1" == "update" ]; then
         echo Update $NAME..
         cd "$BASE/$NAME"
         git pull
-        find . -name '*.pyc' -exec rm "{}" \;
+        find . -name "*.pyc" -exec rm "{}" \;
         "$0" setup
         "$0" update_static > /dev/null
         NEW=`"$0" version`
@@ -105,7 +108,7 @@ if [ "$1" == "update" ]; then
     else
         python2 oml update
     fi
-    exit
+    exit $?
 fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"

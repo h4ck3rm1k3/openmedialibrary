@@ -5,6 +5,7 @@ from __future__ import division
 import subprocess
 from os.path import join, exists, dirname
 import os
+import sys
 
 from flask.ext.script import Command, Option
 
@@ -65,16 +66,24 @@ class Stop(Command):
         def run(self):
             pass
 
+class InstallUpdate(Command):
+        """
+            Update to latest development version
+        """
+        def run(self):
+            import update
+            if not update.install():
+                print "UPDATE FAILED"
+                sys.exit(1)
+
 class Update(Command):
         """
             Update to latest development version
         """
         def run(self):
             import update
-            if update.update():
-                print "OK"
-            else:
-                print "FAILED"
+            if not (update.download() and update.install()):
+                print "UPDATE FAILED"
 
 class PostUpdate(Command):
         """
