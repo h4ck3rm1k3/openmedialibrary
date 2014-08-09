@@ -91,7 +91,7 @@ class Icons(dict):
 icons = Icons(icons_db_path)
 
 @run_async
-def get_icon(app, id, type_, size, callback):
+def get_icon(id, type_, size, callback):
     if size:
         skey = '%s:%s:%s' % (type_, id, size)
         data = icons[skey]
@@ -120,7 +120,7 @@ def get_icon(app, id, type_, size, callback):
     callback(data)
 
 @run_async
-def get_icon_app(app, id, type_, size, callback):
+def get_icon_app(id, type_, size, callback):
     with db.session():
         from item.models import Item
         item = Item.get(id)
@@ -151,8 +151,8 @@ def get_icon_app(app, id, type_, size, callback):
 
 class IconHandler(tornado.web.RequestHandler):
 
-    def initialize(self, app):
-        self._app = app
+    def initialize(self):
+        pass
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -166,7 +166,7 @@ class IconHandler(tornado.web.RequestHandler):
 
         self.set_header('Content-Type', 'image/jpeg')
 
-        response = yield tornado.gen.Task(get_icon, self._app, id, type_, size)
+        response = yield tornado.gen.Task(get_icon, id, type_, size)
         if not response:
             self.set_status(404)
             return
