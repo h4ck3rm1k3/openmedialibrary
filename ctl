@@ -46,6 +46,7 @@ if [ "$1" == "start" ]; then
     fi
     if [ ! -d "$BASE/$NAME/.git" ]; then
         python2 oml install_update
+        cd "$BASE/$NAME"
     fi
     python2 oml server $PID
     rm -f $PID
