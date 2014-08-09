@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division, print_function
 
 import os
-import sys
 
 from tornado.web import Application
 from tornado.httpserver import HTTPServer
@@ -59,7 +59,6 @@ def getMetadata(data):
 actions.register(getMetadata)
 
 def run():
-    root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
     options = {
         'debug': True
@@ -84,7 +83,7 @@ def run():
     else:
         host = address
     url = 'http://%s:%s/' % (host, port)
-    print url
+    print(url)
     main.start()
 
 if __name__ == '__main__':
