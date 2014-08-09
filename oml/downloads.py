@@ -15,8 +15,7 @@ logger = logging.getLogger('oml.downloads')
 
 class Downloads(Thread):
 
-    def __init__(self, app):
-        self._app = app
+    def __init__(self):
         self._running = True
         Thread.__init__(self)
         self.daemon = True

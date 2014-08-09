@@ -12,7 +12,7 @@ from websocket import trigger_event
 import logging
 logger = logging.getLogger('oml.node.nodeapi')
 
-def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
+def api_pullChanges(remote_id, user_id=None, from_=None, to=None):
     if user_id and not from_ and not to:
         from_ = user_id
         user_id = None
@@ -34,7 +34,7 @@ def api_pullChanges(app, remote_id, user_id=None, from_=None, to=None):
     state.nodes.queue('add', remote_id)
     return [c.json() for c in qs]
 
-def api_pushChanges(app, user_id, changes):
+def api_pushChanges(user_id, changes):
     user = User.get(user_id)
     if not Changelog.apply_changes(user, changes):
         logger.debug('FAILED TO APPLY CHANGE')
@@ -42,7 +42,7 @@ def api_pushChanges(app, user_id, changes):
         return False
     return True
 
-def api_requestPeering(app, user_id, username, message):
+def api_requestPeering(user_id, username, message):
     user = User.get_or_create(user_id)
     if not user.info:
         user.info = {}
@@ -61,7 +61,7 @@ def api_requestPeering(app, user_id, username, message):
         return True
     return False
 
-def api_acceptPeering(app, user_id, username, message):
+def api_acceptPeering(user_id, username, message):
     user = User.get(user_id)
     logger.debug('incoming acceptPeering event: pending: %s', user.pending)
     if user and user.peered:
@@ -77,7 +77,7 @@ def api_acceptPeering(app, user_id, username, message):
         return True
     return False
 
-def api_rejectPeering(app, user_id, message):
+def api_rejectPeering(user_id, message):
     user = User.get(user_id)
     if user:
         if not user.info:
@@ -88,7 +88,7 @@ def api_rejectPeering(app, user_id, message):
         return True
     return False
 
-def api_removePeering(app, user_id, message):
+def api_removePeering(user_id, message):
     user = User.get(user_id)
     if user:
         user.info['message'] = message
@@ -97,7 +97,7 @@ def api_removePeering(app, user_id, message):
         return True
     return False
 
-def api_cancelPeering(app, user_id, message):
+def api_cancelPeering(user_id, message):
     user = User.get(user_id)
     if user:
         user.info['message'] = message

@@ -10,7 +10,6 @@ import app
 import server
 
 if len(sys.argv) > 1 and sys.argv[1] == 'server':
-    import server
     server.run()
 else:
-    app.manager.run()
+    app.run()

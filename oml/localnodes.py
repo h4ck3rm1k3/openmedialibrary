@@ -13,6 +13,8 @@ import time
 from utils import valid, get_public_ipv6, get_local_ipv4, get_interface
 from settings import preferences, server, USER_ID, sk
 import state
+import db
+import user.models
 
 logger = logging.getLogger('oml.localnodes')
 
@@ -36,10 +38,9 @@ class LocalNodesBase(Thread):
     _PORT = 9851 
     _TTL = 1
 
-    def __init__(self, app, nodes):
+    def __init__(self, nodes):
         self._active = True
         self._nodes = nodes
-        self._app = app
         Thread.__init__(self)
         if not server['localnode_discovery']:
             return
@@ -113,8 +114,7 @@ class LocalNodesBase(Thread):
         logger.debug('NEW NODE %s', data)
         if can_connect(data):
             self._nodes[data['id']] = data
-            with self._app.app_context():
-                import user.models
+            with db.session():
                 u = user.models.User.get_or_create(data['id'])
                 u.info['username'] = data['username']
                 u.info['local'] = data
@@ -196,13 +196,12 @@ class LocalNodes(object):
     _nodes4 = None
     _nodes6 = None
 
-    def __init__(self, app):
+    def __init__(self):
         self._nodes = {}
-        self._app = app
         if not server['localnode_discovery']:
             return
-        self._nodes4 = LocalNodes4(app, self._nodes)
-        self._nodes6 = LocalNodes6(app, self._nodes)
+        self._nodes4 = LocalNodes4(self._nodes)
+        self._nodes6 = LocalNodes6(self._nodes)
 
     def get(self, user_id):
         if user_id in self._nodes:

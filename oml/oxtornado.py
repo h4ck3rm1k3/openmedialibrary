@@ -72,7 +72,7 @@ def trim(docstring):
 
 
 @run_async
-def api_task(app, request, callback):
+def api_task(request, callback):
     action = request.arguments.get('action', [None])[0]
     data = request.arguments.get('data', ['{}'])[0]
     data = json.loads(data) if data else {}
@@ -98,8 +98,8 @@ def api_task(app, request, callback):
     callback(response)
 
 class ApiHandler(tornado.web.RequestHandler):
-    def initialize(self, app):
-        self._app = app
+    def initialize(self):
+        pass
 
     def get(self):
         self.write('use POST')
@@ -113,7 +113,7 @@ class ApiHandler(tornado.web.RequestHandler):
             self.write('')
             return
 
-        response = yield tornado.gen.Task(api_task, self._app, self.request)
+        response = yield tornado.gen.Task(api_task, self.request)
         if not 'status' in response:
             response = json_response(response)
         response = json_dumps(response)

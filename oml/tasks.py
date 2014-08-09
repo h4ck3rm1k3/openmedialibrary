@@ -13,10 +13,9 @@ logger = logging.getLogger('oml.websocket')
 
 class Tasks(Thread):
 
-    def __init__(self, app):
+    def __init__(self):
         self.q = Queue()
         self.connected = True
-        self._app = app
         Thread.__init__(self)
         self.daemon = True
         self.start()

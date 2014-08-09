@@ -2,17 +2,13 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-from flask import Flask
-from flask.ext.script import Manager, Shell
-from flask.ext.migrate import Migrate, MigrateCommand
 import logging
-
 
 
 import settings
 
+import db
 import changelog
-
 import item.models
 import user.models
 import item.person
@@ -21,6 +17,7 @@ import api
 
 import commands
 
+'''
 app = Flask('openmedialibrary', static_folder=settings.static_path)
 
 
@@ -42,3 +39,12 @@ manager.add_command('update_static', commands.UpdateStatic)
 def main(path=None):
     return app.send_static_file('html/oml.html')
 
+'''
+def run():
+    import sys
+    command = sys.argv[1] if len(sys.argv) > 1 else None
+    if command and getattr(commands, "command_%s"%command):
+        getattr(commands, "command_%s"%command)(sys.argv[1:])
+    else:
+        print 'usage: ... fixme'
+        sys.exit(1)

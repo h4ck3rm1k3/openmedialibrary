@@ -9,7 +9,6 @@ import time
 
 import ox
 
-from app import app
 import settings
 import db
 from item.models import File

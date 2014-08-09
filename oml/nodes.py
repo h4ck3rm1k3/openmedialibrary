@@ -42,7 +42,6 @@ class Node(Thread):
 
     def __init__(self, nodes, user):
         self._nodes = nodes
-        self._app = nodes._app
         self.user_id = user.id
         key = str(user.id)
         self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
@@ -358,11 +357,10 @@ class Nodes(Thread):
     _nodes = {}
     _local = None
 
-    def __init__(self, app):
-        self._app = app
+    def __init__(self):
         self._q = Queue()
         self._running = True
-        self._local = LocalNodes(app)
+        self._local = LocalNodes()
         Thread.__init__(self)
         self.daemon = True
         self.start()

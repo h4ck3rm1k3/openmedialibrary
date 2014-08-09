@@ -8,7 +8,6 @@ from tornado.web import StaticFileHandler, Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
-from app import app
 import settings
 import websocket
 import logging
@@ -49,14 +48,14 @@ def run():
     handlers = [
         (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
         (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
-        (r'/(.*)/epub/(.*)', EpubHandler, dict(app=app)),
-        (r'/(.*?)/reader/', ReaderHandler, dict(app=app)),
-        (r'/(.*?)/pdf/', FileHandler, dict(app=app)),
-        (r'/(.*?)/txt/', FileHandler, dict(app=app)),
-        (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler, dict(app=app)),
-        (r'/api/', oxtornado.ApiHandler, dict(app=app)),
+        (r'/(.*)/epub/(.*)', EpubHandler),
+        (r'/(.*?)/reader/', ReaderHandler),
+        (r'/(.*?)/pdf/', FileHandler),
+        (r'/(.*?)/txt/', FileHandler),
+        (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler),
+        (r'/api/', oxtornado.ApiHandler),
         (r'/ws', websocket.Handler),
-        (r"(.*)", MainHandler, dict(app=app)),
+        (r"(.*)", MainHandler),
     ]
 
     http_server = HTTPServer(Application(handlers, **options))
@@ -69,21 +68,21 @@ def run():
 
     state.main = IOLoop.instance()
     state.cache = Cache(ttl=10)
-    state.tasks = tasks.Tasks(app)
+    state.tasks = tasks.Tasks()
 
     def start_node():
         import user
         import downloads
         import nodes
         import db
-        state.node = node.server.start(app)
-        state.nodes = nodes.Nodes(app)
-        state.downloads = downloads.Downloads(app)
-        def add_users(app):
+        state.node = node.server.start()
+        state.nodes = nodes.Nodes()
+        state.downloads = downloads.Downloads()
+        def add_users():
             with db.session():
                 for p in user.models.User.query.filter_by(peered=True):
                     state.nodes.queue('add', p.id)
-        state.main.add_callback(add_users, app)
+        state.main.add_callback(add_users)
     state.main.add_callback(start_node)
     if ':' in settings.server['address']:
         host = '[%s]' % settings.server['address']

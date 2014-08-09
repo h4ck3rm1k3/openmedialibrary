@@ -26,9 +26,8 @@ logger = logging.getLogger('oml.node.server')
 
 class NodeHandler(tornado.web.RequestHandler):
 
-    def initialize(self, app):
-        self.app = app
-
+    def initialize(self):
+        pass
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -63,7 +62,7 @@ class NodeHandler(tornado.web.RequestHandler):
                         'ip': self.request.remote_addr
                     }
                 else:
-                    content = yield tornado.gen.Task(api_call, self.app, action, key, args)
+                    content = yield tornado.gen.Task(api_call, action, key, args)
                     if content is None:
                         content = {'status': 'not peered'}
                         logger.debug('PEER %s IS UNKNOWN SEND 403', key)
@@ -81,13 +80,13 @@ class NodeHandler(tornado.web.RequestHandler):
         self.write('Open Media Library')
 
 @run_async
-def api_call(app, action, key, args, callback):
+def api_call(action, key, args, callback):
     with db.session():
         u = user.models.User.get(key)
         if action in (
             'requestPeering', 'acceptPeering', 'rejectPeering', 'removePeering'
         ) or (u and u.peered):
-            content = getattr(nodeapi, 'api_' + action)(app, key, *args)
+            content = getattr(nodeapi, 'api_' + action)(key, *args)
         else:
             if u and u.pending:
                 logger.debug('ignore request from pending peer[%s] %s (%s)', key, action, args)
@@ -98,12 +97,13 @@ def api_call(app, action, key, args, callback):
 
 class ShareHandler(tornado.web.RequestHandler):
 
-    def initialize(self, app):
-        self.app = app
+    def initialize(self):
+        pass
 
     def get(self, id):
-        with self.app.app_context():
-            import item.models
+        import db
+        import item.models
+        with db.session():
             i = item.models.Item.get(id)
             if not i:
                 self.set_status(404)
@@ -123,14 +123,14 @@ class ShareHandler(tornado.web.RequestHandler):
                         break
                     self.write(data)
 
-def publish_node(app):
+def publish_node():
     update_online()
     if state.online:
         with db.session():
             for u in user.models.User.query.filter_by(queued=True):
                 logger.debug('adding queued node... %s', u.id)
                 state.nodes.queue('add', u.id)
-    state.check_nodes = PeriodicCallback(lambda: check_nodes(app), 120000)
+    state.check_nodes = PeriodicCallback(check_nodes, 120000)
     state.check_nodes.start()
     state._online = PeriodicCallback(update_online, 60000)
     state._online.start()
@@ -159,7 +159,7 @@ def update_online():
                     'online': state.online
                 })
 
-def check_nodes(app):
+def check_nodes():
     if state.online:
         with db.session():
             for u in user.models.User.query.filter_by(queued=True):
@@ -167,10 +167,10 @@ def check_nodes(app):
                     logger.debug('queued peering message for %s trying to connect...', u.id)
                     state.nodes.queue('add', u.id)
 
-def start(app):
+def start():
     application = Application([
-        (r"/get/(.*)", ShareHandler, dict(app=app)),
-        (r".*", NodeHandler, dict(app=app)),
+        (r"/get/(.*)", ShareHandler),
+        (r".*", NodeHandler),
     ], gzip=True)
     if not os.path.exists(settings.ssl_cert_path):
         settings.server['cert'] = cert.generate_ssl()
@@ -180,5 +180,5 @@ def start(app):
         "keyfile": settings.ssl_key_path
     })
     http_server.listen(settings.server['node_port'], settings.server['node_address'])
-    state.main.add_callback(publish_node, app)
+    state.main.add_callback(publish_node)
     return http_server

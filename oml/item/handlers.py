@@ -10,16 +10,17 @@ from datetime import datetime
 import tornado.web
 from models import Item
 import settings
+import db
 
 class OMLHandler(tornado.web.RequestHandler):
 
-    def initialize(self, app):
-        self._app = app
+    def initialize(self):
+        pass
 
 class EpubHandler(OMLHandler):
 
     def get(self, id, filename):
-        with self._app.app_context():
+        with db.session():
             item = Item.get(id)
             path = item.get_path()
             if not item or item.info['extension'] != 'epub' or not path:
@@ -54,7 +55,7 @@ class FileHandler(OMLHandler):
         self.get(id, include_body=False)
 
     def get(self, id, include_body=True):
-        with self._app.app_context():
+        with db.session():
             item = Item.get(id)
             path = item.get_path() if item else None
             if not item or not path:
@@ -70,7 +71,7 @@ class FileHandler(OMLHandler):
 class ReaderHandler(OMLHandler):
 
     def get(self, id):
-        with self._app.app_context():
+        with db.session():
             item = Item.get(id)
             if not item:
                 self.set_status(404)
