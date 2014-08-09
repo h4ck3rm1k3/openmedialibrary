@@ -95,7 +95,7 @@ class PostUpdate(Command):
                 Option('-n', '--new', dest='new'),
             ]
 
-        def run(selfi, old, new):
+        def run(self, old, new):
             if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
                 if not os.path.exists(settings.db_path):
                     r('./ctl', 'setup')
@@ -122,11 +122,9 @@ class Setup(Command):
             Setup new node
         """
         def run(self):
-            r('./ctl', 'db', 'upgrade')
             import setup
+            setup.create_db()
             setup.create_default_lists()
-            settings.db.session.connection().execute("PRAGMA journal_mode=WAL")
-            settings.db.session.commit()
 
 class UpdateStatic(Command):
         """

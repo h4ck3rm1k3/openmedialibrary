@@ -10,7 +10,8 @@ from datetime import datetime
 from utils import valid, datetime2ts, ts2datetime
 
 import settings
-from settings import db
+import db
+import sqlalchemy as sa
 import state
 from websocket import trigger_event
 
@@ -35,15 +36,16 @@ class Changelog(db.Model):
         editmeta              key, value data (i.e. 'isbn', '0000000000', {title: 'Example'})
         resetmeta             key, value
     '''
-    id = db.Column(db.Integer(), primary_key=True)
+    __tablename__ = 'changelog'
+    id = sa.Column(sa.Integer(), primary_key=True)
 
-    created = db.Column(db.DateTime())
-    timestamp = db.Column(db.BigInteger())
+    created = sa.Column(sa.DateTime())
+    timestamp = sa.Column(sa.BigInteger())
 
-    user_id = db.Column(db.String(43))
-    revision = db.Column(db.BigInteger())
-    data = db.Column(db.Text())
-    sig = db.Column(db.String(96))
+    user_id = sa.Column(sa.String(43))
+    revision = sa.Column(sa.BigInteger())
+    data = sa.Column(sa.Text())
+    sig = sa.Column(sa.String(96))
 
     @classmethod
     def record(cls, user, action, *args):

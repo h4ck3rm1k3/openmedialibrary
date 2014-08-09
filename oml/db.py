@@ -1,4 +1,19 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy.ext.declarative import declarative_base
+import settings
+
+
+engine = create_engine('sqlite:////%s' % settings.db_path)
+Session = sessionmaker(bind=engine)
+
+# create a Session
+session = Session()
+
+
+Model = declarative_base()
+
 
 class MutableDict(Mutable, dict):
     @classmethod

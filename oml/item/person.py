@@ -6,7 +6,8 @@ import unicodedata
 
 import ox
 
-from settings import db
+import db
+import sqlalchemy as sa
 
 def get_sort_name(name, sortname=None):
     name = unicodedata.normalize('NFKD', name).strip()
@@ -21,9 +22,11 @@ def get_sort_name(name, sortname=None):
     return sortname
 
 class Person(db.Model):
-    name = db.Column(db.String(1024), primary_key=True)
-    sortname = db.Column(db.String())
-    numberofnames = db.Column(db.Integer())
+    __tablename__ = 'person'
+
+    name = sa.Column(sa.String(1024), primary_key=True)
+    sortname = sa.Column(sa.String())
+    numberofnames = sa.Column(sa.Integer())
 
     def __repr__(self):
         return self.name

@@ -16,10 +16,12 @@ import unicodedata
 import Image
 import ox
 
+import db
 from db import MutableDict
+import sqlalchemy as sa
 
 import settings
-from settings import db, config
+from settings import config
 
 from person import get_sort_name
 
@@ -39,29 +41,30 @@ from utils import remove_empty_folders
 
 logger = logging.getLogger('oml.item.model')
 
-
-user_items = db.Table('useritem',
-    db.Column('user_id', db.String(43), db.ForeignKey('user.id')),
-    db.Column('item_id', db.String(32), db.ForeignKey('item.id'))
+metadata = sa.MetaData()
+user_items = sa.Table('useritem', metadata,
+    sa.Column('user_id', sa.String(43), sa.ForeignKey('user.id')),
+    sa.Column('item_id', sa.String(32), sa.ForeignKey('item.id'))
 )
 
 class Item(db.Model):
+    __tablename__ = 'item'
 
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
+    created = sa.Column(sa.DateTime())
+    modified = sa.Column(sa.DateTime())
 
-    id = db.Column(db.String(32), primary_key=True)
+    id = sa.Column(sa.String(32), primary_key=True)
 
-    info = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
-    meta = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    meta = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
 
     # why is this in db and not in i.e. info?
-    added = db.Column(db.DateTime()) # added to local library
-    accessed = db.Column(db.DateTime())
-    timesaccessed = db.Column(db.Integer())
+    added = sa.Column(sa.DateTime()) # added to local library
+    accessed = sa.Column(sa.DateTime())
+    timesaccessed = sa.Column(sa.Integer())
 
-    users = db.relationship('User', secondary=user_items,
-        backref=db.backref('items', lazy='dynamic'))
+    users = sa.orm.relationship('User', secondary=user_items,
+        backref=sa.orm.backref('items', lazy='dynamic'))
 
     @property
     def timestamp(self):
@@ -404,8 +407,10 @@ class Item(db.Model):
         Changelog.record(user, 'removeitem', self.id)
 
 class Sort(db.Model):
-    item_id = db.Column(db.String(32), db.ForeignKey('item.id'), primary_key=True)
-    item = db.relationship('Item', backref=db.backref('sort', lazy='dynamic'))
+    __tablename__ = 'sort'
+
+    item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'), primary_key=True)
+    item = sa.orm.relationship('Item', backref=sa.orm.backref('sort', lazy='dynamic'))
 
     def __repr__(self):
         return '%s_sort' % self.item_id
@@ -427,13 +432,13 @@ for key in config['itemKeys']:
     if key.get('sort'):
         sort_type = key.get('sortType', key['type'])
         if sort_type == 'integer':
-            col = db.Column(db.BigInteger(), index=True)
+            col = sa.Column(sa.BigInteger(), index=True)
         elif sort_type == 'float':
-            col = db.Column(db.Float(), index=True)
+            col = sa.Column(sa.Float(), index=True)
         elif sort_type == 'date':
-            col = db.Column(db.DateTime(), index=True)
+            col = sa.Column(sa.DateTime(), index=True)
         else:
-            col = db.Column(db.String(1000), index=True)
+            col = sa.Column(sa.String(1000), index=True)
         setattr(Sort, '%s' % key['id'], col)
 
 Item.id_keys = ['isbn', 'lccn', 'olid', 'oclc', 'asin']
@@ -441,12 +446,14 @@ Item.item_keys = config['itemKeys']
 Item.filter_keys = [k['id'] for k in config['itemKeys'] if k.get('filter')]
 
 class Find(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    item_id = db.Column(db.String(32), db.ForeignKey('item.id'))
-    item = db.relationship('Item', backref=db.backref('find', lazy='dynamic'))
-    key = db.Column(db.String(200), index=True)
-    value = db.Column(db.Text())
-    findvalue = db.Column(db.Text(), index=True)
+    __tablename__ = 'find'
+
+    id = sa.Column(sa.Integer(), primary_key=True)
+    item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'))
+    item = sa.orm.relationship('Item', backref=sa.orm.backref('find', lazy='dynamic'))
+    key = sa.Column(sa.String(200), index=True)
+    value = sa.Column(sa.Text())
+    findvalue = sa.Column(sa.Text(), index=True)
 
     def __repr__(self):
         return (u'%s=%s' % (self.key, self.findvalue)).encode('utf-8')
@@ -465,17 +472,18 @@ class Find(db.Model):
         return f
 
 class File(db.Model):
+    __tablename__ = 'file'
 
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
+    created = sa.Column(sa.DateTime())
+    modified = sa.Column(sa.DateTime())
 
-    sha1 = db.Column(db.String(32), primary_key=True)
-    path = db.Column(db.String(2048))
+    sha1 = sa.Column(sa.String(32), primary_key=True)
+    path = sa.Column(sa.String(2048))
 
-    info = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
 
-    item_id = db.Column(db.String(32), db.ForeignKey('item.id'))
-    item = db.relationship('Item', backref=db.backref('files', lazy='dynamic'))
+    item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'))
+    item = sa.orm.relationship('Item', backref=sa.orm.backref('files', lazy='dynamic'))
 
     @classmethod
     def get(cls, sha1):
@@ -553,12 +561,13 @@ class File(db.Model):
 
 
 class Transfer(db.Model):
+    __tablename__ = 'transfer'
 
-    item_id = db.Column(db.String(32), db.ForeignKey('item.id'), primary_key=True)
-    item = db.relationship('Item', backref=db.backref('transfer', lazy='dynamic'))
+    item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'), primary_key=True)
+    item = sa.orm.relationship('Item', backref=sa.orm.backref('transfer', lazy='dynamic'))
 
-    added = db.Column(db.DateTime())
-    progress = db.Column(db.Float())
+    added = sa.Column(sa.DateTime())
+    progress = sa.Column(sa.Float())
 
     def __repr__(self):
         return '='.join(map(str, [self.item_id, self.progress]))
@@ -582,16 +591,17 @@ class Transfer(db.Model):
         db.session.commit()
 
 class Metadata(db.Model):
+    __tablename__ = 'metadata'
 
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
+    created = sa.Column(sa.DateTime())
+    modified = sa.Column(sa.DateTime())
 
-    id = db.Column(db.Integer(), primary_key=True)
+    id = sa.Column(sa.Integer(), primary_key=True)
 
-    key = db.Column(db.String(256))
-    value = db.Column(db.String(256))
+    key = sa.Column(sa.String(256))
+    value = sa.Column(sa.String(256))
 
-    data = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
+    data = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
 
     def __repr__(self):
         return '='.join([self.key, self.value])

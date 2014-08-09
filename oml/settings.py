@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
 
-from flask.ext.sqlalchemy import SQLAlchemy
 import json
 import os
 import ed25519
@@ -24,7 +23,6 @@ key_path = os.path.join(config_path, 'node.key')
 ssl_cert_path = os.path.join(config_path, 'node.ssl.crt')
 ssl_key_path = os.path.join(config_path, 'node.ssl.key')
 
-db = SQLAlchemy()
 
 if os.path.exists(oml_config_path):
     with open(oml_config_path) as fd:

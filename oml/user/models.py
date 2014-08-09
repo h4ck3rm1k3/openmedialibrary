@@ -3,12 +3,13 @@
 
 import json
 
+import db
 from db import MutableDict
+import sqlalchemy as sa
 from queryparser import Parser
 
 from changelog import Changelog
 import settings
-from settings import db
 
 import state
 
@@ -16,19 +17,20 @@ import logging
 logger = logging.getLogger('oml.user.models')
 
 class User(db.Model):
+    __tablename__ = 'user'
 
-    created = db.Column(db.DateTime())
-    modified = db.Column(db.DateTime())
+    created = sa.Column(sa.DateTime())
+    modified = sa.Column(sa.DateTime())
 
-    id = db.Column(db.String(43), primary_key=True)
-    info = db.Column(MutableDict.as_mutable(db.PickleType(pickler=json)))
+    id = sa.Column(sa.String(43), primary_key=True)
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
 
-    nickname = db.Column(db.String(256), unique=True)
+    nickname = sa.Column(sa.String(256), unique=True)
 
-    pending = db.Column(db.String(64)) # sent|received
-    queued = db.Column(db.Boolean())
-    peered = db.Column(db.Boolean())
-    online = db.Column(db.Boolean())
+    pending = sa.Column(sa.String(64)) # sent|received
+    queued = sa.Column(sa.Boolean())
+    peered = sa.Column(sa.Boolean())
+    online = sa.Column(sa.Boolean())
 
     def __repr__(self):
         return self.id
@@ -126,24 +128,27 @@ class User(db.Model):
             n += 1
         self.nickname = nickname
 
-list_items = db.Table('listitem',
-    db.Column('list_id', db.Integer(), db.ForeignKey('list.id')),
-    db.Column('item_id', db.String(32), db.ForeignKey('item.id'))
+metadata = sa.MetaData()
+list_items = sa.Table('listitem', metadata,
+    sa.Column('list_id', sa.Integer(), sa.ForeignKey('list.id')),
+    sa.Column('item_id', sa.String(32), sa.ForeignKey('item.id'))
 )
 
 class List(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String())
-    index_ = db.Column(db.Integer())
+    __tablename__ = 'list'
 
-    type = db.Column(db.String(64))
-    _query = db.Column('query', MutableDict.as_mutable(db.PickleType(pickler=json)))
+    id = sa.Column(sa.Integer(), primary_key=True)
+    name = sa.Column(sa.String())
+    index_ = sa.Column(sa.Integer())
 
-    user_id = db.Column(db.String(43), db.ForeignKey('user.id'))
-    user = db.relationship('User', backref=db.backref('lists', lazy='dynamic'))
+    type = sa.Column(sa.String(64))
+    _query = sa.Column('query', MutableDict.as_mutable(sa.PickleType(pickler=json)))
 
-    items = db.relationship('Item', secondary=list_items,
-            backref=db.backref('lists', lazy='dynamic'))
+    user_id = sa.Column(sa.String(43), sa.ForeignKey('user.id'))
+    user = sa.orm.relationship('User', backref=sa.orm.backref('lists', lazy='dynamic'))
+
+    items = sa.orm.relationship('Item', secondary=list_items,
+            backref=sa.orm.backref('lists', lazy='dynamic'))
 
     @classmethod
     def get(cls, user_id, name=None):
