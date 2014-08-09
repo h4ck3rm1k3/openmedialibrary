@@ -100,8 +100,8 @@ if [ "$1" == "update" ]; then
         git pull
         echo Update $NAME..
         cd "$BASE/$NAME"
-        git pull
         find . -name "*.pyc" -exec rm "{}" \;
+        git pull
         "$0" setup
         "$0" update_static > /dev/null
         NEW=`"$0" version`
