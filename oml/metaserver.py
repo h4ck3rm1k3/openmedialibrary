@@ -7,7 +7,6 @@ import sys
 from tornado.web import Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from flask import Flask
 
 import oxtornado
 from oxtornado import actions
@@ -65,10 +64,9 @@ def run():
     options = {
         'debug': True
     }
-    app = Flask('metaoml')
 
     handlers = [
-        (r'/api/', oxtornado.ApiHandler, dict(app=app)),
+        (r'/api/', oxtornado.ApiHandler),
     ]
 
     http_server = HTTPServer(Application(handlers, **options))
@@ -76,7 +74,6 @@ def run():
     port = 9855
     address = ''
     http_server.listen(port, '')
-
 
     main = IOLoop.instance()
 
