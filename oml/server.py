@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division, print_function
 
 import os
 import sys
@@ -12,6 +13,7 @@ import settings
 import websocket
 import logging
 
+import db
 import state
 import node.server
 import oxtornado
@@ -53,7 +55,7 @@ def run():
         (r'/(.*?)/pdf/', FileHandler),
         (r'/(.*?)/txt/', FileHandler),
         (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler),
-        (r'/api/', oxtornado.ApiHandler),
+        (r'/api/', oxtornado.ApiHandler, dict(context=db.session)),
         (r'/ws', websocket.Handler),
         (r"(.*)", MainHandler),
     ]
@@ -91,11 +93,11 @@ def run():
     else:
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
-    print 'open browser at %s' % url
+    print('open browser at %s', url)
     try:
         state.main.start()
     except:
-        print 'shutting down...'
+        print('shutting down...')
 
     if state.downloads:
         state.downloads.join()

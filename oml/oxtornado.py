@@ -2,6 +2,7 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division, with_statement
 
+from contextlib import contextmanager
 import inspect
 import sys
 import json
@@ -17,7 +18,6 @@ from functools import wraps
 import logging
 logger = logging.getLogger('oxtornado')
 
-import db
 
 def json_response(data=None, status=200, text='ok'):
     if not data:
@@ -70,9 +70,14 @@ def trim(docstring):
     # Return a single string:
     return '\n'.join(trimmed)
 
+@contextmanager
+def defaultcontext():
+    yield
 
 @run_async
-def api_task(request, callback):
+def api_task(context, request, callback):
+    if context == None:
+        context = defaultcontext
     action = request.arguments.get('action', [None])[0]
     data = request.arguments.get('data', ['{}'])[0]
     data = json.loads(data) if data else {}
@@ -87,7 +92,7 @@ def api_task(request, callback):
         logger.debug('API %s %s', action, data)
         f = actions.get(action)
         if f:
-            with db.session():
+            with context():
                 try:
                     response = f(data)
                 except:
@@ -98,8 +103,8 @@ def api_task(request, callback):
     callback(response)
 
 class ApiHandler(tornado.web.RequestHandler):
-    def initialize(self):
-        pass
+    def initialize(self, context=None):
+        self._context = context
 
     def get(self):
         self.write('use POST')
@@ -113,7 +118,7 @@ class ApiHandler(tornado.web.RequestHandler):
             self.write('')
             return
 
-        response = yield tornado.gen.Task(api_task, self.request)
+        response = yield tornado.gen.Task(api_task, self._context, self.request)
         if not 'status' in response:
             response = json_response(response)
         response = json_dumps(response)
