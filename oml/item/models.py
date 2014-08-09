@@ -303,7 +303,6 @@ class Item(db.Model):
         cover = None
         if 'cover' in self.meta and self.meta['cover']:
             cover = ox.cache.read_url(self.meta['cover'])
-            #covers[self.id] = requests.get(self.meta['cover']).content
             if cover:
                 icons[key] = cover
                 self.info['coverRatio'] = get_ratio(cover)

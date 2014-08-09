@@ -17,7 +17,10 @@ base = settings.server['directory_service']
 def get(vk):
     id = vk.to_ascii(encoding='base64')
     url ='%s/%s' % (base, id)
-    r = requests.get(url)
+    headers = {
+        'User-Agent': settings.USER_AGENT
+    }
+    r = requests.get(url, headers=headers)
     sig = r.headers.get('X-Ed25519-Signature')
     data = r.content
     if sig and data:
@@ -37,6 +40,7 @@ def put(sk, data):
     sig = sk.sign(data, encoding='base64')
     url ='%s/%s' % (base, id)
     headers = {
+        'User-Agent': settings.USER_AGENT,
         'X-Ed25519-Signature': sig
     }
     try:

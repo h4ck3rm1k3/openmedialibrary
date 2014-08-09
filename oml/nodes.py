@@ -295,11 +295,6 @@ class Node(Thread):
         }
         t1 = datetime.utcnow()
         logger.debug('download %s', url)
-        '''
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            content = r.content
-        '''
         self._opener.addheaders = zip(headers.keys(), headers.values())
         r = self._opener.open(url, timeout=self.TIMEOUT*2)
         if r.getcode() == 200:
