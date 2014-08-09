@@ -57,8 +57,8 @@ class Changelog(db.Model):
         c.data = json.dumps([action] + list(args))
         _data = str(c.revision) + str(c.timestamp) + c.data
         c.sig = settings.sk.sign(_data, encoding='base64')
-        db.session.add(c)
-        db.session.commit()
+        state.db.session.add(c)
+        state.db.session.commit()
         if state.nodes:
             state.nodes.queue('peered', 'pushChanges', [c.json()])
 
@@ -94,8 +94,8 @@ class Changelog(db.Model):
                 logger.debug('apply change from %s: %s', user.name, args)
                 if getattr(c, 'action_' + args[0])(user, timestamp, *args[1:]):
                     logger.debug('change applied')
-                    db.session.add(c)
-                    db.session.commit()
+                    state.db.session.add(c)
+                    state.db.session.commit()
                     if trigger:
                         trigger_event('change', {});
                     return True
@@ -118,8 +118,8 @@ class Changelog(db.Model):
         for c in cls.query.filter_by(user_id=settings.USER_ID):
             _data = str(c.revision) + str(c.timestamp) + c.data
             c.sig = settings.sk.sign(_data, encoding='base64')
-            db.session.add(c)
-        db.session.commit()
+            state.db.session.add(c)
+        state.db.session.commit()
 
     def json(self):
         timestamp = self.timestamp or datetime2ts(self.created)

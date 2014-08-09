@@ -41,8 +41,7 @@ from utils import remove_empty_folders
 
 logger = logging.getLogger('oml.item.model')
 
-metadata = sa.MetaData()
-user_items = sa.Table('useritem', metadata,
+user_items = sa.Table('useritem', db.metadata,
     sa.Column('user_id', sa.String(43), sa.ForeignKey('user.id')),
     sa.Column('item_id', sa.String(32), sa.ForeignKey('item.id'))
 )
@@ -97,8 +96,8 @@ class Item(db.Model):
             item = cls(id=id)
             if info:
                 item.info = info
-            db.session.add(item)
-            db.session.commit()
+            state.db.session.add(item)
+            state.db.session.commit()
         return item
 
     def json(self, keys=None):
@@ -166,7 +165,7 @@ class Item(db.Model):
                 elif isinstance(value, list): #empty list
                     value = ''
                 setattr(s, key['id'], value)
-        db.session.add(s)
+        state.db.session.add(s)
 
     def update_find(self):
 
@@ -176,7 +175,7 @@ class Item(db.Model):
                 v = v.decode('utf-8')
             f.findvalue = unicodedata.normalize('NFKD', v).lower()
             f.value = v
-            db.session.add(f)
+            state.db.session.add(f)
 
         for key in config['itemKeys']:
             if key.get('find') or key.get('filter') or key.get('type') in [['string'], 'string']:
@@ -195,7 +194,7 @@ class Item(db.Model):
                 else:
                     f = Find.get(self.id, key['id'])
                     if f:
-                        db.session.delete(f)
+                        state.db.session.delete(f)
 
     def update(self):
         for key in ('mediastate', 'coverRatio', 'previewRatio'):
@@ -218,15 +217,15 @@ class Item(db.Model):
         self.save()
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 
     def delete(self, commit=True):
-        db.session.delete(self)
+        state.db.session.delete(self)
         Sort.query.filter_by(item_id=self.id).delete()
         Transfer.query.filter_by(item_id=self.id).delete()
         if commit:
-            db.session.commit()
+            state.db.session.commit()
 
     meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language')
 
@@ -392,13 +391,13 @@ class Item(db.Model):
             if os.path.exists(path):
                 os.unlink(path)
                 remove_empty_folders(os.path.dirname(path))
-            db.session.delete(f)
+            state.db.session.delete(f)
         user = state.user()
         if user in self.users:
             self.users.remove(user)
         for l in self.lists.filter_by(user_id=user.id):
             l.items.remove(self)
-        db.session.commit()
+        state.db.session.commit()
         if not self.users:
             self.delete()
         else:
@@ -424,8 +423,8 @@ class Sort(db.Model):
         f = cls.get(item_id)
         if not f:
             f = cls(item_id=item_id)
-            db.session.add(f)
-            db.session.commit()
+            state.db.session.add(f)
+            state.db.session.commit()
         return f
 
 for key in config['itemKeys']:
@@ -467,8 +466,8 @@ class Find(db.Model):
         f = cls.get(item, key)
         if not f:
             f = cls(item_id=item, key=key)
-            db.session.add(f)
-            db.session.commit()
+            state.db.session.add(f)
+            state.db.session.commit()
         return f
 
 class File(db.Model):
@@ -499,8 +498,8 @@ class File(db.Model):
             if path:
                 f.path = path
             f.item_id = Item.get_or_create(id=sha1, info=info).id
-            db.session.add(f)
-            db.session.commit()
+            state.db.session.add(f)
+            state.db.session.commit()
         return f
 
     def __repr__(self):
@@ -556,8 +555,8 @@ class File(db.Model):
             self.save()
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 
 
 class Transfer(db.Model):
@@ -587,8 +586,8 @@ class Transfer(db.Model):
         return t
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 
 class Metadata(db.Model):
     __tablename__ = 'metadata'
@@ -626,14 +625,14 @@ class Metadata(db.Model):
 
     def save(self):
         self.modified = datetime.utcnow()
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 
     def reset(self):
         user = state.user()
         Changelog.record(user, 'resetmeta', self.key, self.value)
-        db.session.delete(self)
-        db.session.commit()
+        state.db.session.delete(self)
+        state.db.session.commit()
         self.update_items()
 
     def edit(self, data):

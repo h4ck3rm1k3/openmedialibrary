@@ -17,6 +17,7 @@ from utils import resize_image
 
 
 from settings import icons_db_path
+import db
 
 import logging
 logger = logging.getLogger('oml.item.icons')
@@ -120,7 +121,7 @@ def get_icon(app, id, type_, size, callback):
 
 @run_async
 def get_icon_app(app, id, type_, size, callback):
-    with app.app_context():
+    with db.session():
         from item.models import Item
         item = Item.get(id)
         if not item:

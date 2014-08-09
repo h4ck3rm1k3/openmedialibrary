@@ -41,6 +41,6 @@ class Person(db.Model):
             self.sortname = unicodedata.normalize('NFKD', self.sortname)
         self.sortsortname = ox.sort_string(self.sortname)
         self.numberofnames = len(self.name.split(' '))
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 

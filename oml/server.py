@@ -75,11 +75,12 @@ def run():
         import user
         import downloads
         import nodes
+        import db
         state.node = node.server.start(app)
         state.nodes = nodes.Nodes(app)
         state.downloads = downloads.Downloads(app)
         def add_users(app):
-            with app.app_context():
+            with db.session():
                 for p in user.models.User.query.filter_by(peered=True):
                     state.nodes.queue('add', p.id)
         state.main.add_callback(add_users, app)

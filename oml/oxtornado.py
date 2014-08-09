@@ -17,6 +17,7 @@ from functools import wraps
 import logging
 logger = logging.getLogger('oxtornado')
 
+import db
 
 def json_response(data=None, status=200, text='ok'):
     if not data:
@@ -86,7 +87,7 @@ def api_task(app, request, callback):
         logger.debug('API %s %s', action, data)
         f = actions.get(action)
         if f:
-            with app.app_context():
+            with db.session():
                 try:
                     response = f(data)
                 except:

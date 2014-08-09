@@ -13,7 +13,6 @@ import settings
 
 import changelog
 
-from db import session
 import item.models
 import user.models
 import item.person

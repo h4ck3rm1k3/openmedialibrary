@@ -50,8 +50,8 @@ class User(db.Model):
         return user
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
 
     @property
     def name(self):
@@ -128,8 +128,7 @@ class User(db.Model):
             n += 1
         self.nickname = nickname
 
-metadata = sa.MetaData()
-list_items = sa.Table('listitem', metadata,
+list_items = sa.Table('listitem', db.metadata,
     sa.Column('list_id', sa.Integer(), sa.ForeignKey('list.id')),
     sa.Column('item_id', sa.String(32), sa.ForeignKey('item.id'))
 )
@@ -186,8 +185,8 @@ class List(db.Model):
         l._query = query
         l.type = 'smart' if l._query else 'static'
         l.index_ = cls.query.filter_by(user_id=user_id).count()
-        db.session.add(l)
-        db.session.commit()
+        state.db.session.add(l)
+        state.db.session.commit()
         if user_id == settings.USER_ID:
             if not l._query:
                 Changelog.record(state.user(), 'addlist', l.name)
@@ -220,8 +219,8 @@ class List(db.Model):
                 if self.user_id == settings.USER_ID:
                     i.queue_download()
                 i.update()
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)
 
@@ -232,8 +231,8 @@ class List(db.Model):
             if i in self.items:
                 self.items.remove(i)
             i.update()
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'removelistitems', self.name, items)
 
@@ -244,8 +243,8 @@ class List(db.Model):
         if not self._query:
             if self.user_id == settings.USER_ID:
                 Changelog.record(self.user, 'removelist', self.name)
-        db.session.delete(self)
-        db.session.commit()
+        state.db.session.delete(self)
+        state.db.session.commit()
 
     @property
     def public_id(self):
@@ -293,5 +292,5 @@ class List(db.Model):
         return r
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        state.db.session.add(self)
+        state.db.session.commit()

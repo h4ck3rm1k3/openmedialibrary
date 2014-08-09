@@ -10,6 +10,7 @@ from tornado.ioloop import PeriodicCallback
 import settings
 
 import directory
+import db
 import state
 import user
 
@@ -81,7 +82,7 @@ class NodeHandler(tornado.web.RequestHandler):
 
 @run_async
 def api_call(app, action, key, args, callback):
-    with app.app_context():
+    with db.session():
         u = user.models.User.get(key)
         if action in (
             'requestPeering', 'acceptPeering', 'rejectPeering', 'removePeering'
@@ -125,7 +126,7 @@ class ShareHandler(tornado.web.RequestHandler):
 def publish_node(app):
     update_online()
     if state.online:
-        with app.app_context():
+        with db.session():
             for u in user.models.User.query.filter_by(queued=True):
                 logger.debug('adding queued node... %s', u.id)
                 state.nodes.queue('add', u.id)
@@ -160,7 +161,7 @@ def update_online():
 
 def check_nodes(app):
     if state.online:
-        with app.app_context():
+        with db.session():
             for u in user.models.User.query.filter_by(queued=True):
                 if not state.nodes.is_online(u.id):
                     logger.debug('queued peering message for %s trying to connect...', u.id)

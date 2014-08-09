@@ -6,6 +6,7 @@ from threading import Thread
 import time
 import logging
 
+import db
 import state
 import settings
 import update
@@ -43,7 +44,7 @@ class Downloads(Thread):
 
     def run(self):
         time.sleep(2)
-        with self._app.app_context():
+        with db.session():
             while self._running:
                 self.download_next()
                 time.sleep(0.5)

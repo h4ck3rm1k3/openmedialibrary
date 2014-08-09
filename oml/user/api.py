@@ -245,8 +245,8 @@ def sortLists(data):
         n += 1
         if l.type == 'static':
             lists.append(l.name)
-        models.db.session.add(l)
-    models.db.session.commit()
+        state.db.session.add(l)
+    state.db.session.commit()
     if lists:
         Changelog.record(state.user(), 'orderlists', lists)
     return {}
@@ -287,8 +287,8 @@ def sortUsers(data):
         u = models.User.get(id)
         u.info['index'] = n
         n += 1
-        models.db.session.add(u)
-    models.db.session.commit()
+        state.db.session.add(u)
+    state.db.session.commit()
     return {}
 actions.register(sortUsers, cache=False)
 

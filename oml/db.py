@@ -1,19 +1,52 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from contextlib import contextmanager
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy import orm
+from sqlalchemy.orm.exc import UnmappedClassError
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.ext.declarative import declarative_base
+
+
 import settings
-
-
+import state
 engine = create_engine('sqlite:////%s' % settings.db_path)
-Session = sessionmaker(bind=engine)
+Session = scoped_session(sessionmaker(bind=engine))
 
-# create a Session
-session = Session()
+metadata = MetaData()
 
+
+class _QueryProperty(object):
+
+    def __init__(self):
+        pass
+
+    def __get__(self, obj, type):
+        try:
+            mapper = orm.class_mapper(type)
+            if mapper:
+                return type.query_class(mapper, session=state.db.session)
+        except UnmappedClassError:
+            return None
+
+class BaseQuery(orm.Query):
+    pass
 
 Model = declarative_base()
+Model.query_class = BaseQuery
+Model.query = _QueryProperty()
+Model.metadata = metadata
 
+@contextmanager
+def session():
+    if hasattr(state.db, 'session'):
+        state.db.count += 1
+    else:
+        state.db.session = Session()
+        state.db.count = 1
+    yield
+    state.db.count -= 1
+    if not state.db.count:
+        Session.remove()
 
 class MutableDict(Mutable, dict):
     @classmethod

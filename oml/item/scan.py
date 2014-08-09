@@ -11,7 +11,7 @@ import ox
 
 from app import app
 import settings
-from settings import db
+import db
 from item.models import File
 from user.models import User, List
 
@@ -29,7 +29,7 @@ extensions = ['epub', 'pdf', 'txt']
 
 def remove_missing():
     dirty = False
-    with app.app_context():
+    with db.session():
         prefs = settings.preferences
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         if os.path.exists(prefix):
@@ -39,7 +39,7 @@ def remove_missing():
                     dirty = True
                     f.item.remove_file()
             if dirty:
-                db.session.commit()
+                state.db.session.commit()
 
 def add_file(id, f, prefix, from_=None):
     user = state.user()
@@ -49,10 +49,10 @@ def add_file(id, f, prefix, from_=None):
     item = file.item
     if 'primaryid' in file.info:
         del file.info['primaryid']
-        db.session.add(file)
+        state.db.session.add(file)
     if 'primaryid' in item.info:
         item.meta['primaryid'] = item.info.pop('primaryid')
-        db.session.add(item)
+        state.db.session.add(item)
     item.users.append(user)
     Changelog.record(user, 'additem', item.id, file.info)
     if item.meta.get('primaryid'):
@@ -65,7 +65,7 @@ def add_file(id, f, prefix, from_=None):
 
 def run_scan():
     remove_missing()
-    with app.app_context():
+    with db.session():
         prefs = settings.preferences
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         if not prefix[-1] == '/':
@@ -96,7 +96,7 @@ def run_scan():
 def run_import(options=None):
     options = options or {}
 
-    with app.app_context():
+    with db.session():
         prefs = settings.preferences
         prefix = os.path.expanduser(options.get('path', prefs['importPath']))
         if os.path.islink(prefix):

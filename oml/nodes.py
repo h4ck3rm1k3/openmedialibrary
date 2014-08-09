@@ -26,6 +26,7 @@ from websocket import trigger_event
 from localnodes import LocalNodes
 from ssl_request import get_opener
 import state
+import db
 
 import logging
 logger = logging.getLogger('oml.nodes')
@@ -55,15 +56,14 @@ class Node(Thread):
         self.ping()
 
     def run(self):
-        with self._app.app_context():
-            while self._running:
-                action = self._q.get()
-                if not self._running:
-                    break
-                if action == 'go_online' or not self.online:
-                    self._go_online()
-                else:
-                    self.online = self.can_connect()
+        while self._running:
+            action = self._q.get()
+            if not self._running:
+                break
+            if action == 'go_online' or not self.online:
+                self._go_online()
+            else:
+                self.online = self.can_connect()
 
     def join(self):
         self._running = False
@@ -187,7 +187,8 @@ class Node(Thread):
 
     @property
     def user(self):
-        return user.models.User.get_or_create(self.user_id)
+        with db.session():
+            return user.models.User.get_or_create(self.user_id)
 
     def can_connect(self):
         try:
@@ -248,14 +249,13 @@ class Node(Thread):
         })
 
     def pullChanges(self):
-        with self._app.app_context():
-            last = Changelog.query.filter_by(user_id=self.user_id).order_by('-revision').first()
-            from_revision = last.revision + 1 if last else 0
-            logger.debug('pullChanges %s from %s', self.user.name, from_revision)
-            changes = self.request('pullChanges', from_revision)
-            if not changes:
-                return False
-            return Changelog.apply_changes(self.user, changes)
+        last = Changelog.query.filter_by(user_id=self.user_id).order_by('-revision').first()
+        from_revision = last.revision + 1 if last else 0
+        logger.debug('pullChanges %s from %s', self.user.name, from_revision)
+        changes = self.request('pullChanges', from_revision)
+        if not changes:
+            return False
+        return Changelog.apply_changes(self.user, changes)
 
     def pushChanges(self, changes):
         logger.debug('pushing changes to %s %s', self.user_id, changes)
@@ -391,20 +391,20 @@ class Nodes(Thread):
     def _add(self, user_id):
         if user_id not in self._nodes:
             from user.models import User
-            self._nodes[user_id] = Node(self, User.get_or_create(user_id))
+            with db.session():
+                self._nodes[user_id] = Node(self, User.get_or_create(user_id))
         else:
             if not self._nodes[user_id].online:
                 self._nodes[user_id].ping()
 
     def run(self):
-        with self._app.app_context():
-            while self._running:
-                args = self._q.get()
-                if args:
-                    if args[0] == 'add':
-                        self._add(args[1])
-                    else:
-                        self._call(*args)
+        while self._running:
+            args = self._q.get()
+            if args:
+                if args[0] == 'add':
+                    self._add(args[1])
+                else:
+                    self._call(*args)
 
     def join(self):
         self._running = False

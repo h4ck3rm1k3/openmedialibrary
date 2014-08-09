@@ -11,3 +11,6 @@ def user():
     import settings
     import user.models
     return user.models.User.get_or_create(settings.USER_ID)
+
+from threading import local
+db = local()
