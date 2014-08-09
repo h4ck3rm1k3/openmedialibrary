@@ -67,7 +67,7 @@ class Node(Thread):
     def join(self):
         self._running = False
         self.ping()
-        return Thread.join(self)
+        #return Thread.join(self)
 
     def ping(self):
         self._q.put('')
@@ -409,4 +409,5 @@ class Nodes(Thread):
         self._q.put(None)
         for node in self._nodes.values():
             node.join()
+        self._local.join()
         return Thread.join(self)

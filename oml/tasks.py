@@ -41,7 +41,7 @@ class Tasks(Thread):
 
     def join(self):
         self.connected = False
-        self.put(None)
+        self.q.put(None)
         self.q.join()
         return Thread.join(self)
 

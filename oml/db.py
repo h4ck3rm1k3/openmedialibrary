@@ -9,6 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 import settings
 import state
+
 engine = create_engine('sqlite:////%s' % settings.db_path)
 Session = scoped_session(sessionmaker(bind=engine))
 
@@ -43,10 +44,13 @@ def session():
     else:
         state.db.session = Session()
         state.db.count = 1
-    yield
-    state.db.count -= 1
-    if not state.db.count:
-        Session.remove()
+    try:
+        yield state.db.session
+    finally:
+        state.db.count -= 1
+        if not state.db.count:
+            state.db.session.close()
+            Session.remove()
 
 class MutableDict(Mutable, dict):
     @classmethod

@@ -39,6 +39,7 @@ class LocalNodesBase(Thread):
     _TTL = 1
 
     def __init__(self, nodes):
+        self._socket = None
         self._active = True
         self._nodes = nodes
         Thread.__init__(self)
@@ -71,11 +72,12 @@ class LocalNodesBase(Thread):
                 s.bind(('', self._PORT))
                 while self._active:
                     data, addr = s.recvfrom(1024)
-                    while data[-1] == '\0':
-                        data = data[:-1] # Strip trailing \0's
-                    data = self.verify(data)
-                    if data:
-                        self.update_node(data)
+                    if self._active:
+                        while data[-1] == '\0':
+                            data = data[:-1] # Strip trailing \0's
+                        data = self.verify(data)
+                        if data:
+                            self.update_node(data)
             except:
                 logger.debug('receive failed. restart later', exc_info=1)
                 time.sleep(10)
@@ -133,6 +135,12 @@ class LocalNodesBase(Thread):
 
     def join(self):
         self._active = False
+        if self._socket:
+            try:
+                self._socket.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            self._socket.close()
         return Thread.join(self)
 
 class LocalNodes4(LocalNodesBase):
@@ -156,6 +164,7 @@ class LocalNodes4(LocalNodesBase):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         mreq = struct.pack("=4sl", socket.inet_aton(self._BROADCAST), socket.INADDR_ANY)
         s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        self._socket = s
         return s
 
     def get_ip(self):
@@ -186,6 +195,7 @@ class LocalNodes6(LocalNodesBase):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         group_bin = socket.inet_pton(socket.AF_INET6, self._BROADCAST) + '\0'*4
         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, group_bin)
+        self._socket = s
         return s
 
     def get_ip(self):

@@ -92,4 +92,14 @@ def run():
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
     print 'open browser at %s' % url
-    state.main.start()
+    try:
+        state.main.start()
+    except:
+        print 'shutting down...'
+
+    if state.downloads:
+        state.downloads.join()
+    if state.tasks:
+        state.tasks.join()
+    if state.nodes:
+        state.nodes.join()

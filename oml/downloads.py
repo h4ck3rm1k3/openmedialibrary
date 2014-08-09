@@ -50,6 +50,4 @@ class Downloads(Thread):
 
     def join(self):
         self._running = False
-        self._q.put(None)
         return Thread.join(self)
-
