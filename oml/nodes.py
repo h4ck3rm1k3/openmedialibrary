@@ -141,8 +141,10 @@ class Node(Thread):
         except urllib2.HTTPError as e:
             if e.code == 403:
                 logger.debug('REMOTE ENDED PEERING')
-                if self.user.peered:
-                    self.user.update_peering(False)
+                with db.session():
+                    u = self.user
+                    if u.peered:
+                        u.update_peering(False)
                     self.online = False
                 return
             logger.debug('urllib2.HTTPError %s %s', e, e.code)
