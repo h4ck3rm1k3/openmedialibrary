@@ -82,7 +82,7 @@ def download():
         with open(os.path.join(settings.updates_path, 'release.json'), 'w') as fd:
             fd.write(release_data)
         for f in set(os.walk(settings.updates_path).next()[2])-current_files:
-            os.unlink(os.join(settings.updates_path, f))
+            os.unlink(os.path.join(settings.updates_path, f))
         return True
     return True
 
