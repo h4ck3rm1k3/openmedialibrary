@@ -89,23 +89,8 @@ def command_postupdate(*args):
         if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
             if not os.path.exists(settings.db_path):
                 r('./ctl', 'setup')
-        if old <= '20140525-92-eac91e7' and new > '20140525-92-eac91e7':
-            import user.models
-            for u in user.models.User.query:
-                u.update_name()
-                u.save()
-            import item.models
-            for f in item.models.File.query:
-                changed = False
-                for key in ('mediastate', 'coverRatio', 'previewRatio'):
-                    if key in f.info:
-                        del f.info[key]
-                        changed = True
-                if changed:
-                    f.save()
-        if old <= '20140526-118-d451eb3' and new > '20140526-118-d451eb3':
-            import item.models
-            item.models.Find.query.filter_by(key='list').delete()
+        import setup
+        setup.upgrade_db(old, new)
 
 def command_setup(*args):
     """

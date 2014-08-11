@@ -180,7 +180,25 @@ PRAGMA journal_mode=WAL
             run_sql(statement)
         upgrade_db('0')
 
-def upgrade_db(old):
+def upgrade_db(old, new=None):
+    if new:
+        if old <= '20140525-92-eac91e7' and new > '20140525-92-eac91e7':
+            import user.models
+            for u in user.models.User.query:
+                u.update_name()
+                u.save()
+            import item.models
+            for f in item.models.File.query:
+                changed = False
+                for key in ('mediastate', 'coverRatio', 'previewRatio'):
+                    if key in f.info:
+                        del f.info[key]
+                        changed = True
+                if changed:
+                    f.save()
+        if old <= '20140526-118-d451eb3' and new > '20140526-118-d451eb3':
+            import item.models
+            item.models.Find.query.filter_by(key='list').delete()
     if old <= '20140527-120-3cb9819':
         run_sql('CREATE INDEX ix_find_findvalue ON find (findvalue)')
 
