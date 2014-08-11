@@ -93,7 +93,7 @@ def run():
     else:
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
-    print('open browser at %s', url)
+    print('open browser at %s' % url)
     try:
         state.main.start()
     except:

@@ -28,7 +28,7 @@ def findMetadata(data):
                 key: value
             }]
         }
-        key is one of the supported identifiers: isbn10, isbn13...
+        key is one of the supported identifiers: isbn, olid...
     '''
     response = {}
     logger.debug('findMetadata %s', data)
@@ -42,7 +42,7 @@ def getMetadata(data):
             key: value
             includeEdits: boolean
         }
-        key can be one of the supported identifiers: isbn10, isbn13, oclc, olid,...
+        key can be one of the supported identifiers: isbn, oclc, olid,...
     '''
     logger.debug('getMetadata %s', data)
     if 'includeEdits' in data:
