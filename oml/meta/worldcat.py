@@ -71,7 +71,10 @@ def lookup(id):
         if data['cover'].startswith('//'):
             data['cover'] = 'http:' + data['cover']
         cdata = read_url(data['cover'])
-        if  hashlib.sha1(cdata).hexdigest() == '70f16d3e077cdd47ef6b331001dbb1963677fa04':
+        if  hashlib.sha1(cdata).hexdigest() in (
+            'd2e9ab0c87193d69a7d3a3c21ae4aa550f7dcf00',
+            '70f16d3e077cdd47ef6b331001dbb1963677fa04'
+        ):
             del data['cover']
 
     if 'author' in data:
