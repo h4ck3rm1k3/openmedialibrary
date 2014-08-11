@@ -85,6 +85,13 @@ def lookup(id):
             data['publisher'] = publisher
             data['date'] = date
             data['place'] = [place]
+        elif ':' in data['publisher']:
+            place, publisher = data['publisher'].split(':', 2)
+            data['place'] = place.strip()
+            data['publisher'] = publisher.split(',')[0].strip()
+            m = re.compile('\d{4}').findall(publisher)
+            if m:
+                data['date'] = m[0]
 
     logger.debug('lookup %s => %s', id, data.keys())
     return data
