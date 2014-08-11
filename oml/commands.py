@@ -98,12 +98,13 @@ def command_setup(*args):
     """
     import setup
     setup.create_db()
-    setup.create_default_lists()
 
 def command_update_static(*args):
     """
         Update static files
     """
+    import setup
+    setup.create_db()
     oxjs = os.path.join(settings.static_path, 'oxjs')
     if not os.path.exists(oxjs):
         r('git', 'clone', 'https://git.0x2620.org/oxjs.git', oxjs)

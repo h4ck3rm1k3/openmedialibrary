@@ -102,7 +102,6 @@ if [ "$1" == "update" ]; then
         cd "$BASE/$NAME"
         find . -name "*.pyc" -exec rm "{}" \;
         git pull
-        "$0" setup
         "$0" update_static > /dev/null
         NEW=`"$0" version`
         "$0" postupdate -o $OLD -n $NEW

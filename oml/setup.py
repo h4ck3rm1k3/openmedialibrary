@@ -179,6 +179,7 @@ PRAGMA journal_mode=WAL
         for statement in sql.split(';'):
             run_sql(statement)
         upgrade_db('0')
+        create_default_lists()
 
 def upgrade_db(old, new=None):
     if new:

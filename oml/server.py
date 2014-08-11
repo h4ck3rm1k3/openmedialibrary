@@ -31,6 +31,8 @@ class MainHandler(OMLHandler):
         serve_static(self, path, 'text/html')
 
 def run():
+    import setup
+    setup.create_db()
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
