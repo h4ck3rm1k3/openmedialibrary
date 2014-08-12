@@ -2,27 +2,27 @@
 # vi:si:et:sw=4:sts=4:ts=4
 
 import os
+
 import tornado
 from tornado.web import Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import PeriodicCallback
 
-import settings
-
-import directory
+from oxtornado import run_async
+from utils import valid, get_public_ipv6
+from websocket import trigger_event
+import cert
 import db
+import directory
+import json
+import nodeapi
+import settings
 import state
 import user
 
-import json
-from utils import valid, get_public_ipv6
-import nodeapi
-import cert
-from websocket import trigger_event
-from oxtornado import run_async
-
 import logging
 logger = logging.getLogger('oml.node.server')
+
 
 class NodeHandler(tornado.web.RequestHandler):
 
@@ -101,7 +101,6 @@ class ShareHandler(tornado.web.RequestHandler):
         pass
 
     def get(self, id):
-        import db
         import item.models
         with db.session():
             i = item.models.Item.get(id)

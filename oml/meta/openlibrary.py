@@ -2,18 +2,19 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+from datetime import datetime
 from urllib import urlencode
 import json
-from datetime import datetime
 
 from ox.cache import read_url
 
-from marc_countries import COUNTRIES
 from dewey import get_classification
+from marc_countries import COUNTRIES
 from utils import normalize_isbn
 
 import logging
 logger = logging.getLogger('meta.openlibrary')
+
 
 KEYS = {
     'authors': 'author',

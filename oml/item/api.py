@@ -2,26 +2,20 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import os
 import json
 import hashlib
 
-from oxtornado import actions
-
 from sqlalchemy.orm import load_only
 
-import query
-
+from oxtornado import actions
+from utils import cleanup_id
+from websocket import trigger_event
+import metaremote as meta
 import models
+import query
 import settings
 import state
-from websocket import trigger_event
-
-#import meta
-import metaremote as meta
-
 import utils
-from utils import cleanup_id
 
 import logging
 logger = logging.getLogger('oml.item.api')
@@ -175,6 +169,7 @@ def findMetadata(data):
     return response
 actions.register(findMetadata)
 
+
 def getMetadata(data):
     '''
         takes {
@@ -198,6 +193,7 @@ def getMetadata(data):
     return response
 actions.register(getMetadata)
 
+
 def resetMetadata(data):
     item = models.Item.get(data['id'])
     if item and 'primaryid' in item.meta:
@@ -206,6 +202,7 @@ def resetMetadata(data):
             meta.reset()
     return {}
 actions.register(resetMetadata)
+
 
 def download(data):
     '''

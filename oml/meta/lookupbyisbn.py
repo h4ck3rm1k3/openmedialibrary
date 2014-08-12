@@ -1,12 +1,18 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
+
+import re
+
 from ox.cache import read_url
 from ox import find_re, strip_tags, decode_html
-import re
 import stdnum.isbn
 
 from utils import find_isbns
 
 import logging
 logger = logging.getLogger('meta.lookupbyisbn')
+
 
 base = 'http://www.lookupbyisbn.com'
 

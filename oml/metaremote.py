@@ -3,8 +3,9 @@
 from __future__ import division
 
 import json
-from ox.cache import read_url
 from urllib import urlencode
+
+from ox.cache import read_url
 
 import logging
 logger = logging.getLogger('metaremote')

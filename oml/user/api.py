@@ -2,20 +2,18 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import os
 from copy import deepcopy
 import json
+import os
 
-from oxtornado import actions
 import ox
 
-import models
-
+from changelog import Changelog
+from oxtornado import actions
 from utils import update_dict
-
+import models
 import settings
 import state
-from changelog import Changelog
 
 import logging
 logger = logging.getLogger('oml.user.api')
@@ -190,7 +188,6 @@ def removeList(data):
         l.remove()
     return {}
 actions.register(removeList, cache=False)
-
 
 
 def addListItems(data):
@@ -397,4 +394,3 @@ def getActivity(data):
     '''
     return state.activity
 actions.register(getActivity, cache=False)
-

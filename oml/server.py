@@ -5,24 +5,24 @@ from __future__ import division, print_function
 import os
 import sys
 
-from tornado.web import StaticFileHandler, Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from tornado.web import StaticFileHandler, Application
 
-import settings
-import websocket
-import logging
-
-import db
-import state
-import node.server
-import oxtornado
 from cache import Cache
-import tasks
-
-from item.icons import IconHandler
 from item.handlers import EpubHandler, ReaderHandler, FileHandler
 from item.handlers import OMLHandler, serve_static
+from item.icons import IconHandler
+import db
+import node.server
+import oxtornado
+import settings
+import setup
+import state
+import tasks
+import websocket
+
+import logging
 
 class MainHandler(OMLHandler):
 
@@ -31,7 +31,6 @@ class MainHandler(OMLHandler):
         serve_static(self, path, 'text/html')
 
 def run():
-    import setup
     setup.create_db()
     root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
     PID = sys.argv[2] if len(sys.argv) > 2 else None
@@ -78,7 +77,6 @@ def run():
         import user
         import downloads
         import nodes
-        import db
         state.node = node.server.start()
         state.nodes = nodes.Nodes()
         state.downloads = downloads.Downloads()

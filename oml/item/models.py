@@ -2,43 +2,35 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import os
-import re
-import base64
-import json
-import hashlib
 from datetime import datetime
 from StringIO import StringIO
+import base64
+import hashlib
+import json
+import os
+import re
 import shutil
-import logging
 import unicodedata
 
 import Image
 import ox
-
-import db
-from db import MutableDict
 import sqlalchemy as sa
 
-import settings
-from settings import config
-
+from changelog import Changelog
+from db import MutableDict
+from icons import icons
 from person import get_sort_name
-
+from settings import config
+from utils import remove_empty_folders
+from websocket import trigger_event
+import db
 import media
-
-#import meta
 import metaremote as meta
-
+import settings
 import state
 import utils
 
-
-from icons import icons
-from changelog import Changelog
-from websocket import trigger_event
-from utils import remove_empty_folders
-
+import logging
 logger = logging.getLogger('oml.item.model')
 
 user_items = sa.Table('useritem', db.metadata,

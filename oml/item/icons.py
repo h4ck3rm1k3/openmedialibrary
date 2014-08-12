@@ -2,25 +2,23 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division, with_statement
 
-import sqlite3
 from StringIO import StringIO
 import Image
+import sqlite3
 
+import tornado.concurrent
+import tornado.gen
 import tornado.ioloop
 import tornado.web
-import tornado.gen
-import tornado.concurrent
 
 from oxtornado import run_async
-
-from utils import resize_image
-
-
 from settings import icons_db_path
+from utils import resize_image
 import db
 
 import logging
 logger = logging.getLogger('oml.item.icons')
+
 
 class Icons(dict):
     def __init__(self, db):

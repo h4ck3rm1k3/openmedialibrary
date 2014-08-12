@@ -2,15 +2,18 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-from ox.cache import read_url
-import lxml.html
 import re
 import hashlib
-from utils import normalize_isbn
+
+from ox.cache import read_url
+import lxml.html
 import stdnum.isbn
+
+from .utils import normalize_isbn
 
 import logging
 logger = logging.getLogger('meta.worldcat')
+
 
 base_url = 'http://www.worldcat.org'
 

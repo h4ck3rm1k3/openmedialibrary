@@ -2,13 +2,13 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import settings
-import models
-import utils
+#does not work in sqlite
+#from sqlalchemy.sql.expression import nullslast
+
 from queryparser import Parser
-
-
-from sqlalchemy.sql.expression import nullslast
+import models
+import settings
+import utils
 
 def parse(data):
     query = {}

@@ -2,17 +2,18 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import ox
 from ox.cache import read_url
+import ox
 import re
 import xml.etree.ElementTree as ET
 
-from utils import normalize_isbn
-from marc_countries import COUNTRIES
 from dewey import get_classification
+from marc_countries import COUNTRIES
+from utils import normalize_isbn
 
 import logging
 logger = logging.getLogger('meta.loc')
+
 
 def get_ids(key, value):
     ids = []

@@ -3,14 +3,13 @@
 
 import json
 
-import db
-from db import MutableDict
 import sqlalchemy as sa
-from queryparser import Parser
 
 from changelog import Changelog
+from db import MutableDict
+from queryparser import Parser
+import db
 import settings
-
 import state
 
 import logging

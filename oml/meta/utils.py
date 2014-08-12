@@ -1,5 +1,10 @@
+# -*- coding: utf-8 -*-
+# vi:si:et:sw=4:sts=4:ts=4
+from __future__ import division
+
 import re
 import stdnum.isbn
+
 
 def normalize_isbn(value):
     return ''.join([s for s in value if s.isdigit() or s == 'X'])

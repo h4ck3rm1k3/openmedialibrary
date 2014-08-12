@@ -2,24 +2,22 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
+from datetime import datetime
 import os
 import shutil
-from datetime import datetime
 import time
 
 import ox
 
-import settings
-import db
-from item.models import File
-from user.models import User, List
-
 from changelog import Changelog
-
-import media
-from websocket import trigger_event
-import state
+from item.models import File
+from user.models import List
 from utils import remove_empty_folders
+from websocket import trigger_event
+import db
+import media
+import settings
+import state
 
 import logging
 logger = logging.getLogger('oml.item.scan')

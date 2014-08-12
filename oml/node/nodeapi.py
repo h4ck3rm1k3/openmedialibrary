@@ -2,12 +2,11 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import settings
 from changelog import Changelog
 from user.models import User
-
-import state
 from websocket import trigger_event
+import settings
+import state
 
 import logging
 logger = logging.getLogger('oml.node.nodeapi')

@@ -25,7 +25,6 @@ Now checkout the source and prepare for use:
     git clone https://git.0x2620.org/openmedialibrary_platform.git platform
     ln -s openmedialibrary/ctl ctl
     ./ctl update_static
-    ./ctl setup
 
     # and start it
     ./ctl debug

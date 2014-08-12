@@ -2,19 +2,18 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 
-import logging
-
-import json
 from datetime import datetime
+import json
+
+import sqlalchemy as sa
 
 from utils import valid, datetime2ts, ts2datetime
-
-import settings
-import db
-import sqlalchemy as sa
-import state
 from websocket import trigger_event
+import db
+import settings
+import state
 
+import logging
 logger = logging.getLogger('oml.changelog')
 
 class Changelog(db.Model):

@@ -2,15 +2,16 @@
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division, with_statement
 
+from datetime import datetime
+import mimetypes
 import os
 import zipfile
-import mimetypes
-from datetime import datetime
 
-import tornado.web
 from models import Item
-import settings
 import db
+import settings
+import tornado.web
+
 
 class OMLHandler(tornado.web.RequestHandler):
 

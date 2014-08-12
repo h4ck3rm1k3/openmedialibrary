@@ -5,9 +5,10 @@ from __future__ import division
 import unicodedata
 
 import ox
+import sqlalchemy as sa
 
 import db
-import sqlalchemy as sa
+
 
 def get_sort_name(name, sortname=None):
     name = unicodedata.normalize('NFKD', name).strip()
