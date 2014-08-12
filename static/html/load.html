@@ -3,24 +3,43 @@
 <head>
     <meta charset="utf-8" />
     <title>Open Media Library</title>
-</head>
-<body>
+    <link href="../oxjs/build/Ox.UI/css/Ox.UI.css" rel="stylesheet" type="text/css" />
+    <style>
+        #loading {
+            text-align: center;
+            padding-top: 24px;
+        }
+        #status {
+            padding-bottom: 16px;
+        }
+    </style>
     <script>
         function load() {
-            var base = 'http://[::1]:9842',
-                img = new Image();
-            img.onload = function(event) {
-                document.location.href = base;
+            var port = document.location.hash.length
+                    ? document.location.hash.slice(1)
+                    : '9842',
+                base = '//[::1]:' + port,
+                ws = new WebSocket('ws:' + base + '/ws');
+            ws.onopen = function(event) {
+                document.location.href = 'http:' + base;
             };
-            img.src = base + '/static/oxjs/build/Ox.UI/png/transparent.png?' + new Date;
+            ws.onerror = function(event) {
+                ws.close();
+            };
+            ws.onclose = function(event) {
+                setTimeout(load, 500);
+            };
         };
         load();
         setTimeout(function() {
-            load();
-            setTimeout(function() {
-                document.body.innerHTML = 'Looks like Open Media Library is not running.';
-            }, 10000);
-        }, 3000);
+            document.querySelector('#status').innerHTML = 'Failed to start Open Media Library';
+        }, 10000);
     </script>
+</head>
+<body class="OxThemeOxlight">
+    <div id="loading">
+        <div id="status">Starting Open Media Library</div>
+        <img src="../png/oml.png">
+    </div>
 </body>
 </html>
