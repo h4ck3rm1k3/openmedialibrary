@@ -19,11 +19,11 @@ class Handler(WebSocketHandler):
     def check_origin(self, origin):
         # allow access to websocket from site, installer and loader (local file)
         return self.request.host in origin \
-            or origin == 'http://localhost:9842' \
+            or origin == 'http://127.0.0.1:9842' \
             or origin == 'null'
 
     def open(self):
-        if self.request.headers['origin'] not in ('null', 'http://localhost:9842') \
+        if self.request.headers['origin'] not in ('null', 'http://127.0.0.1:9842') \
             and self.request.host not in self.request.headers['origin']:
             logger.debug('reject cross site attempt to open websocket %s', self.request)
             self.close()
