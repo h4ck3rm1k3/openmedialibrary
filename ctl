@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 HOST="[::1]:9842"
 NAME="openmedialibrary"
-PID="/tmp/$NAME.pid"
+PID="/tmp/$NAME.$USER.pid"
 
 cd "`dirname "$0"`"
 if [ -e oml ]; then
