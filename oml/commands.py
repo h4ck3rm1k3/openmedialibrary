@@ -208,3 +208,20 @@ def command_shell(*args):
         import code
         # Use basic python shell
         code.interact(banner, local=context)
+
+def main():
+    actions = globals()
+    commands = [c[8:] for c in actions if  c.startswith('command_')]
+    command = sys.argv[1] if len(sys.argv) > 1 else None
+    if command and command in commands:
+        globals()["command_%s"%command](sys.argv[1:])
+    else:
+        print("usage: ctl [action]")
+        indent = max([len(command) for command in commands]) + 4
+        for command in sorted(commands):
+            space = ' ' * (indent - len(command))
+            info = actions["command_%s"%command].__doc__.split('\n')
+            info = ['  %s%s' % (' ' * indent, i.strip()) for i in info]
+            info = '\n'.join(info).strip()
+            print("  %s%s%s" % (command, space, info))
+        sys.exit(1)
