@@ -1,0 +1,174 @@
+#!/usr/bin/env python2
+from __future__ import division, with_statement, print_function
+
+from contextlib import closing
+import json
+import os
+import sys
+import tarfile
+try:
+# For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:
+# Fall back to Python 2's urllib2
+    from urllib2 import urlopen
+from threading import Thread
+import subprocess
+
+
+class Install(Thread):
+
+    base_url = 'http://downloads.openmedialibrary.com/'
+    status = {}
+
+    def __init__(self, target):
+        self.target = target
+        Thread.__init__(self)
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        target = self.target
+        target = os.path.normpath(os.path.join(os.path.abspath(target)))
+        if not os.path.exists(target):
+            os.makedirs(target)
+        os.chdir(target)
+        release = self.get_release()
+        self.status['release'] = release
+        for module in release['modules']:
+            self.status['installing'] = module
+            self.status['progress'] = 0
+            self.status['size'] = 0
+            package_tar = release['modules'][module]['name']
+            url = self.url(package_tar)
+            self.download(url, package_tar)
+            tar = tarfile.open(package_tar)
+            tar.extractall()
+            tar.close()
+            os.unlink(package_tar)
+        os.symlink('openmedialibrary/ctl', 'ctl')
+        self.status['progress'] = 0
+        self.status['installing'] = 'setup'
+        os.system('./ctl setup')
+        self.status['progress'] = 1
+        with open('config/release.json', 'w') as fd:
+            json.dump(release, fd, indent=2)
+        if sys.platform == 'darwin':
+            self.install_launchd()
+        elif sys.platform == 'linux2':
+            try:
+                import Image
+                import simplejson
+                import lxml
+            except:
+                if has_bin('apt-get'):
+                    os.system('sudo apt-get install python2.7 python-imaging  python-lxml poppler-utils')
+                elif has_bin('yum'):
+                    os.system('sudo yum install python-imaging python-simplejson python-lxml')
+                else:
+                    print('You need to install PIL and simplejson\ni.e. sudo pip install --allow-external PIL --allow-unverified PIL PIL simplejson lxml')
+            if not has_bin('pdftocairo'):
+                if has_bin('apt-get'):
+                    os.system('sudo apt-get install poppler-utils')
+                elif has_bin('yum'):
+                    os.system('sudo yum install poppler-utils')
+                else:
+                    print('You need to install pdftocairo (part of poppler-utils)')
+            self.install_application()
+        self.status['done'] = True
+
+    def download(self, url, filename):
+        dirname = os.path.dirname(filename)
+        if dirname and not os.path.exists(dirname):
+            os.makedirs(dirname)
+        print(filename)
+        with open(filename, 'w') as f:
+            with closing(urlopen(url)) as u:
+                size = int(u.headers.get('content-length', 0))
+                self.status['size'] = size
+                available = 0
+                data = u.read(4096)
+                while data:
+                    if size:
+                        available += len(data)
+                        self.status['progress'] = available/size
+                    f.write(data)
+                    data = u.read(4096)
+
+    def get_release(self):
+        with closing(urlopen(self.url('release.json'))) as u:
+            data = json.loads(u.read().decode('utf-8'))
+        return data
+
+    def install_application(self):
+        app = os.path.expanduser('~/.local/share/applications/openmedialibrary.desktop')
+        with open(app, 'w') as fd:
+            fd.write('''[Desktop Entry]
+Type=Application
+Name=Open Media Library
+Comment=Open Media Library
+Exec=%s/ctl open
+Icon=%s/openmedialibrary/static/png/oml.png
+Terminal=false
+Categories=Network;FileTransfer;P2P;
+''' % (self.target, self.target))
+
+        start = os.path.expanduser('~/.config/autostart/openmedialibrary.desktop')
+        with open(start, 'w') as fd:
+            fd.write('''[Desktop Entry]
+Type=Application
+Exec=%s/ctl start
+Icon=%s/openmedialibrary/static/png/oml.png
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Start Open Media Library
+Comment=
+''' % (self.target, self.target))
+
+    def install_launchd(self):
+        plist = os.path.expanduser('~/Library/LaunchAgents/com.openmedialibrary.loginscript.plist')
+        with open(plist, 'w') as f:
+            f.write('''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>com.openmedialibrary.loginscript</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>%s/ctl</string>
+            <string>start</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+    </dict>
+</plist>''' % self.target)
+        os.system('launchctl load "%s"' % plist)
+        os.system('launchctl start com.openmedialibrary.loginscript')
+
+    def url(self, url):
+        return self.base_url + url
+
+def has_bin(cmd):
+    return subprocess.call(['which', cmd], stdout=subprocess.PIPE) == 0
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        if sys.platform == 'darwin':
+            target = os.path.expanduser('~/Library/Application Support/Open Media Libary')
+        elif sys.platform == 'linux2':
+            target = os.path.expanduser('~/.local/share/openmedialibrary')
+        else:
+            target = os.path.join(os.curdir, 'openmedialibrary')
+    elif len(sys.argv) != 2:
+        print('usage: %s [target]' % sys.argv[0])
+        sys.exit(1)
+    else:
+        target = sys.argv[1]
+    if os.path.exists(target):
+        print('%s exists, remove before re-installing Open Media Library' % target)
+        sys.exit(1)
+    install = Install(target)
+    install.join()
+    subprocess.call([os.path.join(target, 'ctl'), 'open'])

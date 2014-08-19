@@ -4,7 +4,13 @@ Open Media Library
 Install
 -------
 
- soon
+ To install the latest release on Linux run:
+
+ curl https://git.0x2620.org/openmedialibrary.git/HEAD:/install | python2
+
+ on Mac OS X download this:
+
+ http://downloads.openmedialibrary.com/Open%20Media%20Library.dmg
 
 Networking
 ----------
