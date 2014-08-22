@@ -14,7 +14,8 @@ oml.ui.appDialog = function() {
 
         $panel = Ox.TabPanel({
             content: function(id) {
-                var $logo = Ox.Element(),
+                var $content = Ox.Element(),
+                    $logo = Ox.Element(),
                     $text = Ox.Element()
                         .addClass('OxTextPage'),
                     title = Ox.getObjectById(
@@ -33,6 +34,47 @@ oml.ui.appDialog = function() {
                         height: '192px'
                     })
                     .appendTo($logo);
+                if (id == 'update') {
+                    $content.html('<h1><b>' + title + '</b></h1>');
+                    oml.api.getVersion(function(response) {
+                        if (response.data.update) {
+                            Ox.Element()
+                                .css({
+                                    paddingTop: '4px',
+                                    paddingBottom: '16px'
+                                })
+                                .html('A new version of Open Media Library is available')
+                                .appendTo($content);
+                            Ox.Button({
+                                id: 'update',
+                                title: Ox._('Install Now')
+                            }).bindEvent({
+                                click: function() {
+                                    this.options({
+                                        disabled: true,
+                                        title: 'Installing...'
+                                    });
+                                    oml.api.restart(function(response) {
+                                        if (response.status.code == 200) {
+                                            setTimeout(reload, 500);
+                                        }
+                                    });
+                                }
+                            }).appendTo($content);
+                        } else if (response.data.current == 'git') {
+                            Ox.Element()
+                                .html('To update a development version, run ./ctl update')
+                                .appendTo($content);
+                        } else {
+                            Ox.Element()
+                                .html('No updates available')
+                                .appendTo($content);
+                        }
+                    });
+                } else {
+                    $content.html('<h1><b>' + title + '</b></h1>'
+                        + '<p>The lazy brown fox jumped over the lazy black fox, but otherwise not really much happened here since you last checked.');
+                }
                 $('<div>')
                     .css({
                         position: 'absolute',
@@ -41,10 +83,7 @@ oml.ui.appDialog = function() {
                         top: '16px',
                         overflowY: 'auto'
                     })
-                    .html(
-                        '<h1><b>' + title + '</b></h1>'
-                        + '<p>The lazy brown fox jumped over the lazy black fox, but otherwise not really much happened here since you last checked.'
-                    )
+                    .append($content)
                     .appendTo($text);
                 return Ox.SplitPanel({
                     elements: [
@@ -102,6 +141,20 @@ oml.ui.appDialog = function() {
     that.updateElement = function(section) {
         $panel.selectTab(section);
     };
+
+    function reload() {
+        var ws = new WebSocket('ws:' + document.location.host + '/ws');
+        ws.onopen = function(event) {
+            document.location.href = document.location.protocol + '//' + document.location.host;
+        };
+        ws.onerror = function(event) {
+            ws.close();
+        };
+        ws.onclose = function(event) {
+            console.log('waiting...');
+            setTimeout(reload, 500);
+        };
+    }
 
     return that;
 

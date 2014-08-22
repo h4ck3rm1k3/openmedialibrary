@@ -73,7 +73,8 @@ if [ "$1" == "restart" ]; then
         "$0" start
         exit $?
     else
-        exit 1
+        "$0" start
+        exit $?
     fi
 fi
 if [ "$1" == "open" ]; then

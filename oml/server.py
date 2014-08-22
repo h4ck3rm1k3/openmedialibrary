@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 import os
 import sys
+import signal
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -94,14 +95,20 @@ def run():
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
     print('open browser at %s' % url)
+
+    def shutdown():
+        if state.downloads:
+            state.downloads.join()
+        if state.tasks:
+            state.tasks.join()
+        if state.nodes:
+            state.nodes.join()
+        http_server.stop()
+
+    signal.signal(signal.SIGTERM, shutdown)
+
     try:
         state.main.start()
     except:
         print('shutting down...')
-
-    if state.downloads:
-        state.downloads.join()
-    if state.tasks:
-        state.tasks.join()
-    if state.nodes:
-        state.nodes.join()
+    shutdown()

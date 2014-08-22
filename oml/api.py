@@ -10,6 +10,8 @@ import ox
 from oxtornado import actions
 
 
+import settings
+
 import item.api
 import user.api
 
@@ -76,3 +78,34 @@ def autocompleteFolder(data):
         'items': ox.sorted_strings(folders)
     }
 actions.register(autocompleteFolder, cache=False)
+
+def getVersion(data):
+    '''
+        check if new version is available
+    '''
+    response = {
+        'current': settings.MINOR_VERSION,
+        'upgrade': False,
+    }
+    if not os.path.exists(os.path.join(settings.updates_path, 'release.json')):
+        return response
+    if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
+        return response
+    with open(os.path.join(settings.updates_path, 'release.json')) as fd:
+        release = json.load(fd)
+    current = settings.release['modules']['openmedialibrary']['version']
+    response['current'] = current
+    new = release['modules']['openmedialibrary']['version']
+    response['new'] = new
+    response['update'] = current < new
+    return response
+actions.register(getVersion, cache=False)
+
+def restart(data):
+    '''
+        restart (and upgrade if upgrades are available)
+    '''
+    #subprocess.Popen(['./ctl', 'restart'], preexec_fn=os.setpgrp, close_fds=True)
+    subprocess.Popen(['./ctl', 'restart'], close_fds=True)
+    return {}
+actions.register(restart, cache=False)

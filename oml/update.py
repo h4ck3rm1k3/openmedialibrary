@@ -56,6 +56,7 @@ def check():
         old = settings.release['modules']['openmedialibrary']['version']
         new = release['modules']['openmedialibrary']['version']
         return verify(release) and old < new
+    return False
 
 def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
