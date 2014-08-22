@@ -12,12 +12,12 @@ import settings
 root_dir = dirname(settings.base_dir)
 
 def run(*cmd):
-    p = subprocess.Popen(cmd)
+    p = subprocess.Popen(cmd, close_fds=True)
     p.wait()
     return p.returncode
 
 def get(*cmd):
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     stdout, error = p.communicate()
     return stdout
 

@@ -23,7 +23,7 @@ def selectFolder(data):
         }
     '''
     cmd = ['./ctl', 'ui', 'folder']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
     stdout, stderr = p.communicate()
     path = stdout.decode('utf-8').strip()
     return {
@@ -105,7 +105,6 @@ def restart(data):
     '''
         restart (and upgrade if upgrades are available)
     '''
-    #subprocess.Popen(['./ctl', 'restart'], preexec_fn=os.setpgrp, close_fds=True)
     subprocess.Popen(['./ctl', 'restart'], close_fds=True)
     return {}
 actions.register(restart, cache=False)

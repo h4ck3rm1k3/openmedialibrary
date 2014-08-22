@@ -35,7 +35,7 @@ def ql_cover(pdf):
         tmp,
         pdf
     ]
-    p = subprocess.Popen(cmd)
+    p = subprocess.Popen(cmd, close_fds=True)
     p.wait()
     image = glob('%s/*' % tmp)
     if image:
@@ -58,7 +58,7 @@ def page(pdf, page):
         '-scale-to', '1024', '-cropbox',
         os.path.join(tmp, 'page')
     ]
-    p = subprocess.Popen(cmd)
+    p = subprocess.Popen(cmd, close_fds=True)
     p.wait()
     image = glob('%s/*' % tmp)
     if image:
@@ -87,7 +87,7 @@ def page(pdf, page):
         '-sOutputFile=%s' % image,
         pdf
     ]
-    p = subprocess.Popen(cmd)
+    p = subprocess.Popen(cmd, close_fds=True)
     p.wait()
     with open(image, 'rb') as fd:
         data = fd.read()
@@ -123,7 +123,7 @@ def info(pdf):
 
     '''
     cmd = ['pdfinfo', pdf]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     stdout, stderr = p.communicate()
     for line in stdout.strip().split('\n'):
         parts = line.split(':')
@@ -168,7 +168,7 @@ def extract_text(pdf):
         cmd = ['/usr/bin/mdimport', '-d2', pdf]
     else:
         cmd = ['pdftotext', pdf, '-']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     stdout, stderr = p.communicate()
     if sys.platform == 'darwin':
         if 'kMDItemTextContent' in stderr:
