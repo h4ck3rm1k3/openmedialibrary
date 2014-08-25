@@ -132,7 +132,7 @@ def get_public_ipv6():
 
 def get_interface():
     interface = ''
-    if sys.platform == 'darwin':
+    if sys.platform == 'darwin' or sys.platform.startswith('freebsd'):
         #cmd = ['/usr/sbin/netstat', '-rn']
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
@@ -146,7 +146,7 @@ def get_interface():
 
 def get_local_ipv4():
     ip = None
-    if sys.platform == 'darwin':
+    if sys.platform == 'darwin' or sys.platform.startswith('freebsd'):
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
