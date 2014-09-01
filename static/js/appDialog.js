@@ -36,39 +36,36 @@ oml.ui.appDialog = function() {
                     .appendTo($logo);
                 if (id == 'update') {
                     $content.html('<h1><b>' + title + '</b></h1>');
+                    var $update = Ox.Element()
+                        .css({
+                            paddingTop: '4px',
+                            paddingBottom: '16px'
+                        }).appendTo($content);
                     oml.api.getVersion(function(response) {
                         if (response.data.update) {
-                            Ox.Element()
-                                .css({
-                                    paddingTop: '4px',
-                                    paddingBottom: '16px'
-                                })
-                                .html('A new version of Open Media Library is available')
-                                .appendTo($content);
-                            Ox.Button({
-                                id: 'update',
-                                title: Ox._('Install Now')
-                            }).bindEvent({
-                                click: function() {
-                                    this.options({
-                                        disabled: true,
-                                        title: 'Installing...'
-                                    });
-                                    oml.api.restart(function(response) {
-                                        if (response.status.code == 200) {
-                                            setTimeout(reload, 500);
-                                        }
-                                    });
-                                }
-                            }).appendTo($content);
-                        } else if (response.data.current == 'git') {
-                            Ox.Element()
-                                .html('To update a development version, run ./ctl update')
-                                .appendTo($content);
+                            if (response.data.current == 'git') {
+                                $update.html('A new version of Open Media Library is available in git.<br>To update run: <code>./ctl update</code>');
+                            } else {
+                                $update.html('A new version of Open Media Library is available');
+                                Ox.Button({
+                                    id: 'update',
+                                    title: Ox._('Install Now')
+                                }).bindEvent({
+                                    click: function() {
+                                        this.options({
+                                            disabled: true,
+                                            title: 'Installing...'
+                                        });
+                                        oml.api.restart(function(response) {
+                                            if (response.status.code == 200) {
+                                                setTimeout(reload, 500);
+                                            }
+                                        });
+                                    }
+                                }).appendTo($content);
+                            }
                         } else {
-                            Ox.Element()
-                                .html('No updates available')
-                                .appendTo($content);
+                            $update.html('No updates available')
                         }
                     });
                 } else {

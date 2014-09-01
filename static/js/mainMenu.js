@@ -10,6 +10,7 @@ oml.ui.mainMenu = function() {
         that = Ox.MainMenu({
             extras: [
                 oml.$ui.connectionButton = oml.ui.connectionButton(),
+                oml.$ui.updateButton = oml.ui.updateButton(),
                 oml.$ui.notificationsButton = oml.ui.notificationsButton(),
                 oml.$ui.loadingIcon = oml.ui.loadingIcon()
             ],

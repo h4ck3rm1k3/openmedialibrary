@@ -59,6 +59,7 @@
     "statusIcon.js",
     "statusbar.js",
     "transfersDialog.js",
+    "updateBotton.js",
     "userButton.js",
     "usersDialog.js",
     "utils.js",
