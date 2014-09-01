@@ -33,7 +33,7 @@ class Handler(WebSocketHandler):
 
     #websocket calls
     def on_message(self, message):
-        action, data = json.load(message)
+        action, data = json.loads(message)
         if state.tasks:
             state.tasks.queue(action, data)
 
