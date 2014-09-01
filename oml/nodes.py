@@ -358,9 +358,15 @@ class Nodes(Thread):
         self._q = Queue()
         self._running = True
         self._local = LocalNodes()
+        self._cleanup = PeriodicCallback(lambda: self.queue('cleanup'), 120000)
+        self._cleanup.start()
         Thread.__init__(self)
         self.daemon = True
         self.start()
+
+    def cleanup(self):
+        if self._running:
+            self._local.cleanup()
 
     def queue(self, *args):
         self._q.put(list(args))
@@ -396,7 +402,9 @@ class Nodes(Thread):
         while self._running:
             args = self._q.get()
             if args:
-                if args[0] == 'add':
+                if args[0] == 'cleanup':
+                    self.cleanup()
+                elif args[0] == 'add':
                     self._add(args[1])
                 else:
                     self._call(*args)
