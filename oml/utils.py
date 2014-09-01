@@ -4,7 +4,7 @@ from __future__ import division
 
 import os
 import sys
-import Image
+from PIL import Image
 from StringIO import StringIO
 import re
 import stdnum.isbn

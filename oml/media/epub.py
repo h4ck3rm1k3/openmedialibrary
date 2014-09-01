@@ -8,7 +8,7 @@ import zipfile
 from StringIO import StringIO
 import re
 
-import Image
+from PIL import Image
 import stdnum.isbn
 
 from utils import normalize_isbn, find_isbns

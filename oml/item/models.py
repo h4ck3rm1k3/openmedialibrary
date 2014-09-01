@@ -12,7 +12,7 @@ import re
 import shutil
 import unicodedata
 
-import Image
+from PIL import Image
 import ox
 import sqlalchemy as sa
 

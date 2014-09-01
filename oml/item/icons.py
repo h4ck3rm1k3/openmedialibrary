@@ -3,7 +3,7 @@
 from __future__ import division, with_statement
 
 from StringIO import StringIO
-import Image
+from PIL import Image
 import sqlite3
 
 import tornado.concurrent
