@@ -39,7 +39,7 @@ def find(data):
     if 'group' in q:
         names = {}
         groups = {}
-        key = 'group:' + hashlib.sha1(json.dumps(data)).hexdigest()
+        key = 'group:' + hashlib.sha1(json.dumps(data).encode('utf-8')).hexdigest()
         g = state.cache.get(key)
         if g is None:
             items = [i.id for i in q['qs'].options(load_only('id'))]

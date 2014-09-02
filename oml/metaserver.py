@@ -2,17 +2,15 @@
 # vi:si:et:sw=4:sts=4:ts=4
 
 
-import os
-
 from tornado.web import Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
-from . import oxtornado
-from .oxtornado import actions
+import oxtornado
+from oxtornado import actions
 
-from . import meta
-from . import utils
+import meta
+import utils
 
 import logging
 logger = logging.getLogger('metaoml')

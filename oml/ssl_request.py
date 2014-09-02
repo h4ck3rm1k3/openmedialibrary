@@ -53,6 +53,10 @@ class VerifiedHTTPSHandler(urllib.request.HTTPSHandler):
         def http_class_wrapper(host, **kwargs):
             full_kwargs = dict(self._connection_args)
             full_kwargs.update(kwargs)
+            print(self._connection_args)
+            print(kwargs)
+            if 'timeout' in full_kwargs:
+                del full_kwargs['timeout']
             return CertValidatingHTTPSConnection(host, **full_kwargs)
 
         try:

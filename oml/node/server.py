@@ -67,7 +67,7 @@ class NodeHandler(tornado.web.RequestHandler):
                         content = {'status': 'not peered'}
                         logger.debug('PEER %s IS UNKNOWN SEND 403', key)
                         self.set_status(403)
-        content = json.dumps(content)
+        content = json.dumps(content).encode('utf-8')
         sig = settings.sk.sign(content, encoding='base64')
         self.set_header('X-Ed25519-Signature', sig)
         self.set_header('X-Node-Protocol', settings.NODE_PROTOCOL)

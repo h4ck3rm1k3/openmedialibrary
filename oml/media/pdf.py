@@ -9,7 +9,7 @@ import os
 import shutil
 from glob import glob
 
-#from pyPdf import PdfFileReader
+from pyPdf import PdfFileReader
 import stdnum.isbn
 
 import settings

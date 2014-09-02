@@ -215,7 +215,7 @@ def remove_empty_tree(leaf):
         else:
             break
 
-utc_0 = int(time.mktime(datetime(1970, 0o1, 0o1).timetuple()))
+utc_0 = int(time.mktime(datetime(1970, 1, 1).timetuple()))
 
 def datetime2ts(dt):
     return int(time.mktime(dt.utctimetuple())) - utc_0

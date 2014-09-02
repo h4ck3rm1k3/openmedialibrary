@@ -36,6 +36,7 @@ ENCODING='base64'
 class Node(Thread):
     _running = True
     _cert = None
+    host = None
     online = False
     download_speed = 0
     TIMEOUT = 5
@@ -124,7 +125,7 @@ class Node(Thread):
             logger.debug('unable to find host %s', self.user_id)
             self.online = False
             return None
-        content = json.dumps([action, args])
+        content = json.dumps([action, args]).encode('utf-8')
         sig = settings.sk.sign(content, encoding=ENCODING)
         headers = {
             'User-Agent': settings.USER_AGENT,
@@ -137,7 +138,8 @@ class Node(Thread):
         }
         self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
         try:
-            r = self._opener.open(url, data=content, timeout=self.TIMEOUT)
+            self._opener.timeout = self.TIMEOUT
+            r = self._opener.open(url, data=content)
         except urllib.error.HTTPError as e:
             if e.code == 403:
                 logger.debug('REMOTE ENDED PEERING')
@@ -172,7 +174,7 @@ class Node(Thread):
 
         sig = r.headers.get('X-Ed25519-Signature')
         if sig and self._valid(data, sig):
-            response = json.loads(data)
+            response = json.loads(data.decode('utf-8'))
         else:
             logger.debug('invalid signature %s', data)
             response = None
@@ -202,7 +204,8 @@ class Node(Thread):
                     'Accept-Encoding': 'gzip',
                 }
                 self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
-                r = self._opener.open(url, timeout=1)
+                self._opener.timeout = 1
+                r = self._opener.open(url)
                 version = r.headers.get('X-Node-Protocol', None)
                 if version != settings.NODE_PROTOCOL:
                     logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
@@ -298,7 +301,8 @@ class Node(Thread):
         t1 = datetime.utcnow()
         logger.debug('download %s', url)
         self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
-        r = self._opener.open(url, timeout=self.TIMEOUT*2)
+        self._opener.timeout = self.TIMEOUT*2
+        r = self._opener.open(url)
         if r.getcode() == 200:
             if r.headers.get('content-encoding', None) == 'gzip':
                 content = gzip.GzipFile(fileobj=r).read()
