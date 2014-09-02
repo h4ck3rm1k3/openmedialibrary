@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from ox.cache import read_url
 import ox
 import re
 import xml.etree.ElementTree as ET
 
-from dewey import get_classification
-from marc_countries import COUNTRIES
-from utils import normalize_isbn
+from .dewey import get_classification
+from .marc_countries import COUNTRIES
+from .utils import normalize_isbn
 
 import logging
 logger = logging.getLogger('meta.loc')
@@ -86,7 +86,7 @@ def lookup(id):
     toc = mods.findall(ns + 'tableOfContents')
     if toc:
         info['description'] = toc[0].text.strip()
-    for key in info.keys():
+    for key in list(info.keys()):
         if not info[key]:
             del info[key]
     return info

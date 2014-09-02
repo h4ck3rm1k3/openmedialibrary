@@ -1,5 +1,5 @@
-Twisted
 simplejson
 ed25519
-SQLAlchemy==0.9.4
-pyopenssl>=0.13.1
+SQLAlchemy==0.9.7
+pyopenssl>=0.14
+pillow

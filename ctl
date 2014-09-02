@@ -26,7 +26,7 @@ export SHARED_ENV
 PATH="$SHARED_ENV/bin:$PATH"
 export PATH
 
-PYTHONPATH="$PLATFORM_ENV/lib/python2.7/site-packages:$SHARED_ENV/lib/python2.7/site-packages:$BASE/$NAME"
+PYTHONPATH="$PLATFORM_ENV/lib/python3.4/site-packages:$SHARED_ENV/lib/python3.4/site-packages:$BASE/$NAME"
 export PYTHONPATH
 
 oxCACHE="$BASE/config/ox"
@@ -45,10 +45,10 @@ if [ "$1" == "start" ]; then
         exit 1
     fi
     if [ ! -d "$BASE/$NAME/.git" ]; then
-        python2 oml install_update
+        python3 oml install_update
         cd "$BASE/$NAME"
     fi
-    python2 oml server $PID
+    python3 oml server $PID
     rm -f $PID
     exit $?
 fi
@@ -59,7 +59,7 @@ if [ "$1" == "debug" ]; then
         exit 1
     fi
     shift
-    python2 oml server $@
+    python3 oml server $@
     exit $?
 fi
 if [ "$1" == "stop" ]; then
@@ -89,7 +89,7 @@ if [ "$1" == "open" ]; then
 fi
 if [ "$1" == "ui" ]; then
     shift
-    python2 $NAME/oml/ui.py $@
+    python3 $NAME/oml/ui.py $@
     exit $?
 fi
 if [ "$1" == "update" ]; then
@@ -107,17 +107,17 @@ if [ "$1" == "update" ]; then
         NEW=`"$0" version`
         "$0" postupdate -o $OLD -n $NEW
     else
-        python2 oml update
+        python3 oml update
     fi
     exit $?
 fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"
     shift
-    python2 $@
+    python3 $@
     exit $?
 fi
 
 cd "$BASE/$NAME"
-python2 oml $@
+python3 oml $@
 exit $?

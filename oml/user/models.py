@@ -9,6 +9,7 @@ from changelog import Changelog
 from db import MutableDict
 from queryparser import Parser
 import db
+import json_pickler
 import settings
 import state
 
@@ -22,7 +23,7 @@ class User(db.Model):
     modified = sa.Column(sa.DateTime())
 
     id = sa.Column(sa.String(43), primary_key=True)
-    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
 
     nickname = sa.Column(sa.String(256), unique=True)
 
@@ -140,7 +141,7 @@ class List(db.Model):
     index_ = sa.Column(sa.Integer())
 
     type = sa.Column(sa.String(64))
-    _query = sa.Column('query', MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    _query = sa.Column('query', MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
 
     user_id = sa.Column(sa.String(43), sa.ForeignKey('user.id'))
     user = sa.orm.relationship('User', backref=sa.orm.backref('lists', lazy='dynamic'))
@@ -250,7 +251,7 @@ class List(db.Model):
         id = ''
         if self.user_id != settings.USER_ID:
             id += self.user.nickname
-        id = u'%s:%s' % (id, self.name)
+        id = '%s:%s' % (id, self.name)
         return id
 
     @property
@@ -258,7 +259,7 @@ class List(db.Model):
         id = ''
         if self.user_id != settings.USER_ID:
             id += self.user_id
-        id = u'%s:%s' % (id, self.id)
+        id = '%s:%s' % (id, self.id)
         return id
     
     def __repr__(self):

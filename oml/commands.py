@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import subprocess
 from os.path import join, exists, dirname
@@ -22,7 +22,7 @@ def get(*cmd):
     return stdout
 
 def r(*cmd):
-    print ' '.join(cmd)
+    print(' '.join(cmd))
     return subprocess.call(cmd)
 
 def version(module):
@@ -40,7 +40,7 @@ def command_version(*args):
     """
         Print current version
     """
-    print version('openmedialibrary')
+    print(version('openmedialibrary'))
 
 def command_debug(*args):
     """
@@ -66,7 +66,7 @@ def command_install_update(*args):
     """
     import update
     if not update.install():
-        print "UPDATE FAILED"
+        print("UPDATE FAILED")
         sys.exit(1)
 
 def command_update(*args):
@@ -75,7 +75,7 @@ def command_update(*args):
     """
     import update
     if not (update.download() and update.install()):
-        print "UPDATE FAILED"
+        print("UPDATE FAILED")
 
 def command_postupdate(*args):
     """
@@ -84,7 +84,7 @@ def command_postupdate(*args):
     def run(*args):
         o, old, n, new = args
         if o != '-o' or n != '-n':
-            print 'usage: -o oldversion -n newversion'
+            print('usage: -o oldversion -n newversion')
             sys.exit(1)
         if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
             if not os.path.exists(settings.db_path):
@@ -117,7 +117,7 @@ def command_release(*args):
     """
         Release new version
     """
-    print 'checking...'
+    print('checking...')
     import os
     import json
     import hashlib
@@ -171,7 +171,7 @@ def command_release(*args):
     sign(release)
     with open('updates/release.json', 'w') as fd:
         json.dump(release, fd, indent=2)
-    print 'signed latest release in updates/release.json'
+    print('signed latest release in updates/release.json')
 
 def command_shell(*args):
     '''
@@ -223,5 +223,5 @@ def main():
             info = actions["command_%s"%command].__doc__.split('\n')
             info = ['  %s%s' % (' ' * indent, i.strip()) for i in info]
             info = '\n'.join(info).strip()
-            print("  %s%s%s" % (command, space, info))
+            print(("  %s%s%s" % (command, space, info)))
         sys.exit(1)

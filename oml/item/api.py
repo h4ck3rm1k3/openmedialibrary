@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import json
 import hashlib
@@ -11,8 +11,8 @@ from oxtornado import actions
 from utils import cleanup_id
 from websocket import trigger_event
 import metaremote as meta
-import models
-import query
+from . import models
+from . import query
 import settings
 import state
 import utils
@@ -183,7 +183,7 @@ def getMetadata(data):
         include_edits = data.pop('includeEdits')
     else:
         include_edits = False
-    key, value = data.iteritems().next()
+    key, value = next(iter(data.items()))
     value = cleanup_id(key, value)
     response = meta.lookup(key, value)
     if include_edits:

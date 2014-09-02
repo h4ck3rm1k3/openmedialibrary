@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from copy import deepcopy
 import json
@@ -11,7 +11,7 @@ import ox
 from changelog import Changelog
 from oxtornado import actions
 from utils import update_dict
-import models
+from . import models
 import settings
 import state
 

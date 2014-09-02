@@ -19,9 +19,9 @@ def generate_ssl():
     key = OpenSSL.crypto.PKey()
     key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
     with open(settings.ssl_key_path, 'wb') as fd:
-        os.chmod(settings.ssl_key_path, 0600)
+        os.chmod(settings.ssl_key_path, 0o600)
         fd.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))
-        os.chmod(settings.ssl_key_path, 0400)
+        os.chmod(settings.ssl_key_path, 0o400)
 
     ca = OpenSSL.crypto.X509()
     ca.set_version(2)

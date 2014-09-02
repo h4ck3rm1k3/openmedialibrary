@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division, with_statement
 
-from StringIO import StringIO
+
+from io import BytesIO
 from PIL import Image
 import sqlite3
 
@@ -32,30 +32,30 @@ class Icons(dict):
     def create(self):
         conn = self.connect()
         c = conn.cursor()
-        c.execute(u'CREATE TABLE IF NOT EXISTS icon (id varchar(64) unique, data blob)')
-        c.execute(u'CREATE TABLE IF NOT EXISTS setting (key varchar(256) unique, value text)')
+        c.execute('CREATE TABLE IF NOT EXISTS icon (id varchar(64) unique, data blob)')
+        c.execute('CREATE TABLE IF NOT EXISTS setting (key varchar(256) unique, value text)')
         if int(self.get_setting(c, 'version', 0)) < 1:
             self.set_setting(c, 'version', 1)
 
     def get_setting(self, c, key, default=None):
-        c.execute(u'SELECT value FROM setting WHERE key = ?', (key, ))
+        c.execute('SELECT value FROM setting WHERE key = ?', (key, ))
         for row in c:
             return row[0]
         return default
 
     def set_setting(self, c, key, value):
-        c.execute(u'INSERT OR REPLACE INTO setting values (?, ?)', (key, str(value)))
+        c.execute('INSERT OR REPLACE INTO setting values (?, ?)', (key, str(value)))
 
     def black(self):
         img = Image.new('RGB', (80, 128))
-        o = StringIO()
+        o = BytesIO()
         img.save(o, format='jpeg')
         data = o.getvalue()
         o.close()
         return data
 
     def __getitem__(self, id, default=None):
-        sql = u'SELECT data FROM icon WHERE id=?'
+        sql = 'SELECT data FROM icon WHERE id=?'
         conn = self.connect()
         c = conn.cursor()
         c.execute(sql, (id, ))
@@ -68,7 +68,7 @@ class Icons(dict):
         return data
 
     def __setitem__(self, id, data):
-        sql = u'INSERT OR REPLACE INTO icon values (?, ?)'
+        sql = 'INSERT OR REPLACE INTO icon values (?, ?)'
         conn = self.connect()
         c = conn.cursor()
         data = sqlite3.Binary(data)
@@ -78,7 +78,7 @@ class Icons(dict):
         conn.close()
 
     def __delitem__(self, id):
-        sql = u'DELETE FROM icon WHERE id = ?'
+        sql = 'DELETE FROM icon WHERE id = ?'
         conn = self.connect()
         c = conn.cursor()
         c.execute(sql, (id, ))
@@ -94,7 +94,7 @@ def get_icon(id, type_, size, callback):
         skey = '%s:%s:%s' % (type_, id, size)
         data = icons[skey]
         if data:
-            callback(str(data))
+            callback(bytes(data))
             return
     key = '%s:%s' % (type_, id)
     data = icons[key]
@@ -114,7 +114,7 @@ def get_icon(id, type_, size, callback):
         size = None
     if size:
         data = icons[skey] = resize_image(data, size=size)
-    data = str(data) or ''
+    data = bytes(data) or ''
     callback(data)
 
 @run_async
@@ -144,7 +144,7 @@ def get_icon_app(id, type_, size, callback):
                 size = None
             if size:
                 data = icons[skey] = resize_image(data, size=size)
-            data = str(data) or ''
+            data = bytes(data) or ''
             callback(data)
 
 class IconHandler(tornado.web.RequestHandler):

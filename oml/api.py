@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import subprocess
 import json
@@ -67,7 +67,7 @@ def autocompleteFolder(data):
     else:
         folder, name = os.path.split(path)
     if os.path.exists(folder):
-        prefix, folders, files = os.walk(folder).next()
+        prefix, folders, files = next(os.walk(folder))
         folders = [os.path.join(prefix, f) for f in folders if (not name or f.startswith(name)) and not f.startswith('.')]
         if prefix == path:
             folders = [path] + folders

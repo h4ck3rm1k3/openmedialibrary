@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from datetime import datetime
 import json
@@ -100,7 +100,7 @@ class Changelog(db.Model):
                     return True
             else:
                 logger.debug('INVLAID SIGNATURE ON CHANGE %s', change)
-                raise Exception, 'invalid signature'
+                raise Exception('invalid signature')
         else:
             logger.debug('revsion does not match! got %s expecting %s', revision, next_revision)
             return False
@@ -168,7 +168,7 @@ class Changelog(db.Model):
         if i.timestamp > timestamp:
             logger.debug('ignore edititem change %s %s %s', timestamp, itemid, meta)
             return True
-        keys = filter(lambda k: k in Item.id_keys, meta.keys())
+        keys = [k for k in list(meta.keys()) if k in Item.id_keys]
         if keys:
             key = keys[0]
             primary = [key, meta[key]]

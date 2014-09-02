@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import sys
 import tempfile
@@ -9,7 +9,7 @@ import os
 import shutil
 from glob import glob
 
-from pyPdf import PdfFileReader
+#from pyPdf import PdfFileReader
 import stdnum.isbn
 
 import settings
@@ -139,9 +139,9 @@ def info(pdf):
         if stdnum.isbn.is_valid(value):
             data['isbn'] = [value]
             del data['identifier']
-    for key, value in data.iteritems():
+    for key, value in data.items():
         if isinstance(value, dict):
-            value = ' '.join(value.values())
+            value = ' '.join(list(value.values()))
             data[key] = value
     text = extract_text(pdf)
     data['textsize'] = len(text)
@@ -150,7 +150,7 @@ def info(pdf):
             isbn = extract_isbn(text)
             if isbn:
                 data['isbn'] = [isbn]
-    if 'isbn' in data and isinstance(data['isbn'], basestring):
+    if 'isbn' in data and isinstance(data['isbn'], str):
         data['isbn'] = [data['isbn']]
     if 'date' in data and len(data['date']) == 8 and data['date'].isdigit():
         d = data['date']

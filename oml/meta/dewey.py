@@ -2,10 +2,10 @@
 # vi:si:et:sw=4:sts=4:ts=4
 
 def get_classification(id):
-    name = u'%s' % id
+    name = '%s' % id
     base = ''.join([s for s in id.split('/')[0].split('.')[0] if s.isdigit()])
     if base in DEWEY:
-        name = u'%s %s' % (name, DEWEY[base].decode('utf-8'))
+        name = '%s %s' % (name, DEWEY[base].decode('utf-8'))
     return name
 
 DEWEY = {
@@ -941,9 +941,9 @@ if __name__ == '__main__':
     dewey = {}
     for i in range(0, 1000):
         url = 'http://dewey.info/class/%s/about.en.json' % i
-        print url
+        print(url)
         data = json.loads(read_url(url))
-        for d in data.values():
+        for d in list(data.values()):
             if 'http://www.w3.org/2004/02/skos/core#prefLabel' in d:
                 value = d['http://www.w3.org/2004/02/skos/core#prefLabel'][0]['value']
                 dewey[str(i)] = value

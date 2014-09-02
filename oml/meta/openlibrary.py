@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from datetime import datetime
-from urllib import urlencode
+from urllib.parse import urlencode
 import json
 
 from ox.cache import read_url
 
-from dewey import get_classification
-from marc_countries import COUNTRIES
-from utils import normalize_isbn
+from .dewey import get_classification
+from .marc_countries import COUNTRIES
+from .utils import normalize_isbn
 
 import logging
 logger = logging.getLogger('meta.openlibrary')
@@ -41,7 +41,7 @@ def find(query):
     results = []
     ids = [b for b in r.get('result', []) if b.startswith('/books')]
     books = api.get_many(ids).get('result', [])
-    for olid, value in books.iteritems():
+    for olid, value in books.items():
         olid = olid.split('/')[-1]
         book = format(value)
         book['olid'] = [olid]
@@ -84,7 +84,7 @@ def lookup(id, return_all=False):
         data['olid'] = []
     if id not in data['olid']:
         data['olid'] = [id]
-    logger.debug('lookup %s => %s', id, data.keys())
+    logger.debug('lookup %s => %s', id, list(data.keys()))
     return data
 
 def get_type(obj):
@@ -129,7 +129,7 @@ def format(info, return_all=False):
             elif key in ('isbn_10', 'isbn_13'):
                 if not isinstance(value, list):
                     value = [value]
-                value = map(normalize_isbn, value)
+                value = list(map(normalize_isbn, value))
                 if KEYS[key] in data:
                     value = data[KEYS[key]] + value
             elif isinstance(value, list) and key not in ('publish_places', 'lccn', 'oclc_numbers'):
@@ -149,7 +149,7 @@ def format(info, return_all=False):
 def resolve_names(objects, key='name'):
     r = []
     data = api.get_many([k['key'] for k in objects]).get('result', {})
-    for k, value in data.iteritems():
+    for k, value in data.items():
         if 'location' in value and value.get('type', {}).get('key') == '/type/redirect':
             value = api.get(value['location']).get('result', {})
         r.append(value[key])
@@ -160,7 +160,7 @@ class API(object):
 
     def _request(self, action, data, timeout=None):
         for key in data:
-            if not isinstance(data[key], basestring):
+            if not isinstance(data[key], str):
                 data[key] = json.dumps(data[key])
         url = self.base + '/' + action + '?' + urlencode(data)
         if timeout is None:
@@ -181,7 +181,7 @@ class API(object):
         return data
 
     def search(self, query):
-        if isinstance(query, basestring):
+        if isinstance(query, str):
             query = {
                 'query': query
             }

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from datetime import datetime
-from StringIO import StringIO
+from io import StringIO
 import base64
 import hashlib
 import json
@@ -18,8 +18,9 @@ import sqlalchemy as sa
 
 from changelog import Changelog
 from db import MutableDict
-from icons import icons
-from person import get_sort_name
+import json_pickler
+from .icons import icons
+from .person import get_sort_name
 from settings import config
 from utils import remove_empty_folders
 from websocket import trigger_event
@@ -46,8 +47,8 @@ class Item(db.Model):
 
     id = sa.Column(sa.String(32), primary_key=True)
 
-    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
-    meta = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
+    meta = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
 
     # why is this in db and not in i.e. info?
     added = sa.Column(sa.DateTime()) # added to local library
@@ -104,7 +105,7 @@ class Item(db.Model):
         if t:
             j['transferadded'] = t.added
             j['transferprogress'] = t.progress
-        j['users'] = map(str, list(self.users))
+        j['users'] = list(map(str, list(self.users)))
 
         if self.info:
             j.update(self.info)
@@ -115,7 +116,7 @@ class Item(db.Model):
             if key not in self.meta and key in j:
                 del j[key]
         if keys:
-            for k in j.keys():
+            for k in list(j.keys()):
                 if k not in keys:
                     del j[k]
         return j
@@ -140,19 +141,19 @@ class Item(db.Model):
                     elif sort_type == 'name':
                         if not isinstance(value, list):
                             value = [value]
-                        value = map(get_sort_name, value)
-                        value = ox.sort_string(u'\n'.join(value))
+                        value = list(map(get_sort_name, value))
+                        value = ox.sort_string('\n'.join(value))
                     elif sort_type == 'title':
                         if isinstance(value, dict):
-                            value = value.values()
+                            value = list(value.values())
                         if isinstance(value, list):
-                            value = u''.join(value)
+                            value = ''.join(value)
                         value = utils.sort_title(value).lower()
                     else:
                         if isinstance(value, list):
-                            value = u'\n'.join(value)
+                            value = '\n'.join(value)
                         if value:
-                            value = unicode(value)
+                            value = str(value)
                             value = ox.sort_string(value).lower()
                 elif isinstance(value, list): #empty list
                     value = ''
@@ -178,7 +179,7 @@ class Item(db.Model):
                 if value:
                     Find.query.filter_by(item_id=self.id, key=key['id']).delete()
                     if isinstance(value, dict):
-                        value = ' '.join(value.values())
+                        value = ' '.join(list(value.values()))
                     if not isinstance(value, list):
                         value = [value]
                     for v in value:
@@ -194,7 +195,7 @@ class Item(db.Model):
                 if key not in self.info:
                     self.info[key] = self.meta[key]
                 del self.meta[key]
-        users = map(str, list(self.users))
+        users = list(map(str, list(self.users)))
         self.info['mediastate'] = 'available' # available, unavailable, transferring
         t = Transfer.get(self.id)
         if t and t.added and t.progress < 1:
@@ -230,7 +231,7 @@ class Item(db.Model):
                     record[key] = data[key]
                 self.meta[key] = data[key]
                 update = True
-        for key in self.meta.keys():
+        for key in list(self.meta.keys()):
             if key not in self.meta_keys:
                 del self.meta[key]
                 update = True
@@ -446,7 +447,7 @@ class Find(db.Model):
     findvalue = sa.Column(sa.Text(), index=True)
 
     def __repr__(self):
-        return (u'%s=%s' % (self.key, self.findvalue)).encode('utf-8')
+        return ('%s=%s' % (self.key, self.findvalue)).encode('utf-8')
 
     @classmethod
     def get(cls, item, key):
@@ -470,7 +471,7 @@ class File(db.Model):
     sha1 = sa.Column(sa.String(32), primary_key=True)
     path = sa.Column(sa.String(2048))
 
-    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    info = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
 
     item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'))
     item = sa.orm.relationship('Item', backref=sa.orm.backref('files', lazy='dynamic'))
@@ -591,7 +592,7 @@ class Metadata(db.Model):
     key = sa.Column(sa.String(256))
     value = sa.Column(sa.String(256))
 
-    data = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json)))
+    data = sa.Column(MutableDict.as_mutable(sa.PickleType(pickler=json_pickler)))
 
     def __repr__(self):
         return '='.join([self.key, self.value])

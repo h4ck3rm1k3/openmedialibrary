@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division, print_function
+
 
 import os
 
@@ -8,11 +8,11 @@ from tornado.web import Application
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
-import oxtornado
-from oxtornado import actions
+from . import oxtornado
+from .oxtornado import actions
 
-import meta
-import utils
+from . import meta
+from . import utils
 
 import logging
 logger = logging.getLogger('metaoml')
@@ -49,7 +49,7 @@ def getMetadata(data):
         include_edits = data.pop('includeEdits')
     else:
         include_edits = False
-    key, value = data.iteritems().next()
+    key, value = next(iter(data.items()))
     if key == 'isbn':
         value = utils.normalize_isbn(value)
     response = meta.lookup(key, value)

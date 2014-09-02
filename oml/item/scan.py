@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 from datetime import datetime
 import os
@@ -67,7 +67,7 @@ def run_scan():
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         if not prefix[-1] == '/':
             prefix += '/'
-        assert isinstance(prefix, unicode)
+        assert isinstance(prefix, str)
         books = []
         for root, folders, files in os.walk(prefix):
             for f in files:
@@ -121,7 +121,7 @@ def run_import(options=None):
         listname = options.get('list')
         if listname:
             listitems = []
-        assert isinstance(prefix, unicode)
+        assert isinstance(prefix, str)
         books = []
         count = 0
         for root, folders, files in os.walk(prefix):

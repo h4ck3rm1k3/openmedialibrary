@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import re
 import hashlib
@@ -99,7 +99,7 @@ def lookup(id):
             if m:
                 data['date'] = m[0]
 
-    logger.debug('lookup %s => %s', id, data.keys())
+    logger.debug('lookup %s => %s', id, list(data.keys()))
     return data
 
 info = lookup

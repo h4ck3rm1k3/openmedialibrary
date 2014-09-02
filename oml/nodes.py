@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
 
-from Queue import Queue
+
+from queue import Queue
 from threading import Thread
 import json
 import socket
-from StringIO import StringIO
+from io import StringIO
 import gzip
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from datetime import datetime
 import os
 import time
@@ -135,10 +135,10 @@ class Node(Thread):
             'X-Ed25519-Key': settings.USER_ID,
             'X-Ed25519-Signature': sig,
         }
-        self._opener.addheaders = zip(headers.keys(), headers.values())
+        self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
         try:
             r = self._opener.open(url, data=content, timeout=self.TIMEOUT)
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             if e.code == 403:
                 logger.debug('REMOTE ENDED PEERING')
                 with db.session():
@@ -150,7 +150,7 @@ class Node(Thread):
             logger.debug('urllib2.HTTPError %s %s', e, e.code)
             self.online = False
             return None
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             logger.debug('urllib2.URLError %s', e)
             self.online = False
             return None
@@ -201,7 +201,7 @@ class Node(Thread):
                     'X-Node-Protocol': settings.NODE_PROTOCOL,
                     'Accept-Encoding': 'gzip',
                 }
-                self._opener.addheaders = zip(headers.keys(), headers.values())
+                self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
                 r = self._opener.open(url, timeout=1)
                 version = r.headers.get('X-Node-Protocol', None)
                 if version != settings.NODE_PROTOCOL:
@@ -297,7 +297,7 @@ class Node(Thread):
         }
         t1 = datetime.utcnow()
         logger.debug('download %s', url)
-        self._opener.addheaders = zip(headers.keys(), headers.values())
+        self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
         r = self._opener.open(url, timeout=self.TIMEOUT*2)
         if r.getcode() == 200:
             if r.headers.get('content-encoding', None) == 'gzip':
@@ -338,7 +338,7 @@ class Node(Thread):
                 headers = {
                     'User-Agent': settings.USER_AGENT,
                 }
-                self._opener.addheaders = zip(headers.keys(), headers.values())
+                self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
                 r = self._opener.open(url)
                 if r.getcode() == 200:
                     with open(path, 'w') as fd:
@@ -379,11 +379,11 @@ class Nodes(Thread):
 
     def _call(self, target, action, *args):
         if target == 'all':
-            nodes = self._nodes.values()
+            nodes = list(self._nodes.values())
         elif target == 'peered':
-            nodes = [n for n in self._nodes.values() if n.user.peered]
+            nodes = [n for n in list(self._nodes.values()) if n.user.peered]
         elif target == 'online':
-            nodes = [n for n in self._nodes.values() if n.online]
+            nodes = [n for n in list(self._nodes.values()) if n.online]
         else:
             nodes = [self._nodes[target]]
         for node in nodes:
@@ -412,7 +412,7 @@ class Nodes(Thread):
     def join(self):
         self._running = False
         self._q.put(None)
-        for node in self._nodes.values():
+        for node in list(self._nodes.values()):
             node.join()
         self._local.join()
         return Thread.join(self)

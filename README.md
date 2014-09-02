@@ -39,9 +39,9 @@ To update to latest version:
 
     ./ctl update
 
-On Linux you need a working python2 installation with PIL, pyhon-lxml and poppler-utils:
+On Linux you need a working python2 installation with pillow, pyhon-lxml and poppler-utils:
 
-    apt-get install python2.7 python-imaging  python-lxml poppler-utils
+    apt-get install python3.4 python3-pil python3-lxml poppler-utils
 
 
 Platform

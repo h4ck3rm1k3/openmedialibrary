@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import os
 import sys
 from PIL import Image
-from StringIO import StringIO
+from io import StringIO, BytesIO
 import re
 import stdnum.isbn
 import socket
-import cStringIO
+import io
 import gzip
 import time
 from datetime import datetime
@@ -49,14 +49,18 @@ def get_positions(ids, pos):
     return positions
 
 def get_by_key(objects, key, value):
-    obj = filter(lambda o: o.get(key) == value, objects)
+    obj = [o for o in objects if o.get(key) == value]
     return obj and obj[0] or None
 
 def get_by_id(objects, id):
     return get_by_key(objects, 'id', id)
 
 def resize_image(data, width=None, size=None):
-    source = Image.open(StringIO(data))
+    if isinstance(data, bytes):
+        data = BytesIO(data)
+    else:
+        data = StringIO(data)
+    source = Image.open(data)
     if source.mode == 'P':
         source = source.convert('RGB')
     source_width = source.size[0]
@@ -83,7 +87,7 @@ def resize_image(data, width=None, size=None):
     else:
         resize_method = Image.BICUBIC
     output = source.resize((width, height), resize_method)
-    o = StringIO()
+    o = BytesIO()
     output.save(o, format='jpeg')
     data = o.getvalue()
     o.close()
@@ -91,13 +95,13 @@ def resize_image(data, width=None, size=None):
 
 def sort_title(title):
 
-    title = title.replace(u'Æ', 'Ae')
+    title = title.replace('Æ', 'Ae')
     if isinstance(title, str):
-        title = unicode(title)
+        title = str(title)
     title = ox.sort_string(title)
 
     #title
-    title = re.sub(u'[\'!¿¡,\.;\-"\:\*\[\]]', '', title)
+    title = re.sub('[\'!¿¡,\.;\-"\:\*\[\]]', '', title)
     return title.strip()
 
 def get_position_by_id(list, key):
@@ -150,6 +154,7 @@ def get_local_ipv4():
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
+        stdout = stdout.decode('utf-8')
         interface = [[p.strip() for p in s.split(':', 1)]
                 for s in stdout.strip().split('\n') if 'interface' in s]
         if interface:
@@ -157,6 +162,7 @@ def get_local_ipv4():
             cmd = ['ifconfig', interface]
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
             stdout, stderr = p.communicate()
+            stdout = stdout.decode('utf-8')
             ips = [l for l in stdout.split('\n') if 'inet ' in l]
             if ips:
                 ip = ips[0].strip().split(' ')[1]
@@ -164,6 +170,7 @@ def get_local_ipv4():
         cmd = ['ip', 'route', 'show']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
+        stdout = stdout.decode('utf-8')
         local = [l for l in stdout.split('\n') if 'default' in l]
         if local:
             dev = local[0].split(' ')[4]
@@ -174,7 +181,7 @@ def get_local_ipv4():
 
 def update_dict(root, data):
     for key in data:
-        keys = map(lambda part: part.replace('\0', '\\.'), key.replace('\\.', '\0').split('.'))
+        keys = [part.replace('\0', '\\.') for part in key.replace('\\.', '\0').split('.')]
         value = data[key]
         p = root
         while len(keys)>1:
@@ -208,7 +215,7 @@ def remove_empty_tree(leaf):
         else:
             break
 
-utc_0 = int(time.mktime(datetime(1970, 01, 01).timetuple()))
+utc_0 = int(time.mktime(datetime(1970, 0o1, 0o1).timetuple()))
 
 def datetime2ts(dt):
     return int(time.mktime(dt.utctimetuple())) - utc_0

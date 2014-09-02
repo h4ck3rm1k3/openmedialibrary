@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division, with_statement
+
 
 from contextlib import contextmanager
 import inspect
@@ -30,7 +30,7 @@ def _to_json(python_object):
             tt = python_object.timetuple()
             return '%d-%02d-%02dT%02d:%02d%02dZ' % tuple(list(tt)[:6])
         return python_object.strftime('%Y-%m-%dT%H:%M:%SZ')
-    raise TypeError(u'%s %s is not JSON serializable' % (repr(python_object), type(python_object)))
+    raise TypeError('%s %s is not JSON serializable' % (repr(python_object), type(python_object)))
 
 def json_dumps(obj):
     indent = 2
@@ -52,14 +52,14 @@ def trim(docstring):
     # and split into a list of lines:
     lines = docstring.expandtabs().splitlines()
     # Determine minimum indentation (first line doesn't count):
-    indent = sys.maxint
+    indent = sys.maxsize
     for line in lines[1:]:
         stripped = line.lstrip()
         if stripped:
             indent = min(indent, len(line) - len(stripped))
     # Remove indentation (first line is special):
     trimmed = [lines[0].strip()]
-    if indent < sys.maxint:
+    if indent < sys.maxsize:
         for line in lines[1:]:
             trimmed.append(line[indent:].rstrip())
     # Strip off trailing and leading blank lines:
@@ -78,11 +78,11 @@ def defaultcontext():
 def api_task(context, request, callback):
     if context == None:
         context = defaultcontext
-    action = request.arguments.get('action', [None])[0]
-    data = request.arguments.get('data', ['{}'])[0]
-    data = json.loads(data) if data else {}
+    action = request.arguments.get('action', [None])[0].decode('utf-8')
+    data = request.arguments.get('data', [b'{}'])[0]
+    data = json.loads(data.decode('utf-8')) if data else {}
     if not action:
-        methods = actions.keys()
+        methods = list(actions.keys())
         api = []
         for f in sorted(methods):
             api.append({'name': f,
@@ -154,7 +154,7 @@ class ApiActions(dict):
             data = data or {}
             docs = data.get('docs', False)
             code = data.get('code', False)
-            _actions = self.keys()
+            _actions = list(self.keys())
             _actions.sort()
             actions = {}
             for a in _actions:
@@ -172,16 +172,16 @@ class ApiActions(dict):
 
     def code(self, name, version=None):
         f = self[name]
-        if name != 'api' and hasattr(f, 'func_closure') and f.func_closure:
-            fc = filter(lambda c: hasattr(c.cell_contents, '__call__'), f.func_closure)
+        if name != 'api' and hasattr(f, 'func_closure') and f.__closure__:
+            fc = [c for c in f.__closure__ if hasattr(c.cell_contents, '__call__')]
             f = fc[len(fc)-1].cell_contents 
-        info = f.func_code.co_filename
-        info = u'%s:%s' % (info, f.func_code.co_firstlineno)
+        info = f.__code__.co_filename
+        info = '%s:%s' % (info, f.__code__.co_firstlineno)
         return info, trim(inspect.getsource(f))
 
     def register(self, method, action=None, cache=True, version=None):
         if not action:
-            action = method.func_name
+            action = method.__name__
         if version:
             if not version in self.versions:
                 self.versions[version] = {}

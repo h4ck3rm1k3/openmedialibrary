@@ -52,15 +52,15 @@ for key in server_defaults:
 release = pdict(os.path.join(config_path, 'release.json'))
 
 if os.path.exists(key_path):
-    with open(key_path) as fd:
+    with open(key_path, 'rb') as fd:
         sk = ed25519.SigningKey(fd.read())
         vk = sk.get_verifying_key()
 else:
     sk, vk = ed25519.create_keypair()
-    with open(key_path, 'w') as fd:
-        os.chmod(key_path, 0600)
+    with open(key_path, 'wb') as fd:
+        os.chmod(key_path, 0o600)
         fd.write(sk.to_bytes())
-        os.chmod(key_path, 0400)
+        os.chmod(key_path, 0o400)
 
 USER_ID = vk.to_ascii(encoding='base64')
 OML_UPDATE_KEY='K55EZpPYbP3X+3mA66cztlw1sSaUMqGwfTDKQyP2qOU'

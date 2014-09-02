@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import os
 import xml.etree.ElementTree as ET
 import zipfile
-from StringIO import StringIO
+from io import StringIO
 import re
 
 from PIL import Image

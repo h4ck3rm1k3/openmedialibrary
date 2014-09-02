@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division, with_statement
+
 
 from datetime import datetime
 import mimetypes
 import os
 import zipfile
 
-from models import Item
+from .models import Item
 import db
 import settings
 import tornado.web
@@ -46,7 +46,7 @@ def serve_static(handler, path, mimetype, include_body=True):
     handler.set_header('Content-Type', mimetype)
     handler.set_header('Content-Length', str(os.stat(path).st_size))
     if include_body:
-        with open(path) as fd:
+        with open(path, 'rb') as fd:
             handler.write(fd.read())
     return
 

@@ -101,7 +101,7 @@ class Parser(object):
                 q = ~q
             return q
         elif key_type in ("string", "text"):
-            if isinstance(v, unicode):
+            if isinstance(v, str):
                 v = unicodedata.normalize('NFKD', v).lower()
             else:
                 v = v.lower()

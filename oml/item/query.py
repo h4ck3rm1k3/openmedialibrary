@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 #does not work in sqlite
 #from sqlalchemy.sql.expression import nullslast
 
 from queryparser import Parser
-import models
+from . import models
 import settings
 import utils
 

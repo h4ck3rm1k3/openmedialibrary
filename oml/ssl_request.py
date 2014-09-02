@@ -1,14 +1,14 @@
-import httplib
+import http.client
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import ssl
 import hashlib
 import logging
 logger = logging.getLogger('oml.ssl_request')
 
-class InvalidCertificateException(httplib.HTTPException, urllib2.URLError):
+class InvalidCertificateException(http.client.HTTPException, urllib.error.URLError):
     def __init__(self, fingerprint, cert, reason):
-        httplib.HTTPException.__init__(self)
+        http.client.HTTPException.__init__(self)
         self.fingerprint = fingerprint
         self.cert_fingerprint = hashlib.sha1(cert).hexdigest()
         self.reason = reason
@@ -17,11 +17,11 @@ class InvalidCertificateException(httplib.HTTPException, urllib2.URLError):
         return ('%s (local) != %s (remote) (%s)\n' %
                 (self.fingerprint, self.cert_fingerprint, self.reason))
 
-class CertValidatingHTTPSConnection(httplib.HTTPConnection):
-    default_port = httplib.HTTPS_PORT
+class CertValidatingHTTPSConnection(http.client.HTTPConnection):
+    default_port = http.client.HTTPS_PORT
 
     def __init__(self, host, port=None, fingerprint=None, strict=None, **kwargs):
-        httplib.HTTPConnection.__init__(self, host, port, strict, **kwargs)
+        http.client.HTTPConnection.__init__(self, host, port, strict, **kwargs)
         self.fingerprint = fingerprint
         if self.fingerprint:
             self.cert_reqs = ssl.CERT_REQUIRED
@@ -44,9 +44,9 @@ class CertValidatingHTTPSConnection(httplib.HTTPConnection):
                                                   'fingerprint mismatch')
         #logger.debug('CIPHER %s VERSION %s', self.sock.cipher(), self.sock.ssl_version)
 
-class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
+class VerifiedHTTPSHandler(urllib.request.HTTPSHandler):
     def __init__(self, **kwargs):
-        urllib2.AbstractHTTPHandler.__init__(self)
+        urllib.request.AbstractHTTPHandler.__init__(self)
         self._connection_args = kwargs
 
     def https_open(self, req):
@@ -57,15 +57,15 @@ class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
 
         try:
             return self.do_open(http_class_wrapper, req)
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             if type(e.reason) == ssl.SSLError and e.reason.args[0] == 1:
                 raise InvalidCertificateException(self.fingerprint, '',
                                                   e.reason.args[1])
             raise
 
-    https_request = urllib2.HTTPSHandler.do_request_
+    https_request = urllib.request.HTTPSHandler.do_request_
 
 def get_opener(fingerprint):
     handler = VerifiedHTTPSHandler(fingerprint=fingerprint)
-    opener = urllib2.build_opener(handler)
+    opener = urllib.request.build_opener(handler)
     return opener

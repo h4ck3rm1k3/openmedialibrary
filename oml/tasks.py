@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
 
-from Queue import Queue
+
+from queue import Queue
 from threading import Thread
 
 from websocket import trigger_event

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import json
 import socket
 import struct
-import thread
+import _thread
 from threading import Thread
 import time
 
@@ -57,8 +57,8 @@ class LocalNodesBase(Thread):
                 'port': server['node_port'],
                 'cert': server['cert']
             })
-            sig = sk.sign(message, encoding='base64')
-            packet = json.dumps([sig, USER_ID, message])
+            sig = sk.sign(message.encode('utf-8'), encoding='base64')
+            packet = json.dumps([sig, USER_ID, message]).encode('utf-8')
         else:
             packet = None
         return packet
@@ -89,7 +89,7 @@ class LocalNodesBase(Thread):
                     now = time.mktime(time.localtime())
                     if now - last > 60:
                         last = now
-                        thread.start_new_thread(self.send, ())
+                        _thread.start_new_thread(self.send, ())
             except:
                 if self._active:
                     logger.debug('receive failed. restart later', exc_info=1)
@@ -115,7 +115,7 @@ class LocalNodesBase(Thread):
         #print addr
         if data['id'] != USER_ID:
             if data['id'] not in self._nodes:
-                thread.start_new_thread(self.new_node, (data, ))
+                _thread.start_new_thread(self.new_node, (data, ))
             elif can_connect(data):
                 self._nodes[data['id']] = data
 
@@ -166,7 +166,7 @@ class LocalNodes4(LocalNodesBase):
             s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt (socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self._TTL)
             try:
-                s.sendto(packet + '\0', sockaddr)
+                s.sendto(packet + b'\0', sockaddr)
             except:
                 logger.debug('LocalNodes4.send failed', exc_info=1)
             s.close()
@@ -198,7 +198,7 @@ class LocalNodes6(LocalNodesBase):
             s = socket.socket(family, socktype, proto)
             s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl)
             try:
-                s.sendto(packet + '\0', sockaddr)
+                s.sendto(packet + b'\0', sockaddr)
             except:
                 logger.debug('LocalNodes6.send failed', exc_info=1)
             s.close()
@@ -206,7 +206,7 @@ class LocalNodes6(LocalNodesBase):
     def get_socket(self):
         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        group_bin = socket.inet_pton(socket.AF_INET6, self._BROADCAST) + '\0'*4
+        group_bin = socket.inet_pton(socket.AF_INET6, self._BROADCAST) + b'\0'*4
         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, group_bin)
         self._socket = s
         return s
@@ -229,7 +229,7 @@ class LocalNodes(object):
 
     def cleanup(self):
         if self._active:
-            for id in self._nodes.keys():
+            for id in list(self._nodes.keys()):
                 if not can_connect(self._nodes[id]):
                     del self._nodes[id]
                 if not self._active:

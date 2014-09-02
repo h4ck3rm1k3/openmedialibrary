@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import stdnum.isbn
 import ox
 
-import abebooks
-import loc
-import lookupbyisbn
-import openlibrary
-import worldcat
-import google
-import duckduckgo
+from . import abebooks
+from . import loc
+from . import lookupbyisbn
+from . import openlibrary
+from . import worldcat
+from . import google
+from . import duckduckgo
 
 import logging
 logger = logging.getLogger('meta')
@@ -51,22 +51,22 @@ def lookup(key, value):
                         ids.append(kv)
                         done = False
     logger.debug('FIXME: sort ids')
-    ids.sort(key=lambda i: ox.sort_string(u''.join(i)))
+    ids.sort(key=lambda i: ox.sort_string(''.join(i)))
     logger.debug('IDS %s', ids)
     for k, v in ids:
         for provider, id in providers:
             if id == k:
                 if provider not in provider_data:
                     provider_data[provider] = {}
-                for k_, v_ in globals()[provider].lookup(v).iteritems():
+                for k_, v_ in globals()[provider].lookup(v).items():
                     if k_ not in provider_data[provider]:
                         provider_data[provider][k_] = v_
     for provider in sorted(
-        provider_data.keys(),
+        list(provider_data.keys()),
         key=lambda x: -len(provider_data[x])
     ):
-        logger.debug('%s %s %s', provider, len(provider_data[provider]), provider_data[provider].keys())
-        for k_, v_ in provider_data[provider].iteritems():
+        logger.debug('%s %s %s', provider, len(provider_data[provider]), list(provider_data[provider].keys()))
+        for k_, v_ in provider_data[provider].items():
             if not k_ in data:
                 data[k_] = v_
     for k, v in ids:

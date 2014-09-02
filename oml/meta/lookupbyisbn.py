@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import re
 
@@ -8,7 +8,7 @@ from ox.cache import read_url
 from ox import find_re, strip_tags, decode_html
 import stdnum.isbn
 
-from utils import find_isbns
+from .utils import find_isbns
 
 import logging
 logger = logging.getLogger('meta.lookupbyisbn')
@@ -78,13 +78,13 @@ def lookup(id):
     r['description'] = decode_html(strip_tags(desc))
     r['cover'] = find_re(data, '<img src="(.*?)" alt="Book cover').replace('._SL160_', '')
     for key in r:
-        if isinstance(r[key], basestring):
+        if isinstance(r[key], str):
             r[key] = decode_html(strip_tags(r[key])).strip()
-    if 'author' in r and isinstance(r['author'], basestring) and r['author']:
+    if 'author' in r and isinstance(r['author'], str) and r['author']:
         r['author'] = [r['author']]
     else:
         r['author'] = []
-    if r['description'].lower() == u'Description of this item is not available at this time.'.lower():
+    if r['description'].lower() == 'Description of this item is not available at this time.'.lower():
         r['description'] = ''
     return r
 

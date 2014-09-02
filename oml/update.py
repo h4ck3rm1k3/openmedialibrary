@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division, with_statement
+
 
 from contextlib import closing
 import json
 import os
 import tarfile
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import shutil
 import subprocess
 
@@ -34,10 +34,10 @@ def verify(release):
     return True
 
 def get(url, filename=None):
-    request = urllib2.Request(url, headers={
+    request = urllib.request.Request(url, headers={
         'User-Agent': settings.USER_AGENT
     })
-    with closing(urllib2.urlopen(request)) as u:
+    with closing(urllib.request.urlopen(request)) as u:
         if not filename:
             data = u.read()
             return data
@@ -76,7 +76,7 @@ def download():
                 module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
                 url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
                 if not os.path.exists(module_tar):
-                    print 'download', os.path.basename(module_tar)
+                    print('download', os.path.basename(module_tar))
                     get(url, module_tar)
                     if ox.sha1sum(module_tar) != release['modules'][module]['sha1']:
                         os.unlink(module_tar)

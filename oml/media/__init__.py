@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-from __future__ import division
+
 
 import base64
 import hashlib
 import os
+import codecs
 
 import ox
 
-import pdf
-import epub
-import txt
-import opf
+from . import pdf
+from . import epub
+from . import txt
+from . import opf
 
 def get_id(f=None, data=None):
     if data:
-        return base64.b32encode(hashlib.sha1(data).digest())
+        return base64.b32encode(hashlib.sha1(data).digest()).decode()
     else:
-        return base64.b32encode(ox.sha1sum(f, cached=True).decode('hex'))
+        return base64.b32encode(codecs.decode(ox.sha1sum(f, cached=True), 'hex')).decode()
 
 
 def metadata(f, from_=None):
@@ -55,16 +56,16 @@ def metadata(f, from_=None):
         if key in opf_info:
             data[key] = opf_info[key]
         if key in data:
-            if isinstance(data[key], basestring):
+            if isinstance(data[key], str):
                 data[key] = data[key].replace('\x00', '')
             elif isinstance(data[key], list):
-                data[key] = [e.replace('\x00', '') if isinstance(e, basestring) else e for e in data[key]]
+                data[key] = [e.replace('\x00', '') if isinstance(e, str) else e for e in data[key]]
     if 'isbn' in data:
         data['primaryid'] = ['isbn', data['isbn'][0]]
     elif 'asin' in data:
         data['primaryid'] = ['asin', data['asin'][0]]
     if 'author' in data:
-        if isinstance(data['author'], basestring):
+        if isinstance(data['author'], str):
             if data['author'].strip():
                 data['author'] = data['author'].strip().split('; ')
             else:
