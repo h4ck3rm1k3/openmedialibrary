@@ -85,13 +85,15 @@ class LocalNodesBase(Thread):
                         if data:
                             self.update_node(data)
             except socket.timeout:
-                now = time.mktime(time.localtime())
-                if now - last > 60:
-                    last = now
-                    thread.start_new_thread(self.send, ())
+                if self._active:
+                    now = time.mktime(time.localtime())
+                    if now - last > 60:
+                        last = now
+                        thread.start_new_thread(self.send, ())
             except:
-                logger.debug('receive failed. restart later', exc_info=1)
-                time.sleep(10)
+                if self._active:
+                    logger.debug('receive failed. restart later', exc_info=1)
+                    time.sleep(10)
 
     def verify(self, data):
         try:
