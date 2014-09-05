@@ -25,8 +25,8 @@ Development
 
 Now checkout the source and prepare for use:
 
-    mkdir client
-    cd client
+    mkdir openmedialibrary
+    cd openmedialibrary
     git clone https://git.0x2620.org/openmedialibrary.git
     git clone https://git.0x2620.org/openmedialibrary_platform.git platform
     ln -s openmedialibrary/ctl ctl
@@ -47,11 +47,10 @@ On Linux you need a working python2 installation with PIL, pyhon-lxml and popple
 Platform
 ----------
 
-If you install Open Media Library on a architecture that is currently not upported,
-you need a working python 2.7 installation and the following packages:
+If you install Open Media Library on a architecture/os that is currently
+not upported, you need a working python 2.7 installation and the dependencies
+listed in requirements.txt and requirements-shared.txt:
 
-    apt-get install \
-        python-pypdf python-stdnum python-html5lib python-chardet python-openssl \
-        python-simplejson python-lxml
     pip install -r requirements.txt
+    pip install -r requirements-shared.txt
 
