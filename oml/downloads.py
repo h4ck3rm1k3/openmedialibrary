@@ -4,13 +4,13 @@ from __future__ import division
 
 from threading import Thread
 import time
-import logging
 
 import db
 import state
 import settings
 import update
 
+import logging
 logger = logging.getLogger('oml.downloads')
 
 class Downloads(Thread):
