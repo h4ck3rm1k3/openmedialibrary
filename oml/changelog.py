@@ -55,6 +55,7 @@ class Changelog(db.Model):
         c.revision = cls.query.filter_by(user_id=user.id).count()
         c.data = json.dumps([action] + list(args))
         _data = str(c.revision) + str(c.timestamp) + c.data
+        _data = _data.encode('utf-8')
         c.sig = settings.sk.sign(_data, encoding='base64')
         state.db.session.add(c)
         state.db.session.commit()
@@ -79,6 +80,7 @@ class Changelog(db.Model):
         next_revision = last.revision + 1 if last else 0
         if revision == next_revision:
             _data = str(revision) + str(timestamp) + data
+            _data = _data.encode('utf-8')
             if rebuild:
                 sig = settings.sk.sign(_data, encoding='base64')
             if valid(user.id, _data, sig):
@@ -110,12 +112,14 @@ class Changelog(db.Model):
 
     def verify(self):
         _data = str(self.revision) + str(self.timestamp) + self.data
+        _data = _data.encode('utf-8')
         return valid(self.user_id, _data, self.sig)
 
     @classmethod
     def _rebuild(cls):
         for c in cls.query.filter_by(user_id=settings.USER_ID):
             _data = str(c.revision) + str(c.timestamp) + c.data
+            _data = _data.encode('utf-8')
             c.sig = settings.sk.sign(_data, encoding='base64')
             state.db.session.add(c)
         state.db.session.commit()

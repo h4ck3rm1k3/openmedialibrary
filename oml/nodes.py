@@ -44,7 +44,7 @@ class Node(Thread):
     def __init__(self, nodes, user):
         self._nodes = nodes
         self.user_id = user.id
-        key = str(user.id)
+        key = user.id.encode()
         self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
         logger.debug('new Node %s online=%s', self.user_id, self.online)
         self._q = Queue()
@@ -126,7 +126,7 @@ class Node(Thread):
             self.online = False
             return None
         content = json.dumps([action, args]).encode('utf-8')
-        sig = settings.sk.sign(content, encoding=ENCODING)
+        sig = settings.sk.sign(content, encoding=ENCODING).decode()
         headers = {
             'User-Agent': settings.USER_AGENT,
             'X-Node-Protocol': settings.NODE_PROTOCOL,
@@ -137,6 +137,7 @@ class Node(Thread):
             'X-Ed25519-Signature': sig,
         }
         self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
+        logger.debug('headers: %s', self._opener.addheaders)
         try:
             self._opener.timeout = self.TIMEOUT
             r = self._opener.open(url, data=content)
@@ -161,6 +162,7 @@ class Node(Thread):
             self.online = False
             return None
         data = r.read()
+        logger.debug('response data: %s', data)
         if r.headers.get('content-encoding', None) == 'gzip':
             data = gzip.GzipFile(fileobj=StringIO(data)).read()
 
@@ -178,9 +180,12 @@ class Node(Thread):
         else:
             logger.debug('invalid signature %s', data)
             response = None
+        logger.debug('response: %s', response)
         return response
 
     def _valid(self, data, sig):
+        if isinstance(data, str):
+            data = data.encode('utf-8')
         try:
             self.vk.verify(sig, data, encoding=ENCODING)
         #except ed25519.BadSignatureError:
@@ -307,9 +312,10 @@ class Node(Thread):
             if r.headers.get('content-encoding', None) == 'gzip':
                 content = gzip.GzipFile(fileobj=r).read()
             else:
-                content = ''
+                content = b''
                 ct = datetime.utcnow()
-                for chunk in iter(lambda: r.read(16*1024), ''):
+                '''
+                for chunk in iter(lambda: r.read(16*1024), b''):
                     content += chunk
                     if (datetime.utcnow() - ct).total_seconds() > 1:
                         ct = datetime.utcnow()
@@ -319,9 +325,10 @@ class Node(Thread):
                         trigger_event('transfer', {
                             'id': item.id, 'progress': t.progress
                         })
+
                 '''
                 content = r.read()
-                '''
+                logger.debug('download done %s', item.id)
 
             t2 = datetime.utcnow()
             duration = (t2-t1).total_seconds()

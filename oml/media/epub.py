@@ -85,7 +85,7 @@ def info(epub):
     return data
 
 def extract_text(path):
-    data = ''
+    data = b''
     z = zipfile.ZipFile(path)
     for f in z.filelist:
         if f.filename.endswith('html'):

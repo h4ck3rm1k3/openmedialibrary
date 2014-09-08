@@ -3,7 +3,7 @@
 
 
 from datetime import datetime
-from io import StringIO
+from io import StringIO, BytesIO
 import base64
 import hashlib
 import json
@@ -164,7 +164,7 @@ class Item(db.Model):
 
         def add(k, v):
             f = Find(item_id=self.id, key=k)
-            if isinstance(v, str):
+            if isinstance(v, bytes):
                 v = v.decode('utf-8')
             f.findvalue = unicodedata.normalize('NFKD', v).lower()
             f.value = v
@@ -290,7 +290,7 @@ class Item(db.Model):
 
     def update_icons(self):
         def get_ratio(data):
-            img = Image.open(StringIO(data))
+            img = Image.open(BytesIO(data))
             return img.size[0]/img.size[1]
         key = 'cover:%s'%self.id
         cover = None

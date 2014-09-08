@@ -57,7 +57,7 @@ class LocalNodesBase(Thread):
                 'port': server['node_port'],
                 'cert': server['cert']
             })
-            sig = sk.sign(message.encode('utf-8'), encoding='base64')
+            sig = sk.sign(message.encode('utf-8'), encoding='base64').decode('utf-8')
             packet = json.dumps([sig, USER_ID, message]).encode('utf-8')
         else:
             packet = None

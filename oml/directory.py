@@ -16,8 +16,8 @@ logger = logging.getLogger('oml.directory')
 base = settings.server['directory_service']
 
 def get(vk):
-    id = vk.to_ascii(encoding='base64')
-    url ='%s/%s' % (base, id)
+    id = vk.to_ascii(encoding='base64').decode()
+    url = '%s/%s' % (base, id)
     headers = {
         'User-Agent': settings.USER_AGENT
     }
@@ -36,7 +36,7 @@ def get(vk):
     return data
 
 def put(sk, data):
-    id = sk.get_verifying_key().to_ascii(encoding='base64')
+    id = sk.get_verifying_key().to_ascii(encoding='base64').decode()
     data = json.dumps(data).encode('utf-8')
     sig = sk.sign(data, encoding='base64')
     url ='%s/%s' % (base, id)

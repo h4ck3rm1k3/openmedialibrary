@@ -62,7 +62,7 @@ else:
         fd.write(sk.to_bytes())
         os.chmod(key_path, 0o400)
 
-USER_ID = vk.to_ascii(encoding='base64')
+USER_ID = vk.to_ascii(encoding='base64').decode()
 OML_UPDATE_KEY='K55EZpPYbP3X+3mA66cztlw1sSaUMqGwfTDKQyP2qOU'
 
 if 'modules' in release and 'openmedialibrary' in release['modules']:
