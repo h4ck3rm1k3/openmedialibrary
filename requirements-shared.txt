@@ -4,4 +4,4 @@ chardet
 html5lib
 ox
 python-stdnum==0.9
-pyPdf==1.13
+PyPDF2==1.23
