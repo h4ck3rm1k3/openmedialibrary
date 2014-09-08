@@ -65,9 +65,7 @@ def download():
         return True
     release_data = get(RELEASE_URL)
     release = json.loads(release_data)
-    old = settings.release['modules']['openmedialibrary']['version']
-    new = release['modules']['openmedialibrary']['version']
-    if verify(release) and old < new:
+    if verify(release):
         ox.makedirs(settings.updates_path)
         os.chdir(os.path.dirname(settings.base_dir))
         current_files = {'release.json'}
@@ -117,6 +115,7 @@ def install():
                     shutil.rmtree('%s_old' % module)
                     shutil.rmtree(new)
                 else:
+                    os.unlink(module_tar)
                     return False
         shutil.copy(os.path.join(settings.updates_path, 'release.json'), os.path.join(settings.config_path, 'release.json'))
         for cmd in [

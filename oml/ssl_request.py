@@ -30,7 +30,15 @@ class CertValidatingHTTPSConnection(http.client.HTTPConnection):
         self.cert_reqs = ssl.CERT_NONE
 
     def _ValidateCertificateFingerprint(self, cert):
-        fingerprint = hashlib.sha1(cert).hexdigest()
+        if len(self.fingerprint) == 40:
+            fingerprint = hashlib.sha1(cert).hexdigest()
+        elif len(self.fingerprint) == 64:
+            fingerprint = hashlib.sha256(cert).hexdigest()
+        elif len(self.fingerprint) == 128:
+            fingerprint = hashlib.sha512(cert).hexdigest()
+        else:
+            logging.error('unkown fingerprint length %s (%s)', self.fingerprint, len(self.fingerprint))
+            return False
         return fingerprint == self.fingerprint
 
     def connect(self):

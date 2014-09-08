@@ -13,7 +13,7 @@ def get_fingerprint():
     with open(settings.ssl_cert_path) as fd:
         data = fd.read()
     cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, data)
-    return hashlib.sha1(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)).hexdigest()
+    return hashlib.sha256(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)).hexdigest()
 
 def generate_ssl():
     key = OpenSSL.crypto.PKey()

@@ -5,6 +5,7 @@
 import os
 import sys
 import signal
+import time
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -12,7 +13,7 @@ from tornado.web import StaticFileHandler, Application
 
 from cache import Cache
 from item.handlers import EpubHandler, ReaderHandler, FileHandler
-from item.handlers import OMLHandler, serve_static
+from item.handlers import OMLHandler
 from item.icons import IconHandler
 import db
 import node.server
@@ -29,7 +30,15 @@ class MainHandler(OMLHandler):
 
     def get(self, path):
         path = os.path.join(settings.static_path, 'html/oml.html')
-        serve_static(self, path, 'text/html')
+        with open(path) as fd:
+            content = fd.read()
+        version = settings.MINOR_VERSION
+        if version == 'git':
+            version = int(time.mktime(time.gmtime()))
+        content = content.replace('oml.js?1', 'oml.js?%s' % version)
+        self.set_header('Content-Type', 'text/html')
+        self.set_header('Content-Length', str(len(content)))
+        self.write(content)
 
 def run():
     setup.create_db()

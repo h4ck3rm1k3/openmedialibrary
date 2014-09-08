@@ -1,3 +1,4 @@
+lxml
 simplejson
 ed25519
 SQLAlchemy==0.9.7

@@ -149,6 +149,7 @@ def command_release(*args):
 
     EXCLUDE=[
         '--exclude', '.git', '--exclude', '.bzr',
+        '--exclude', 'pip_cache',
         '--exclude', '.*.swp', '--exclude', '._*', '--exclude', '.DS_Store'
     ]
 

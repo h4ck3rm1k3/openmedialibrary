@@ -305,37 +305,42 @@ class Node(Thread):
         }
         t1 = datetime.utcnow()
         logger.debug('download %s', url)
-        self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
-        self._opener.timeout = self.TIMEOUT*2
-        r = self._opener.open(url)
+        self._opener.addheaders = zip(headers.keys(), headers.values())
+        try:
+            r = self._opener.open(url, timeout=self.TIMEOUT*2)
+        except:
+            logger.debug('openurl failed %s', url, exec_info=1)
+            return False
         if r.getcode() == 200:
-            if r.headers.get('content-encoding', None) == 'gzip':
-                content = gzip.GzipFile(fileobj=r).read()
-            else:
-                content = b''
-                ct = datetime.utcnow()
-                '''
-                for chunk in iter(lambda: r.read(16*1024), b''):
-                    content += chunk
-                    if (datetime.utcnow() - ct).total_seconds() > 1:
-                        ct = datetime.utcnow()
-                        t = Transfer.get(item.id)
-                        t.progress = len(content) / item.info['size']
-                        t.save()
-                        trigger_event('transfer', {
-                            'id': item.id, 'progress': t.progress
-                        })
+            try:
+                if r.headers.get('content-encoding', None) == 'gzip':
+                    content = gzip.GzipFile(fileobj=r).read()
+                else:
+                    content = b''
+                    ct = datetime.utcnow()
+                    for chunk in iter(lambda: r.read(16*1024), b''):
+                        content += chunk
+                        if (datetime.utcnow() - ct).total_seconds() > 1:
+                            ct = datetime.utcnow()
+                            t = Transfer.get(item.id)
+                            t.progress = len(content) / item.info['size']
+                            t.save()
+                            trigger_event('transfer', {
+                                'id': item.id, 'progress': t.progress
+                            })
+                    '''
+                    content = r.read()
+                    '''
 
-                '''
-                content = r.read()
-                logger.debug('download done %s', item.id)
-
-            t2 = datetime.utcnow()
-            duration = (t2-t1).total_seconds()
-            if duration:
-                self.download_speed = len(content) / duration
-            logger.debug('SPEED %s', ox.format_bits(self.download_speed))
-            return item.save_file(content)
+                t2 = datetime.utcnow()
+                duration = (t2-t1).total_seconds()
+                if duration:
+                    self.download_speed = len(content) / duration
+                logger.debug('SPEED %s', ox.format_bits(self.download_speed))
+                return item.save_file(content)
+            except:
+                logger.debug('download failed %s', url, exec_info=1)
+                return False
         else:
             logger.debug('FAILED %s', url)
             return False
