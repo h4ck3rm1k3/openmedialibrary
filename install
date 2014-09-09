@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 from __future__ import division, with_statement, print_function
 
 from contextlib import closing
@@ -63,8 +63,8 @@ class Install(Thread):
                 import simplejson
                 import lxml
             except:
-                apt_packages += ' python2.7 python-imaging  python-simplejson python-lxml'
-                yum_packages += ' python-imaging python-simplejson python-lxml'
+                apt_packages += ' python3.4 python3-pil  python-simplejson python3-lxml'
+                yum_packages += ' python3-imaging python3-simplejson python3-lxml'
             if not has_bin('pdftocairo'):
                 apt_packages += ' poppler-utils'
                 yum_packages += ' poppler-utils'
@@ -76,7 +76,7 @@ class Install(Thread):
             elif has_bin('yum') and yum_packages:
                 os.system('sudo yum install ' + yum_packages)
             else:
-                print('You need to install PIL and simplejson\ni.e. sudo pip install --allow-external PIL --allow-unverified PIL PIL simplejson lxml')
+                print('You need to install Pillow, simplejson and lxml\ni.e. sudo pip3 install pillow simplejson lxml')
                 if 'poppler' in apt_packages:
                     print('You need to install pdftocairo (part of poppler-utils)')
                 if 'miredo' in apt_packages:

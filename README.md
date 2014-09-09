@@ -6,7 +6,7 @@ Install
 
  To install the latest release on Linux run:
 
- curl https://git.0x2620.org/openmedialibrary.git/HEAD:/install | python2
+ curl https://git.0x2620.org/openmedialibrary.git/HEAD:/install | python3
 
  on Mac OS X download this:
 
@@ -39,7 +39,7 @@ To update to latest version:
 
     ./ctl update
 
-On Linux you need a working python2 installation with pillow, pyhon-lxml and poppler-utils:
+On Linux you need a working python3 installation with pillow, pyhon-lxml and poppler-utils:
 
     apt-get install python3.4 python3-pil python3-lxml poppler-utils
 
@@ -48,9 +48,9 @@ Platform
 ----------
 
 If you install Open Media Library on a architecture/os that is currently
-not upported, you need a working python 2.7 installation and the dependencies
+not upported, you need a working python 3.4 installation and the dependencies
 listed in requirements.txt and requirements-shared.txt:
 
-    pip install -r requirements.txt
-    pip install -r requirements-shared.txt
+    pip3 install -r requirements.txt
+    pip3 install -r requirements-shared.txt
 
