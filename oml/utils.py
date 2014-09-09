@@ -114,9 +114,15 @@ def valid(key, value, sig):
     '''
     validate that value was signed by key
     '''
-    vk = ed25519.VerifyingKey(str(key), encoding=ENCODING)
+    if isinstance(sig, str):
+        sig = sig.encode()
+    if isinstance(value, str):
+        value = value.encode()
+    if isinstance(key, str):
+        key = key.encode()
+    vk = ed25519.VerifyingKey(key, encoding=ENCODING)
     try:
-        vk.verify(str(sig), str(value), encoding=ENCODING)
+        vk.verify(sig, value, encoding=ENCODING)
     #except ed25519.BadSignatureError:
     except:
         return False

@@ -34,7 +34,7 @@ def _to_json(python_object):
 
 def json_dumps(obj):
     indent = 2
-    return json.dumps(obj, indent=indent, default=_to_json, ensure_ascii=False).encode('utf-8')
+    return json.dumps(obj, indent=indent, default=_to_json, ensure_ascii=False).encode()
 
 def run_async(func):
   @wraps(func)

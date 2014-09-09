@@ -8,4 +8,4 @@ def loads(*args, **kargs):
 
 def dumps(*args, **kargs):
     #print('dumps', args, kargs)
-    return json.dumps(*args, **kargs).encode('utf-8')
+    return json.dumps(*args, **kargs).encode()

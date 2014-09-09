@@ -125,7 +125,7 @@ class Node(Thread):
             logger.debug('unable to find host %s', self.user_id)
             self.online = False
             return None
-        content = json.dumps([action, args]).encode('utf-8')
+        content = json.dumps([action, args]).encode()
         sig = settings.sk.sign(content, encoding=ENCODING).decode()
         headers = {
             'User-Agent': settings.USER_AGENT,
@@ -185,7 +185,7 @@ class Node(Thread):
 
     def _valid(self, data, sig):
         if isinstance(data, str):
-            data = data.encode('utf-8')
+            data = data.encode()
         try:
             self.vk.verify(sig, data, encoding=ENCODING)
         #except ed25519.BadSignatureError:

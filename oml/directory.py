@@ -37,7 +37,7 @@ def get(vk):
 
 def put(sk, data):
     id = sk.get_verifying_key().to_ascii(encoding='base64').decode()
-    data = json.dumps(data).encode('utf-8')
+    data = json.dumps(data).encode()
     sig = sk.sign(data, encoding='base64')
     url ='%s/%s' % (base, id)
     headers = {
