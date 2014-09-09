@@ -74,12 +74,11 @@ class LocalNodesBase(Thread):
         while self._active:
             try:
                 s = self.get_socket()
-                s.settimeout(2)
                 s.bind(('', self._PORT))
                 while self._active:
                     data, addr = s.recvfrom(1024)
                     if self._active:
-                        while data[-1] == '\0':
+                        while data[-1] == 0:
                             data = data[:-1] # Strip trailing \0's
                         data = self.verify(data)
                         if data:
@@ -97,7 +96,7 @@ class LocalNodesBase(Thread):
 
     def verify(self, data):
         try:
-            packet = json.loads(data)
+            packet = json.loads(data.decode())
         except:
             return None
         if len(packet) == 3:
@@ -149,7 +148,7 @@ class LocalNodesBase(Thread):
         if self._socket:
             try:
                 self._socket.shutdown(socket.SHUT_RDWR)
-            except:
+            except OSError:
                 pass
             self._socket.close()
         return Thread.join(self)
