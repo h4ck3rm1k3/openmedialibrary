@@ -19,7 +19,7 @@ def run(*cmd):
 def get(*cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     stdout, error = p.communicate()
-    return stdout
+    return stdout.decode()
 
 def r(*cmd):
     print(' '.join(cmd))
