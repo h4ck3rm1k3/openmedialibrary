@@ -1,27 +1,30 @@
-Ox.load(function() {
+Ox.load({
+    UI: {
+        loadCSS: false
+    }
+}, function() {
     var currentPage = PDFView.page;
     window.addEventListener('pagechange', function (evt) {
         var page = evt.pageNumber;
         if (page && page != currentPage) {
             currentPage = page;
-            Ox.$parent.postMessage('page', {
+            Ox.parent.postMessage('page', {
                 page: Math.round(page)
             });
         }
     });
-    Ox.$parent.onMessage(function(event, data, oxid) {
-        if (event == 'page' && Ox.isUndefined(oxid)) {
+    Ox.parent.bindMessage({
+        page: function(data) {
             if (data.page != PDFView.page) {
                 PDFView.page = data.page;
             }
-        }
-        if (event == 'pdf' && Ox.isUndefined(oxid)) {
+        },
+        pdf: function(data) {
             if (PDFView.url != data.pdf) {
                 PDFView.open(data.pdf);
             }
         }
     });
-    Ox.$parent.postMessage('init', {});
 });
 
 function getVideoOverlay(page) {
@@ -72,15 +75,10 @@ function getVideoOverlay(page) {
                     enableVideoUI();
                 }
                 this.div.appendChild($interface[0]);
-                Ox.Message.bind(function(event, data, oxid) {
-                    if (event == 'update') {
-                        if(Ox.isUndefined(oxid)
-                            && video
-                            && data.id == video.id
-                            && data.page == video.page) {
-                            video.src = data.src;
-                            video.src !== '' ? enableVideoUI() : disableVideoUI();
-                        }
+                Ox.parent.bindMessage('update', function(data) {
+                    if (video && data.id == video.id && data.page == video.page) {
+                        video.src = data.src;
+                        video.src !== '' ? enableVideoUI() : disableVideoUI();
                     }
                 });
             }
@@ -88,7 +86,7 @@ function getVideoOverlay(page) {
                 e.preventDefault();
                 e.stopPropagation();
                 var videoId = 'video' + page + id + Ox.uid(),
-                    $iframe = Ox.$('<iframe>')
+                    $iframe = Ox.Element('<iframe>')
                         .attr({
                             id: videoId,
                             src: video.src
@@ -98,25 +96,19 @@ function getVideoOverlay(page) {
                             height: '100%',
                             frameborder: 0
                         })
+                        .bindMessage({
+                            close: function(data) {
+                                if(!closed) {
+                                    closed = true;
+                                    $iframe.remove();
+                                    delete $iframe;
+                                    $playButton.show();
+                                    $editButton.show();
+                                }
+                            }
+                        })
                         .appendTo($interface),
                     closed = false;
-                $iframe.postMessage = function(event, data) {
-                    Ox.Message.post($iframe, event, data);
-                    return $iframe;
-                };
-                Ox.Message.bind(function(event, data, oxid) {
-                    if(!closed && event == 'loaded') {
-                        $iframe.postMessage('init', {id: videoId});
-                    } else if(event == 'close') {
-                        if(!closed && !Ox.isUndefined(oxid) && videoId == oxid) {
-                            closed = true;
-                            $iframe.remove();
-                            delete $iframe;
-                            $playButton.show();
-                            $editButton.show();
-                        }
-                    }
-                });
                 $playButton.hide();
                 $editButton.hide();
                 return false;
@@ -131,7 +123,7 @@ function getVideoOverlay(page) {
                     src: '',
                     type: 'inline'
                 };
-                Ox.$parent.postMessage('edit', video);
+                Ox.parent.postMessage('edit', video);
                 return false;
             }
             function enableVideoUI() {

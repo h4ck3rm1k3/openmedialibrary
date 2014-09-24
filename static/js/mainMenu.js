@@ -286,7 +286,6 @@ oml.ui.mainMenu = function() {
                 }
             ]
         })
-        .bindKeyboard()
         .bindEvent({
             change: function(data) {
                 var id = data.id,
@@ -447,69 +446,6 @@ oml.ui.mainMenu = function() {
                     Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
                 }
             },
-            key_backtick: function() {
-                changeFocus(1);
-            },
-            key_control_comma: function() {
-                if (!oml.hasDialogOrScreen()) {
-                    oml.UI.set({page: 'preferences'});
-                }
-            },
-            key_control_f: function() {
-                if (!oml.hasDialogOrScreen()) {
-                    if (ui._findState.key != 'advanced') {
-                        setTimeout(function() {
-                            oml.$ui.findInput.focusInput(true);
-                        });
-                    } else {
-                        oml.$ui.filterDialog = oml.ui.filterDialog().open();
-                    }
-                }
-            },
-            key_control_m: function() {
-                if (!oml.hasDialogOrScreen() && !that.isSelected()) {
-                    that.options('menus')[0].element.trigger('click');
-                }
-            },
-            key_control_shift_f: function() {
-                Ox.print('FIXME: NOT IMPLEMENTED')
-            },
-            key_control_shift_w: function() {
-                if (!oml.hasDialogOrScreen()) {
-                    oml.UI.set({
-                        find: oml.config.user.ui.find,
-                        item: ''
-                    });
-                }
-            },
-            key_control_shift_z: function() {
-                oml.redoHistory();
-            },
-            key_control_slash: function() {
-                if (!oml.hasDialogOrScreen()) {
-                    oml.UI.set({page: 'help'});
-                }
-            },
-            key_control_w: function() {
-                if (!oml.hasDialogOrScreen()) {
-                    oml.UI.set({item: ''});
-                }
-            },
-            key_control_z: function() {
-                oml.undoHistory();
-            },
-            key_shift_b: function() {
-                ui.item && oml.UI.set({showBrowser: !ui.showBrowser});
-            },
-            key_shift_f: function() {
-                !ui.item && oml.UI.set({showFilters: !ui.showFilters});
-            },
-            key_shift_i: function() {
-                ui.showSidebar && oml.UI.set({showInfo: !ui.showInfo});
-            },
-            key_shift_s: function() {
-                oml.UI.set({showSidebar: !ui.showSidebar});
-            },
             oml_find: function() {
                 that.replaceMenu('listMenu', getListMenu());
                 that.replaceMenu('editMenu', getEditMenu());
@@ -565,6 +501,59 @@ oml.ui.mainMenu = function() {
                 that[data.value ? 'enableItem' : 'disableItem']('showinfo');
             },
         });
+    Ox.Event.bind('key', function(data, event, element) {
+        var key = event.replace(/^key\./, '');
+        if (key == 'backtick') {
+            changeFocus(1);
+        } else if (key == 'control_comma') {
+            if (!oml.hasDialogOrScreen()) {
+                oml.UI.set({page: 'preferences'});
+            }
+        } else if (key == 'control_f') {
+            if (!oml.hasDialogOrScreen()) {
+                if (ui._findState.key != 'advanced') {
+                    setTimeout(function() {
+                        oml.$ui.findInput.focusInput(true);
+                    });
+                } else {
+                    oml.$ui.filterDialog = oml.ui.filterDialog().open();
+                }
+            }
+        } else if (key == 'control_m') {
+            if (!oml.hasDialogOrScreen() && !that.isSelected()) {
+                that.options('menus')[0].element.trigger('click');
+            }
+        } else if (key == 'control_shift_f') {
+            Ox.print('FIXME: NOT IMPLEMENTED')
+        } else if (key == 'control_shift_w') {
+            if (!oml.hasDialogOrScreen()) {
+                oml.UI.set({
+                    find: oml.config.user.ui.find,
+                    item: ''
+                });
+            }
+        } else if (key == 'control_shift_z') {
+            oml.redoHistory();
+        } else if (key == 'control_slash') {
+            if (!oml.hasDialogOrScreen()) {
+                oml.UI.set({page: 'help'});
+            }
+        } else if (key == 'control_w') {
+            if (!oml.hasDialogOrScreen()) {
+                oml.UI.set({item: ''});
+            }
+        } else if (key == 'control_z') {
+            oml.undoHistory();
+        } else if (key == 'shift_b') {
+            ui.item && oml.UI.set({showBrowser: !ui.showBrowser});
+        } else if (key == 'shift_f') {
+            !ui.item && oml.UI.set({showFilters: !ui.showFilters});
+        } else if (key == 'shift_i') {
+            ui.showSidebar && oml.UI.set({showInfo: !ui.showInfo});
+        } else if (key == 'shift_s') {
+            oml.UI.set({showSidebar: !ui.showSidebar});
+        }
+    });
 
     function getEditMenu() {
         var listData = oml.getListData(),
