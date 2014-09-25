@@ -359,7 +359,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                 if (event.clientX < 16 && event.clientY >= 44
                     && event.clientY < window.innerHeight - 16
                 ) {
-                    oml.$ui.mainPanel.toggle(0);
+                    oml.$ui.mainPanel.toggleElement(0);
                 }
             } else {
                 $parent = $(event.target).parent();
