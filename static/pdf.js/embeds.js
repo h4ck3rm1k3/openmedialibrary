@@ -8,12 +8,12 @@ Ox.load({
         var page = evt.pageNumber;
         if (page && page != currentPage) {
             currentPage = page;
-            Ox.parent.postMessage('page', {
+            Ox.$parent.postMessage('page', {
                 page: Math.round(page)
             });
         }
     });
-    Ox.parent.bindMessage({
+    Ox.$parent.bindMessage({
         page: function(data) {
             if (data.page != PDFView.page) {
                 PDFView.page = data.page;
@@ -75,7 +75,7 @@ function getVideoOverlay(page) {
                     enableVideoUI();
                 }
                 this.div.appendChild($interface[0]);
-                Ox.parent.bindMessage('update', function(data) {
+                Ox.$parent.bindMessage('update', function(data) {
                     if (video && data.id == video.id && data.page == video.page) {
                         video.src = data.src;
                         video.src !== '' ? enableVideoUI() : disableVideoUI();
@@ -123,7 +123,7 @@ function getVideoOverlay(page) {
                     src: '',
                     type: 'inline'
                 };
-                Ox.parent.postMessage('edit', video);
+                Ox.$parent.postMessage('edit', video);
                 return false;
             }
             function enableVideoUI() {
