@@ -31,7 +31,7 @@ oml.ui.appPanel = function() {
             || !Ox.contains(['import', 'export'], previousPage)
         ) {
             $('.OxDialog:visible').each(function() {
-                Ox.UI.elements[$(this).data('oxid')].close();
+                Ox.$elements[$(this).data('oxid')].close();
             });
         }
         // open dialog

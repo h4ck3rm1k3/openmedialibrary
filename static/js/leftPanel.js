@@ -49,7 +49,7 @@ oml.ui.leftPanel = function() {
             },
             oml_showinfo: function(data) {
                 if (data.value == that.options('elements')[2].collapsed) {
-                    that.toggle(2);
+                    that.toggleElement(2);
                 }
             }
         });

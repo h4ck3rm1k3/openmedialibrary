@@ -24,7 +24,7 @@ oml.ui.mainPanel = function() {
         })
         .bindEvent({
             oml_showsidebar: function(data) {
-                data.value == that.options('elements')[0].collapsed && that.toggle(0);
+                data.value == that.options('elements')[0].collapsed && that.toggleElement(0);
             }
         });
 

@@ -7,7 +7,7 @@ oml.ui.backButton = function() {
         that = Ox.Button({
             style: 'squared',
             title: 'arrowLeft',
-            tooltip: Ox._('Back to Books {0}', [Ox.UI.symbols.control + 'W']),
+            tooltip: Ox._('Back to Books {0}', [Ox.SYMBOLS.control + 'W']),
             type: 'image'
         })
         .css({

@@ -8,7 +8,7 @@ oml.ui.previewButton = function() {
             selectable: true,
             style: 'squared',
             title: 'view',
-            tooltip: Ox._('Preview {0}', [Ox.UI.symbols.space]),
+            tooltip: Ox._('Preview {0}', [Ox.SYMBOLS.space]),
             type: 'image'
         })
         .css({

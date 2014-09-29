@@ -336,7 +336,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                 });
             });
             $tooltip.options({title: getTitle()}).show(data.event);
-            Ox.UI.$window.on({
+            Ox.$window.on({
                 keydown: keydown,
                 keyup: keyup
             });
@@ -359,7 +359,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                 if (event.clientX < 16 && event.clientY >= 44
                     && event.clientY < window.innerHeight - 16
                 ) {
-                    oml.$ui.mainPanel.toggle(0);
+                    oml.$ui.mainPanel.toggleElement(0);
                 }
             } else {
                 $parent = $(event.target).parent();
@@ -371,7 +371,7 @@ oml.enableDragAndDrop = function($list, canMove) {
                     title = $panel.children('.OxBar').children('.OxTitle')
                         .html().split(' ')[0].toLowerCase();
                     if (!ui.showFolder[title]) {
-                        Ox.UI.elements[$panel.data('oxid')].options({
+                        Ox.$elements[$panel.data('oxid')].options({
                             collapsed: false
                         });
                     }
@@ -411,7 +411,7 @@ oml.enableDragAndDrop = function($list, canMove) {
         },
         draganddropend: function(data) {
             var targets;
-            Ox.UI.$window.off({
+            Ox.$window.off({
                 keydown: keydown,
                 keyup: keyup
             });

@@ -5,7 +5,7 @@
     var animationInterval,
         enableDebugMode = getLocalStorage('oml.enableDebugMode'),
         omlVersion = getOMLVersion(),
-        oxjsPath = '/static/oxjs/' + (enableDebugMode ? 'dev' : 'build'),
+        oxjsPath = '/static/oxjs/' + (enableDebugMode ? 'dev' : 'min'),
         terminal,
         theme = getLocalStorage('Ox.theme')
             && JSON.parse(localStorage['Ox.theme'])
@@ -143,7 +143,7 @@
             images.loadingIcon.style.OUserSelect = 'none';
             images.loadingIcon.style.WebkitUserSelect = 'none';
             images.loadingIcon.src = oxjsPath
-                + '/Ox.UI/themes/' + theme + '/svg/symbolLoading.svg';
+                + '/UI/themes/' + theme + '/svg/symbolLoading.svg';
             callback(images);
         };
         images.logo.src = '/static/png/oml.png';

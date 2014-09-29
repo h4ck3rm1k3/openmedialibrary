@@ -704,6 +704,11 @@ oml.ui.infoView = function(identifyData) {
             }
         }
     });
+    that.bindEvent({
+        mousedown: function() {
+            that.gainFocus();
+        }
+    })
 
     return that;
 

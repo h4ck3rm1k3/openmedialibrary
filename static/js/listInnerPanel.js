@@ -31,7 +31,7 @@ oml.ui.listInnerPanel = function() {
                 that.replaceElement(1, oml.$ui.list = oml.ui.list());
             },
             oml_showfilters: function(data) {
-                data.value == that.options('elements')[0].collapsed && that.toggle(0);
+                data.value == that.options('elements')[0].collapsed && that.toggleElement(0);
             }
         });
 
