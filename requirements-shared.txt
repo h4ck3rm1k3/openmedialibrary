@@ -2,6 +2,7 @@ requests==2.3.0
 tornado==4.0
 chardet
 html5lib
-ox
+ox>=3
+ox.web>=3
 python-stdnum==0.9
 PyPDF2==1.23
