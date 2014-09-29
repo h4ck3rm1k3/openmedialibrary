@@ -7,7 +7,7 @@ oml.ui.openButton = function() {
         that = Ox.Button({
             style: 'squared',
             title: 'arrowRight',
-            tooltip: Ox._('Open Book {0}', [Ox.UI.symbols.return]),
+            tooltip: Ox._('Open Book {0}', [Ox.SYMBOLS.return]),
             type: 'image'
         })
         .css({

@@ -241,7 +241,7 @@ oml.URL = (function() {
             Ox.Request.cancel();
             self.isPopState = true;
             $('.OxDialog:visible').each(function() {
-                Ox.UI.elements[$(this).data('oxid')].close();
+                Ox.$elements[$(this).data('oxid')].close();
             });
             if (e.state && !Ox.isEmpty(e.state)) {
                 document.title = Ox.decodeHTMLEntities(e.state.title);
