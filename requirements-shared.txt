@@ -2,9 +2,7 @@ requests==2.3.0
 tornado==4.0
 chardet
 html5lib
-#ox>=3
-git+https://git.0x2620.org/python3-ox.git#egg=ox
-#ox.web>=3
-git+https://git.0x2620.org/python3-ox.web.git#egg=ox.web
+#ox>=2.0.666
+git+http://git.0x2620.org/python-ox.git#egg=python-ox
 python-stdnum==0.9
 PyPDF2==1.23
