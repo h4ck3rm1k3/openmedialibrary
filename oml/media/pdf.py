@@ -170,6 +170,8 @@ def extract_text(pdf):
         cmd = ['pdftotext', pdf, '-']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     stdout, stderr = p.communicate()
+    stdout = stdout.decode()
+    stderr = stderr.decode()
     if sys.platform == 'darwin':
         if 'kMDItemTextContent' in stderr:
             stdout = stderr.split('kMDItemTextContent = "')[-1].split('\n')[0][:-2]
