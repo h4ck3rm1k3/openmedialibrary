@@ -63,7 +63,7 @@ class Install(Thread):
                 import simplejson
                 import lxml
             except:
-                apt_packages += ' python3.4 python3-pil  python-simplejson python3-lxml'
+                apt_packages += ' python3.4 python3-pil python-simplejson python3-lxml'
                 yum_packages += ' python3-imaging python3-simplejson python3-lxml'
             if not has_bin('pdftocairo'):
                 apt_packages += ' poppler-utils'
