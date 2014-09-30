@@ -14,7 +14,7 @@ ox.file.write_json('../json/js.json', files, indent=4)
 ox.file.write_file(
     '%soml.min.js' % path,
     '\n'.join([
-        ox.js.minify(ox.file.read_file('%s%s' % (path, file)))
+        ox.js.minify(ox.file.read_file('%s%s' % (path, file)).decode('utf-8'))
         for file in files
     ])
 )

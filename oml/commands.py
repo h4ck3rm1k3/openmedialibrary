@@ -110,8 +110,8 @@ def command_update_static(*args):
         r('git', 'clone', 'https://git.0x2620.org/oxjs.git', oxjs)
     elif os.path.exists(os.path.join(oxjs, '.git')):
         os.system('cd "%s" && git pull' % oxjs)
-    r('python2', os.path.join(oxjs, 'tools', 'build', 'build.py'))
-    r('python2', os.path.join(settings.static_path, 'py', 'build.py'))
+    r('python3', os.path.join(oxjs, 'tools', 'build', 'build.py'))
+    r('python3', os.path.join(settings.static_path, 'py', 'build.py'))
 
 def command_release(*args):
     """
