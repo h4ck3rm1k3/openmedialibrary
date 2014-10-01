@@ -9,7 +9,7 @@ import subprocess
 
 def cover(path):
     image = tempfile.mkstemp('.jpg')[1]
-    cmd = ['python2', 'static/txt.js/txt.py', '-i', path, '-o', image]
+    cmd = ['python3', 'static/txt.js/txt.py', '-i', path, '-o', image]
     p = subprocess.Popen(cmd, close_fds=True)
     p.wait()
     with open(image, 'rb') as fd:

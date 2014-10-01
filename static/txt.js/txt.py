@@ -1,14 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
 from __future__ import division
 import os
 
-import Image
+from PIL import Image
 from optparse import OptionParser
 from ox.image import drawText, wrapText
-from zipfile import ZipFile
-
 
 root_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 os.chdir(root_dir)
@@ -82,4 +80,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
+
