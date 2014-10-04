@@ -41,9 +41,9 @@ def find(data):
         key = 'group:' + hashlib.sha1(json.dumps(data).encode('utf-8')).hexdigest()
         g = state.cache.get(key)
         if g is None:
-            items = [i.id for i in q['qs'].options(load_only('id'))]
+            items = q['qs'].options(load_only('id'))
             qs = models.Find.query.filter_by(key=q['group'])
-            if items:
+            if items.count():
                 qs = qs.filter(models.Find.item_id.in_(items))
                 for f in qs.values('value', 'findvalue'):
                     value = f[0]
