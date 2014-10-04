@@ -12,6 +12,7 @@
             "title": "Title",
             "type": "string",
             "autocomplete": true,
+            "autocompleteSort": [{"key": "title", "operator": "+"}],
             "columnRequired": true,
             "columnWidth": 256,
             "find": true,

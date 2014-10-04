@@ -131,7 +131,7 @@ oml.ui.findElement = function() {
     function getAutocomplete() {
         var key = !that
                 ? ui._findState.key
-                : that.value()[ui._list ? 1 : 0],
+                : that.value()[1],
             findKey = Ox.getObjectById(oml.config.findKeys, key);
         return findKey && findKey.autocomplete ? function(value, callback) {
             oml.api.autocomplete({

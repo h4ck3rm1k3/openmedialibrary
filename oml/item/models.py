@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-
-
 from datetime import datetime
-from io import StringIO, BytesIO
+from io import BytesIO
 import base64
 import hashlib
-import json
 import os
 import re
 import shutil
@@ -148,6 +145,7 @@ class Item(db.Model):
                             value = list(value.values())
                         if isinstance(value, list):
                             value = ''.join(value)
+                        value = ox.get_sort_title(value)
                         value = utils.sort_title(value).lower()
                     else:
                         if isinstance(value, list):

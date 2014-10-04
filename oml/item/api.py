@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
-
-
 import json
 import hashlib
 
 from sqlalchemy.orm import load_only
+from sqlalchemy import func
 
 from oxtornado import actions
 from utils import cleanup_id
@@ -148,8 +147,56 @@ def remove(data):
 actions.register(remove, cache=False)
 
 def autocomplete(data):
-    return {}
-actions.register(remove, cache=False)
+    '''
+        takes {
+            key: string,
+            value: string,
+            operator: string // '=', '==', '^', '$'
+            query: object // item query to limit results
+            range: [int, int]
+        }
+        returns {
+            items: [string, ...] //array of matching values
+        }
+    '''
+    response = {}
+    response['items'] = []
+    if not 'range' in data:
+        data['range'] = [0, 10]
+    op = data.get('operator', '=')
+
+    key = utils.get_by_id(settings.config['itemKeys'], data['key'])
+    order_by = key.get('autocompleteSort', False)
+    add_itemsort = False
+    if order_by:
+        for o in order_by:
+            if o['operator'] != '-': o['operator'] = '' 
+        order_by = ['%(operator)ssort.%(key)s' % o for o in order_by]
+        add_itemsort = True
+    else:
+        order_by = ['-items']
+
+    items = query.parse({'query': data.get('query', {})})['qs'].options(load_only('id'))
+    qs = state.db.session.query(models.Find.value, func.count(models.Find.value).label('items'))
+    qs = qs.filter(models.Find.item_id.in_(items))
+    if data['value']:
+        value = data['value'].lower()
+        qs = qs.filter(models.Find.key.is_(data['key']))
+        if op == '=':
+            qs = qs.filter(models.Find.findvalue.contains(value))
+        elif op == '==':
+            qs = qs.filter(models.Find.findvalue.is_(value))
+        elif op == '^':
+            qs = qs.filter(models.Find.findvalue.startswith(value))
+        elif op == '$':
+            qs = qs.filter(models.Find.findvalue.endswith(value))
+    qs = qs.group_by(models.Find.value)
+    if add_itemsort:
+        qs = qs.join(models.Item).join(models.Sort)
+    qs = qs.order_by(*order_by)
+    response['items'] = [r.value for r in qs[data['range'][0]:data['range'][1]]]
+    return response
+actions.register(autocomplete)
 
 def findMetadata(data):
     '''
