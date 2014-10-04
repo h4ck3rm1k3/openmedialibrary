@@ -17,7 +17,7 @@ def request(action, data):
         })
         url = 'http://meta.openmedialibrary.com/api/'
         try:
-            return json.loads(read_url(url, data, timeout=60))['data']
+            return json.loads(read_url(url, data, timeout=60).decode('utf-8'))['data']
         except:
             return {}
 
