@@ -6,7 +6,7 @@ from queue import Queue
 from threading import Thread
 import json
 import socket
-from io import StringIO
+from io import BytesIO
 import gzip
 import urllib.request, urllib.error, urllib.parse
 from datetime import datetime
@@ -164,7 +164,7 @@ class Node(Thread):
         data = r.read()
         logger.debug('response data: %s', data)
         if r.headers.get('content-encoding', None) == 'gzip':
-            data = gzip.GzipFile(fileobj=StringIO(data)).read()
+            data = gzip.GzipFile(fileobj=BytesIO(data)).read()
 
         version = r.headers.get('X-Node-Protocol', None)
         if version != settings.NODE_PROTOCOL:
