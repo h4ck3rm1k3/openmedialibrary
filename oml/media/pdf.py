@@ -101,12 +101,14 @@ def info(pdf):
         try:
             pdfreader = PdfFileReader(fd)
             data['pages'] = pdfreader.numPages
+            if pdfreader.getIsEncrypted():
+                pdfreader.decrypt('')
             info = pdfreader.getDocumentInfo()
             if info:
                 for key in info:
                     if info[key]:
                         data[key[1:].lower()] = info[key]
-            xmp =pdfreader.getXmpMetadata()
+            xmp = pdfreader.getXmpMetadata()
             if xmp:
                 for key in dir(xmp):
                     if key.startswith('dc_'):
