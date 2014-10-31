@@ -53,7 +53,7 @@ class Changelog(db.Model):
         c.timestamp = datetime2ts(c.created)
         c.user_id = user.id
         c.revision = cls.query.filter_by(user_id=user.id).count()
-        c.data = json.dumps([action] + list(args))
+        c.data = json.dumps([action] + list(args), ensure_ascii=False)
         _data = str(c.revision) + str(c.timestamp) + c.data
         _data = _data.encode()
         c.sig = settings.sk.sign(_data, encoding='base64').decode()
@@ -145,7 +145,7 @@ class Changelog(db.Model):
             path = '/tmp/oml_changelog_%s.json' % user_id
         with open(path, 'w') as fd:
             for c in cls.query.filter_by(user_id=user_id).order_by('revision'):
-                fd.write(json.dumps(c.json()) + '\n')
+                fd.write(json.dumps(c.json(), ensure_ascii=False) + '\n')
 
     def action_additem(self, user, timestamp, itemid, info):
         from item.models import Item
