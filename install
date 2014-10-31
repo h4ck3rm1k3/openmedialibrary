@@ -164,7 +164,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         if sys.platform == 'darwin':
             target = os.path.expanduser('~/Library/Application Support/Open Media Libary')
-        elif sys.platform == 'linux2':
+        elif sys.platform.startswith('linux'):
             target = os.path.expanduser('~/.local/share/openmedialibrary')
         else:
             target = os.path.join(os.curdir, 'openmedialibrary')
