@@ -55,7 +55,7 @@ class Install(Thread):
             json.dump(release, fd, indent=2)
         if sys.platform == 'darwin':
             self.install_launchd()
-        elif sys.platform == 'linux2':
+        elif sys.platform.startswith('linux'):
             apt_packages = ''
             yum_packages = ''
             try:
