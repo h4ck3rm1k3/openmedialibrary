@@ -26,7 +26,8 @@ def verify(release):
     for module in sorted(release['modules']):
         value += [str('%s/%s' % (release['modules'][module]['version'], release['modules'][module]['sha1']))]
     value = '\n'.join(value)
-    sig = str(release['signature'])
+    value = value.encode()
+    sig = release['signature'].encode()
     try:
         vk.verify(sig, value, encoding=ENCODING)
     except ed25519.BadSignatureError:
