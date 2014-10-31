@@ -14,7 +14,7 @@ oml.ui.mainPanel = function() {
                     resize: [192, 256, 320, 384],
                     size: ui.sidebarSize,
                     tooltip: Ox._('sidebar') + ' <span class="OxBright">'
-                        + Ox.SYMBOLS.SHIFT + 'S</span>'
+                        + Ox.SYMBOLS.shift + 'S</span>'
                 },
                 {
                     element: oml.$ui.rightPanel = oml.ui.rightPanel()

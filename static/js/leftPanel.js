@@ -19,7 +19,7 @@ oml.ui.leftPanel = function() {
                     element: oml.$ui.info = oml.ui.info(),
                     size: oml.getInfoHeight(),
                     tooltip: Ox._('info') + ' <span class="OxBright">'
-                        + Ox.SYMBOLS.SHIFT + 'I</span>'
+                        + Ox.SYMBOLS.shift + 'I</span>'
                 }
             ],
             id: 'leftPanel',

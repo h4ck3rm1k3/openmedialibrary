@@ -14,7 +14,7 @@ oml.ui.listInnerPanel = function() {
                     resize: [96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256],
                     size: ui.filtersSize,
                     tooltip: Ox._('filters') + ' <span class="OxBright">'
-                        + Ox.SYMBOLS.SHIFT + 'F</span>'
+                        + Ox.SYMBOLS.shift + 'F</span>'
                 },
                 {
                     element: oml.$ui.list = oml.ui.list()

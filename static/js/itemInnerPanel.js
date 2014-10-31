@@ -13,7 +13,7 @@ oml.ui.itemInnerPanel = function() {
                     size: 112 + Ox.UI.SCROLLBAR_SIZE,
                     tooltip: Ox._('browser')
                         + ' <span class="OxBright">'
-                        + Ox.SYMBOLS.SHIFT + 'B</span>'
+                        + Ox.SYMBOLS.shift + 'B</span>'
                 },
                 {
                     element: oml.$ui.itemViewPanel = oml.ui.itemViewPanel()
