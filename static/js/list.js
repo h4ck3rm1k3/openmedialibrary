@@ -113,10 +113,15 @@ oml.ui.list = function() {
                 },
                 oml_find: function() {
                     if (ui.listView == oml.UI.getPrevious().listView) {
-                        if (ui.listSort == oml.UI.getPrevious().listSort) {
+                        if (JSON.stringify(ui.listSort) == JSON.stringify(oml.UI.getPrevious().listSort)) {
                             that.reloadList();
                         } else {
-                            that.options({sort: ui.listSort});
+                            //fixme: this reloads list twice.
+                            //just setting sort will not update number of items
+                            that.options({
+                                sort: Ox.clone(ui.listSort, true)
+                            });
+                            that.reloadList();
                         }
                     }
                 },

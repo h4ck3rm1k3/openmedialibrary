@@ -62,7 +62,7 @@ oml.ui.gridView = function() {
             ],
             selected: ui.listSelection,
             size: 128,
-            sort: ui.listSort,
+            sort: Ox.clone(ui.listSort, true),
             unique: 'id'
         })
         .bindEvent({
