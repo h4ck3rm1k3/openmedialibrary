@@ -5,7 +5,7 @@
 import os
 import xml.etree.ElementTree as ET
 import zipfile
-from io import StringIO
+from io import BytesIO
 import re
 
 from PIL import Image
@@ -48,7 +48,7 @@ def cover(path):
                         break
     if not data:
         img = Image.new('RGB', (80, 128))
-        o = StringIO()
+        o = BytesIO()
         img.save(o, format='jpeg')
         data = o.getvalue()
         o.close()
