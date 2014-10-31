@@ -39,7 +39,7 @@ def cover(path):
                 elif 'html' in e.attrib['media-type']:
                     filename = e.attrib['href']
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                    html = z.read(filename)
+                    html = z.read(filename).decode('utf-8')
                     img = re.compile('<img.*?src="(.*?)"').findall(html)
                     if img:
                         img = os.path.normpath(os.path.join(os.path.dirname(filename), img[0]))
