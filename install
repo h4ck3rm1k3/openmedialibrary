@@ -15,6 +15,10 @@ except ImportError:
 from threading import Thread
 import subprocess
 
+def makefolder(path):
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 class Install(Thread):
 
@@ -72,8 +76,10 @@ class Install(Thread):
                 apt_packages += ' miredo'
 
             if has_bin('apt-get') and apt_packages:
+                print('Installing additional packages: %s' % apt_packages)
                 os.system('sudo apt-get install ' + apt_packages)
             elif has_bin('yum') and yum_packages:
+                print('Installing additional packages: %s' % yum_packages)
                 os.system('sudo yum install ' + yum_packages)
             else:
                 print('You need to install Pillow, simplejson and lxml\ni.e. sudo pip3 install pillow simplejson lxml')
@@ -85,9 +91,7 @@ class Install(Thread):
         self.status['done'] = True
 
     def download(self, url, filename):
-        dirname = os.path.dirname(filename)
-        if dirname and not os.path.exists(dirname):
-            os.makedirs(dirname)
+        makefolder(filename)
         print(filename)
         with open(filename, 'wb') as f:
             with closing(urlopen(url)) as u:
@@ -121,6 +125,7 @@ Categories=Network;FileTransfer;P2P;
 ''' % (self.target, self.target))
 
         start = os.path.expanduser('~/.config/autostart/openmedialibrary.desktop')
+        makefolder(start)
         with open(start, 'w') as fd:
             fd.write('''[Desktop Entry]
 Type=Application
