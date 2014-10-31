@@ -89,7 +89,7 @@ class Install(Thread):
         if dirname and not os.path.exists(dirname):
             os.makedirs(dirname)
         print(filename)
-        with open(filename, 'w') as f:
+        with open(filename, 'wb') as f:
             with closing(urlopen(url)) as u:
                 size = int(u.headers.get('content-length', 0))
                 self.status['size'] = size
