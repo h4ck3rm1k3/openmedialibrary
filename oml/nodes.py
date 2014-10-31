@@ -162,7 +162,6 @@ class Node(Thread):
             self.online = False
             return None
         data = r.read()
-        logger.debug('response data: %s', data)
         if r.headers.get('content-encoding', None) == 'gzip':
             data = gzip.GzipFile(fileobj=BytesIO(data)).read()
 
