@@ -28,8 +28,8 @@ def info(path):
     return data
 
 def extract_text(path):
-    with open(path) as fd:
-        data = fd.read()
+    with open(path, 'rb') as fd:
+        data = fd.read().decode('utf-8', errors='replace')
     return data
 
 def extract_isbn(text):

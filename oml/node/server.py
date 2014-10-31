@@ -55,7 +55,7 @@ class NodeHandler(tornado.web.RequestHandler):
             content = settings.release
         else:
             if valid(key, data, sig):
-                action, args = json.loads(data)
+                action, args = json.loads(data.decode('utf-8'))
                 logger.debug('NODE action %s %s (%s)', action, args, key)
                 if action == 'ping':
                     content = {

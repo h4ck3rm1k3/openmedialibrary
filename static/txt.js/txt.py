@@ -28,7 +28,7 @@ def render(infile, outfile):
 
         for line in f:
 
-            for line_ in line.decode('utf-8').strip().split('\r'):
+            for line_ in line.strip().split('\r'):
 
                 lines = wrapText(
                     line_,
