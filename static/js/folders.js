@@ -296,7 +296,7 @@ oml.ui.folders = function() {
             oml.$ui.folder[0].$content
                 .css({height: 16 + items.length * 16 + 'px'});
             oml.$ui.folderList[0].options({
-                    items: items
+                    items: Ox.clone(items, true)
                 })
                 .css({height: items.length * 16 + 'px'})
                 .size();

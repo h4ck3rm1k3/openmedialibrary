@@ -47,7 +47,7 @@ oml.ui.folderList = function(options) {
                 }
             ],
             draggable: options.draggable,
-            items: options.items,
+            items: Ox.clone(options.items, true),
             sort: [{key: 'index', operator: '+'}],
             sortable: options.sortable,
             selected: [],

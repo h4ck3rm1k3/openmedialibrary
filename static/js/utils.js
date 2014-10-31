@@ -792,7 +792,6 @@ oml.getLists = function(callback) {
     var ui = oml.user.ui;
     Ox.Request.clearCache('getLists');
     oml.api.getLists(function(result) {
-        var username = oml.user.preferences.username;
         ui._lists = result.data.lists.map(function(list) {
             // FIXME: 'editable' is notoriously vague
             list.name = list.type == 'libraries' ? Ox._('Libraries')
