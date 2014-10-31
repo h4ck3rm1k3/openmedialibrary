@@ -3,7 +3,6 @@
 oml.ui.importExportDialog = function(selected) {
 
     var ui = oml.user.ui,
-        username = oml.user.preferences.username,
 
         $bar = Ox.Bar({size: 24}),
 
@@ -113,7 +112,7 @@ oml.ui.importExportDialog = function(selected) {
 
     function getListItems(selected) {
         var lists = ui._lists.filter(function(list) {
-            return list.user == username && list.type != 'library' && (
+            return list.user == '' && list.type != 'library' && (
                 selected == 'export' || list.type == 'static'
             );
         });
@@ -133,7 +132,7 @@ oml.ui.importExportDialog = function(selected) {
 
     function getListNames() {
         return ui._lists.filter(function(list) {
-            return list.user == username;
+            return list.user == '';
         }).map(function(list) {
             return list.name;
         });
@@ -321,7 +320,10 @@ oml.ui.importExportDialog = function(selected) {
                         })
                     );
                     $label['export'].show();
-                    (addList ? oml.addList : Ox.noop)(false, false, data.list, function() {
+                    (addList ? oml.addList : Ox.noop)(false, false, data.list, function(result) {
+                        if (result) {
+                            data.list = result.data.id
+                        }
                         oml.api.import({
                             list: data.list,
                             mode: data.mode,
@@ -348,7 +350,7 @@ oml.ui.importExportDialog = function(selected) {
         var progress = data.status ? 1
             : !data.progress[0] || !data.progress[1] ? -1
             : data.progress[0] / data.progress[1];
-        $progress[data.activity].options({progress: progress})
+        $progress[data.activity] && $progress[data.activity].options({progress: progress})
     }
 
     function setStatus(data) {

@@ -808,14 +808,13 @@ oml.getLists = function(callback) {
 };
 
 oml.getOwnListNames = function() {
-    var ui = oml.user.ui,
-        username = oml.user.preferences.username;
+    var ui = oml.user.ui;
     return ui._lists.filter(function(list) {
-        return list.user == username;
-    }).filter(function(list) {
+        return list.user == '' && list.type != 'library';
+    }).map(function(list) {
         return list.name;
     });
-}
+};
 
 oml.getPageTitle = function(stateOrURL) {
 	var page = Ox.getObjectById(
