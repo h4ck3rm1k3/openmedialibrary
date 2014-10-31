@@ -32,12 +32,12 @@ def generate_ssl():
     ca.set_issuer(ca.get_subject())
     ca.set_pubkey(key)
     ca.add_extensions([
-      OpenSSL.crypto.X509Extension("basicConstraints", True, "CA:TRUE, pathlen:0"),
-      OpenSSL.crypto.X509Extension("nsCertType", True, "sslCA"),
-      OpenSSL.crypto.X509Extension("extendedKeyUsage", True,
-        "serverAuth,clientAuth,emailProtection,timeStamping,msCodeInd,msCodeCom,msCTLSign,msSGC,msEFS,nsSGC"),
-      OpenSSL.crypto.X509Extension("keyUsage", False, "keyCertSign, cRLSign"),
-      OpenSSL.crypto.X509Extension("subjectKeyIdentifier", False, "hash", subject=ca),
+      OpenSSL.crypto.X509Extension(b"basicConstraints", True, b"CA:TRUE, pathlen:0"),
+      OpenSSL.crypto.X509Extension(b"nsCertType", True, b"sslCA"),
+      OpenSSL.crypto.X509Extension(b"extendedKeyUsage", True,
+        b"serverAuth,clientAuth,emailProtection,timeStamping,msCodeInd,msCodeCom,msCTLSign,msSGC,msEFS,nsSGC"),
+      OpenSSL.crypto.X509Extension(b"keyUsage", False, b"keyCertSign, cRLSign"),
+      OpenSSL.crypto.X509Extension(b"subjectKeyIdentifier", False, b"hash", subject=ca),
     ])
     ca.sign(key, "sha1")
     with open(settings.ssl_cert_path, 'wb') as fd:

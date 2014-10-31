@@ -45,7 +45,7 @@ def get(url, filename=None):
             dirname = os.path.dirname(filename)
             if dirname and not os.path.exists(dirname):
                 os.makedirs(dirname)
-            with open(filename, 'w') as fd:
+            with open(filename, 'wb') as fd:
                 data = u.read(4096)
                 while data:
                     fd.write(data)
@@ -54,7 +54,7 @@ def get(url, filename=None):
 def check():
     if settings.release:
         release_data = get(RELEASE_URL)
-        release = json.loads(release_data)
+        release = json.loads(release_data.decode('utf-8'))
         old = settings.release['modules']['openmedialibrary']['version']
         new = release['modules']['openmedialibrary']['version']
         return verify(release) and old < new
@@ -64,7 +64,7 @@ def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
         return True
     release_data = get(RELEASE_URL)
-    release = json.loads(release_data)
+    release = json.loads(release_data.decode('utf-8'))
     if verify(release):
         ox.makedirs(settings.updates_path)
         os.chdir(os.path.dirname(settings.base_dir))
@@ -80,7 +80,7 @@ def download():
                         os.unlink(module_tar)
                         return False
                 current_files.add(os.path.basename(module_tar))
-        with open(os.path.join(settings.updates_path, 'release.json'), 'w') as fd:
+        with open(os.path.join(settings.updates_path, 'release.json'), 'wb') as fd:
             fd.write(release_data)
         for f in set(os.walk(settings.updates_path).next()[2])-current_files:
             os.unlink(os.path.join(settings.updates_path, f))
