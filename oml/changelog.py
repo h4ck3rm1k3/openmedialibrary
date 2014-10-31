@@ -126,7 +126,10 @@ class Changelog(db.Model):
 
     def json(self):
         timestamp = self.timestamp or datetime2ts(self.created)
-        return [self.revision, timestamp, self.sig, self.data]
+        sig = self.sig
+        if isinstance(sig, bytes):
+            sig = sig.decode()
+        return [self.revision, timestamp, sig, self.data]
 
     @classmethod
     def restore(cls, user_id, path=None):
