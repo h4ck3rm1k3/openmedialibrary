@@ -5,6 +5,7 @@
 from datetime import datetime
 import mimetypes
 import os
+from urllib.request import quote
 import zipfile
 
 from .models import Item
@@ -41,10 +42,12 @@ class EpubHandler(OMLHandler):
                     self.set_header('Content-Type', content_type)
                     self.write(z.read(filename))
 
-def serve_static(handler, path, mimetype, include_body=True):
+def serve_static(handler, path, mimetype, include_body=True, disposition=None):
     #fixme use static file handler / serve ranges
     handler.set_header('Content-Type', mimetype)
     handler.set_header('Content-Length', str(os.stat(path).st_size))
+    if disposition:
+        handler.set_header('Content-Disposition', "attachment; filename*=UTF-8''%s" % quote(disposition.encode('utf-8')))
     if include_body:
         with open(path, 'rb') as fd:
             handler.write(fd.read())
