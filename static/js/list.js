@@ -113,7 +113,11 @@ oml.ui.list = function() {
                 },
                 oml_find: function() {
                     if (ui.listView == oml.UI.getPrevious().listView) {
-                        that.reloadList();
+                        if (ui.listSort == oml.UI.getPrevious().listSort) {
+                            that.reloadList();
+                        } else {
+                            that.options({sort: ui.listSort});
+                        }
                     }
                 },
                 oml_item: function() {
