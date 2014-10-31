@@ -19,7 +19,7 @@ def get_ids(key, value):
     ids = []
     if key == 'isbn':
         url = 'http://www.loc.gov/search/?q=%s&all=true' % value
-        html = ox.cache.read_url(url)
+        html = ox.cache.read_url(url).decode('utf-8')
         match = re.search('"http://lccn.loc.gov/(\d+)"', html)
         if match:
             ids.append(('lccn', match.group(1)))
@@ -37,7 +37,7 @@ def lookup(id):
     logger.debug('lookup %s', id)
     ns = '{http://www.loc.gov/mods/v3}'
     url = 'http://lccn.loc.gov/%s/mods' % id
-    data = read_url(url)
+    data = read_url(url).decode('utf-8')
     mods = ET.fromstring(data)
 
     info = {

@@ -21,7 +21,7 @@ def get_ids(key, value):
     ids = []
     if key == 'isbn':
         url = '%s/search?qt=worldcat_org_bks&q=%s' % (base_url, value)
-        html = read_url(url)
+        html = read_url(url).decode('utf-8')
         matches = re.compile('/title.*?oclc/(\d+).*?"').findall(html)
         if matches:
             info = lookup(matches[0])

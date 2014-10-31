@@ -942,7 +942,7 @@ if __name__ == '__main__':
     for i in range(0, 1000):
         url = 'http://dewey.info/class/%s/about.en.json' % i
         print(url)
-        data = json.loads(read_url(url))
+        data = json.loads(read_url(url).decode('utf-8'))
         for d in list(data.values()):
             if 'http://www.w3.org/2004/02/skos/core#prefLabel' in d:
                 value = d['http://www.w3.org/2004/02/skos/core#prefLabel'][0]['value']

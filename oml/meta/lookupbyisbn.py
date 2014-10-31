@@ -89,5 +89,5 @@ def lookup(id):
     return r
 
 def amazon_lookup(asin):
-    html = read_url('http://www.amazon.com/dp/%s' % asin)
+    html = read_url('http://www.amazon.com/dp/%s' % asin).decode('utf-8')
     return list(set(find_isbns(find_re(html, 'Formats</h3>.*?</table'))))

@@ -78,7 +78,7 @@ def lookup(id, return_all=False):
     logger.debug('lookup %s', id)
     info = api.get('/books/' + id).get('result', {})
     #url = 'https://openlibrary.org/books/%s.json' % id
-    #info = json.loads(read_url(url))
+    #info = json.loads(read_url(url).decode('utf-8'))
     data = format(info, return_all)
     if 'olid' not in data:
         data['olid'] = []
@@ -164,9 +164,9 @@ class API(object):
                 data[key] = json.dumps(data[key])
         url = self.base + '/' + action + '?' + urlencode(data)
         if timeout is None:
-            result = json.loads(read_url(url))
+            result = json.loads(read_url(url).decode('utf-8'))
         else:
-            result = json.loads(read_url(url, timeout=timeout))
+            result = json.loads(read_url(url, timeout=timeout).decode('utf-8'))
         if 'status' in result and result['status'] == 'error' or 'error' in result:
             logger.info('FAILED %s %s', action, data)
             logger.info('URL %s', url)

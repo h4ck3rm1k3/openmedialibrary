@@ -392,7 +392,7 @@ if __name__ == '__main__':
     from ox.cache import read_url
 
     url = "http://www.loc.gov/marc/countries/countries_code.html"
-    data = read_url(url)
+    data = read_url(url).decode('utf-8')
     countries = dict([
         [ox.strip_tags(c) for c in r]
         for r in re.compile('<tr>.*?class="code">(.*?)</td>.*?<td>(.*?)</td>', re.DOTALL).findall(data)
