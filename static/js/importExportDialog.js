@@ -372,7 +372,7 @@ oml.ui.importExportDialog = function(selected) {
             : data.progress[0] ? Ox._(selected == 'import' ? 'Importing:' : 'Exporting')
                 + ' ' + Ox._('{0} of {1}', [Ox.formatNumber(data.progress[0]), total])
             : '';
-        $status[data.activity].html(status);
+        $status[data.activity] && $status[data.activity].html(status);
     }
 
     that.select = function(selected_) {
