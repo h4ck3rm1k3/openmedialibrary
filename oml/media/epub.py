@@ -85,11 +85,13 @@ def info(epub):
     return data
 
 def extract_text(path):
-    data = b''
+    data = ''
     z = zipfile.ZipFile(path)
     for f in z.filelist:
+        if '/._' in f.filename or f.filename.startswith('._'):
+            continue
         if f.filename.endswith('html'):
-            data += z.read(f.filename)
+            data += z.read(f.filename).decode()
     return data
 
 def extract_isbn(data):
