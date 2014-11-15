@@ -107,7 +107,13 @@ def info(pdf):
             if info:
                 for key in info:
                     if info[key]:
-                        data[key[1:].lower()] = info[key]
+                        try:
+                            if isinstance(info[key], bytes):
+                                info[key] = info[key].decode('utf-16')
+                            data[key[1:].lower()] = info[key]
+                        except:
+                            pass
+
             xmp = pdfreader.getXmpMetadata()
             if xmp:
                 for key in dir(xmp):
@@ -122,7 +128,6 @@ def info(pdf):
                             data[_key] = value
         except:
             logger.debug('FAILED TO PARSE %s', pdf, exc_info=1)
-
     '''
     cmd = ['pdfinfo', pdf]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
