@@ -18,7 +18,6 @@ import settings
 
 
 ENCODING='base64'
-RELEASE_URL = 'http://downloads.openmedialibrary.com/release.json'
 
 def verify(release):
     vk = ed25519.VerifyingKey(settings.OML_UPDATE_KEY, encoding=ENCODING)
@@ -54,7 +53,7 @@ def get(url, filename=None):
 
 def check():
     if settings.release:
-        release_data = get(RELEASE_URL)
+        release_data = get(settings.server.get('release_url'))
         release = json.loads(release_data.decode('utf-8'))
         old = settings.release['modules']['openmedialibrary']['version']
         new = release['modules']['openmedialibrary']['version']
@@ -64,7 +63,7 @@ def check():
 def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
         return True
-    release_data = get(RELEASE_URL)
+    release_data = get(settings.server.get('release_url'))
     release = json.loads(release_data.decode('utf-8'))
     if verify(release):
         ox.makedirs(settings.updates_path)
@@ -73,7 +72,8 @@ def download():
         for module in release['modules']:
             if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
                 module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
-                url = RELEASE_URL.replace('release.json', release['modules'][module]['name'])
+                base_url = settings.server.get('release_url').rsplit('/', 1)[0]
+                url = '/'.join([base_url, release['modules'][module]['name']])
                 if not os.path.exists(module_tar):
                     print('download', os.path.basename(module_tar))
                     get(url, module_tar)

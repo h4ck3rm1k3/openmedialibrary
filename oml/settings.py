@@ -43,6 +43,7 @@ server_defaults = {
     'localnode_discovery': True,
     'directory_service': 'http://[2a01:4f8:120:3201::3]:25519',
     'meta_service': 'http://meta.openmedialibrary.com/api/',
+    'release_url': 'http://downloads.openmedialibrary.com/release.json',
 }
 
 for key in server_defaults:
