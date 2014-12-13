@@ -83,7 +83,7 @@ def download():
                 current_files.add(os.path.basename(module_tar))
         with open(os.path.join(settings.updates_path, 'release.json'), 'wb') as fd:
             fd.write(release_data)
-        for f in set(os.walk(settings.updates_path).next()[2])-current_files:
+        for f in set(next(os.walk(settings.updates_path))[2])-current_files:
             os.unlink(os.path.join(settings.updates_path, f))
         return True
     return True
