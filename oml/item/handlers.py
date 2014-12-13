@@ -55,6 +55,9 @@ def serve_static(handler, path, mimetype, include_body=True, disposition=None):
 
 class FileHandler(OMLHandler):
 
+    def initialize(self, attachment=False):
+        self._attachment = attachment
+
     def head(self, id):
         self.get(id, include_body=False)
 
@@ -70,7 +73,11 @@ class FileHandler(OMLHandler):
                 'pdf': 'application/pdf',
                 'txt': 'text/plain',
             }.get(path.split('.')[-1], None)
-            return serve_static(self, path, mimetype, include_body)
+            if self._attachment:
+                disposition = os.path.basename(path)
+            else:
+                disposition = None
+            return serve_static(self, path, mimetype, include_body, disposition=disposition)
 
 class ReaderHandler(OMLHandler):
 
