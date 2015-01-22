@@ -147,7 +147,9 @@ def get_interface():
         cmd = ['/sbin/route', '-n', 'get', 'default']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
-        interface = [[p.strip() for p in s.split(':', 1)] for s in stdout.strip().split('\n') if 'interface' in s]
+        stdout = stdout.decode('utf-8')
+        interface = [[p.strip() for p in s.split(':', 1)]
+            for s in stdout.strip().split('\n') if 'interface' in s]
         if interface:
             interface = '%%%s' % interface[0][1]
         else:
