@@ -43,7 +43,6 @@ class EpubHandler(OMLHandler):
                     self.write(z.read(filename))
 
 def serve_static(handler, path, mimetype, include_body=True, disposition=None):
-    #fixme use static file handler / serve ranges
     handler.set_header('Content-Type', mimetype)
     size = os.stat(path).st_size
     handler.set_header('Accept-Ranges', 'bytes')
@@ -55,9 +54,9 @@ def serve_static(handler, path, mimetype, include_body=True, disposition=None):
             r = handler.request.headers.get('Range').split('=')[-1].split('-')
             start = int(r[0])
             end = int(r[1]) if r[1] else size
-            length = end - start
+            length = end - start + 1
             handler.set_header('Content-Length', str(length))
-            handler.set_header('Content-Range', 'bytes %s-%s/%s' % (start, end-1, size))
+            handler.set_header('Content-Range', 'bytes %s-%s/%s' % (start, end, size))
             with open(path, 'rb') as fd:
                 fd.seek(start)
                 handler.write(fd.read(length))
