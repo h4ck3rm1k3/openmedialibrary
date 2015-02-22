@@ -36,6 +36,7 @@ oml.ui.gridView = function() {
                             backgroundImage: '-webkit-linear-gradient(top, ' + color.slice(0, 2).map(function(rgba) {
                                 return 'rgba(' + rgba.join(', ') + ')';
                             }).join(', ') + ')',
+                            MozTransform: 'rotate(45deg)',
                             WebkitTransform: 'rotate(45deg)'
                         })
                         .html(

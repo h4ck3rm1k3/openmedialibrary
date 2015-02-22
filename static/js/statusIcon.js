@@ -2,8 +2,6 @@
 
 oml.ui.statusIcon = function(user, index) {
 
-    // FIXME: not only '-webkit'
-
     var status = getStatus(user),
         that = Ox.Element({
             tooltip: Ox._({
@@ -65,10 +63,14 @@ oml.ui.statusIcon = function(user, index) {
                 transferring: 'Transferring'
             }[status])
         }).css({
-            background: '-webkit-linear-gradient(bottom, ' + color + ')',
+            background: '-moz-linear-gradient(bottom, ' + color + ')'
+        }).css({
+            background: '-webkit-linear-gradient(bottom, ' + color + ')'
         });
         that.find('div').css({
-            background: '-webkit-linear-gradient(top, ' + color + ')',
+            background: '-moz-linear-gradient(top, ' + color + ')'
+        }).css({
+            background: '-webkit-linear-gradient(top, ' + color + ')'
         });
     }
 
