@@ -36,7 +36,7 @@ ui = pdict(os.path.join(config_path, 'ui.json'), config['user']['ui'])
 server = pdict(os.path.join(config_path, 'server.json'))
 server_defaults = {
     'port': 9842,
-    'address': '::1',
+    'address': '127.0.0.1',
     'node_port': 9851,
     'node_address': '',
     'extract_text': True,

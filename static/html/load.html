@@ -18,7 +18,7 @@
             var port = document.location.hash.length
                     ? document.location.hash.slice(1)
                     : '9842',
-                base = '//[::1]:' + port,
+                base = '//127.0.0.1:' + port,
                 ws = new WebSocket('ws:' + base + '/ws');
             ws.onopen = function(event) {
                 document.location.href = 'http:' + base;

@@ -102,7 +102,7 @@ def run():
     if ':' in settings.server['address']:
         host = '[%s]' % settings.server['address']
     elif not settings.server['address']:
-        host = '[::1]'
+        host = '127.0.0.1'
     else:
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
