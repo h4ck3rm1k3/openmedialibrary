@@ -25,9 +25,15 @@ class FingerprintHTTPSConnection(http.client.HTTPSConnection):
         self._fingerprint = fingerprint
         if self._fingerprint:
             check_hostname = False
-            context = ssl._create_default_https_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            # dont fial for older verions of python
+            # without ssl._create_default_https_context
+            # that also don't check by default
+            try:
+                context = ssl._create_default_https_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            except:
+                pass
         http.client.HTTPSConnection.__init__(self, host, port,
                 check_hostname=check_hostname, context=context, **kwargs)
 
