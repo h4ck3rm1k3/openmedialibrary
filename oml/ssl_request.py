@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
 
+import ssl
 import http.client
 import urllib.request, urllib.error, urllib.parse
 import hashlib
@@ -20,12 +21,15 @@ class InvalidCertificateException(http.client.HTTPException, urllib.error.URLErr
 
 class FingerprintHTTPSConnection(http.client.HTTPSConnection):
 
-    def __init__(self, host, port=None, fingerprint=None, check_hostname=None, **kwargs):
+    def __init__(self, host, port=None, fingerprint=None, check_hostname=None, context=None, **kwargs):
         self._fingerprint = fingerprint
         if self._fingerprint:
-            check_hostname = None
+            check_hostname = False
+            context = ssl._create_default_https_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
         http.client.HTTPSConnection.__init__(self, host, port,
-                check_hostname=check_hostname, **kwargs)
+                check_hostname=check_hostname, context=context, **kwargs)
 
     def _check_fingerprint(self, cert):
         if len(self._fingerprint) == 40:
@@ -38,6 +42,7 @@ class FingerprintHTTPSConnection(http.client.HTTPSConnection):
             logging.error('unkown _fingerprint length %s (%s)',
                 self._fingerprint, len(self._fingerprint))
             return False
+        logger.debug('ssl fingerprint: %s (match: %s)', fingerprint, fingerprint == self._fingerprint)
         return fingerprint == self._fingerprint
 
     def connect(self):
