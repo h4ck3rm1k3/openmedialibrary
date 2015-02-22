@@ -122,7 +122,7 @@ def info(pdf):
                         if isinstance(value, dict) and 'x-default' in value:
                             value = value['x-default']
                         elif isinstance(value, list):
-                            value = [v.strip() for v in value if v.strip()]
+                            value = [v.strip() if isinstance(v, str) else v for v in value if v.strip()]
                         _key = key[3:]
                         if value and _key not in data:
                             data[_key] = value
