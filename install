@@ -45,6 +45,7 @@ class Install(Thread):
             self.status['size'] = 0
             package_tar = release['modules'][module]['name']
             url = self.url(package_tar)
+            package_tar = os.path.join(self.target, package_tar)
             self.download(url, package_tar)
             tar = tarfile.open(package_tar)
             tar.extractall()
@@ -92,7 +93,7 @@ class Install(Thread):
 
     def download(self, url, filename):
         makefolder(filename)
-        print(filename)
+        print(os.path.basename(filename))
         with open(filename, 'wb') as f:
             with closing(urlopen(url)) as u:
                 size = int(u.headers.get('content-length', 0))
