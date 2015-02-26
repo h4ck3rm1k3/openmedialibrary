@@ -197,7 +197,7 @@ oml.ui.usersDialog = function() {
                 .css({margin: '32px 16px'}) // FIXME: WTF!
                 .appendTo($user),
 
-            $id, $buttons = [], $message,
+            $id, $buttons = [], $message, $nickname,
 
             folder;
 
@@ -257,7 +257,7 @@ oml.ui.usersDialog = function() {
 
             }
 
-            Ox.Input({
+            $nickname = Ox.Input({
                     label: Ox._('Nickname'),
                     labelWidth: 128,
                     value: user.nickname,
@@ -265,20 +265,22 @@ oml.ui.usersDialog = function() {
                 })
                 .bindEvent({
                     change: function(data) {
-                        oml.api.editUser({
-                            id: user.id,
-                            nickname: data.value
-                        }, function(result) {
-                            oml.renameUser(result.data)
-                            // FIXME: ugly
-                            Ox.forEach($lists, function($list) {
-                                var selected = $list.options('selected');
-                                if (selected.length) {
-                                    $list.value(user.id, 'name', result.data.name);
-                                    return false;
-                                }
+                        if (user.section != 'invitations') {
+                            oml.api.editUser({
+                                id: user.id,
+                                nickname: data.value
+                            }, function(result) {
+                                oml.renameUser(result.data)
+                                // FIXME: ugly
+                                Ox.forEach($lists, function($list) {
+                                    var selected = $list.options('selected');
+                                    if (selected.length) {
+                                        $list.value(user.id, 'name', result.data.name);
+                                        return false;
+                                    }
+                                });
                             });
-                        });
+                        }
                     }
                 })
                 .appendTo($form);
@@ -328,6 +330,18 @@ oml.ui.usersDialog = function() {
                         label: Ox._('Username'),
                         labelWidth: 128,
                         value: user.username,
+                        width: 480
+                    })
+                    .css({
+                        marginTop: '8px'
+                    })
+                    .appendTo($form);
+
+                Ox.Input({
+                        disabled: true,
+                        label: Ox._('Public Key'),
+                        labelWidth: 128,
+                        value: user.id,
                         width: 480
                     })
                     .css({
@@ -393,6 +407,7 @@ oml.ui.usersDialog = function() {
                                 message: $message.value()
                             };
                             if (id == 'send') {
+                                data.nickname = $nickname.value();
                                 oml.api.requestPeering(data, function(result) {
                                     Ox.Request.clearCache();
                                     updateUsers(function() {

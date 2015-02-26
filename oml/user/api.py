@@ -294,6 +294,7 @@ def requestPeering(data):
         takes {
             id
             message
+            nickname (optional)
         }
     '''
     if len(data.get('id', '')) != 43:
@@ -303,6 +304,9 @@ def requestPeering(data):
     u.pending = 'sent'
     u.queued = True
     u.info['message'] = data.get('message', '')
+    if data.get('nickname'):
+        u.info['nickname'] = data.get('nickname', '')
+        u.update_name()
     u.save()
     state.nodes.queue('add', u.id)
     state.nodes.queue(u.id, 'peering', 'requestPeering')
