@@ -225,7 +225,7 @@ class Node(Thread):
         self.resolve()
         u = self.user
         logger.debug('go_online peer=%s queued=%s (%s)', u.peered, u.queued, u.id)
-        if u.peered or u.queued and self.host:
+        if (u.peered or u.queued) and self.host:
             try:
                 self.online = False
                 logger.debug('try to connect to %s at [%s]:%s', self.user_id, self.host, self.port)
