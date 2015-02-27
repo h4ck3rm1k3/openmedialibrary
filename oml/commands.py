@@ -124,8 +124,7 @@ def command_release(*args):
     import ed25519
 
     os.chdir(root_dir)
-
-    with open(os.path.expanduser('~/.openmedialibrary_release.key')) as fd:
+    with open(os.path.expanduser('~/.openmedialibrary_release.key'), 'rb') as fd:
         SIG_KEY=ed25519.SigningKey(fd.read())
     SIG_ENCODING='base64'
 
@@ -134,13 +133,13 @@ def command_release(*args):
         for module in sorted(release['modules']):
             value += ['%s/%s' % (release['modules'][module]['version'], release['modules'][module]['sha1'])]
         value = '\n'.join(value)
-        sig = SIG_KEY.sign(value, encoding=SIG_ENCODING)
+        sig = SIG_KEY.sign(value.encode(), encoding=SIG_ENCODING).decode()
         release['signature'] = sig
 
     def sha1sum(path):
         h = hashlib.sha1()
-        with open(path) as fd:
-            for chunk in iter(lambda: fd.read(128*h.block_size), ''):
+        with open(path, 'rb') as fd:
+            for chunk in iter(lambda: fd.read(128*h.block_size), b''):
                 h.update(chunk)
         return h.hexdigest()
 
@@ -171,7 +170,7 @@ def command_release(*args):
     } for module in MODULES}
     sign(release)
     with open('updates/release.json', 'w') as fd:
-        json.dump(release, fd, indent=2)
+        json.dump(release, fd, indent=2, sort_keys=True)
     print('signed latest release in updates/release.json')
 
 def command_shell(*args):

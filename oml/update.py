@@ -165,6 +165,6 @@ def restart(data):
     '''
         restart (and upgrade if upgrades are available)
     '''
-    subprocess.Popen(['./ctl', 'restart'], close_fds=True)
+    subprocess.Popen([os.path.join(settings.base_dir, 'ctl'), 'restart'], close_fds=True)
     return {}
 actions.register(restart, cache=False)
