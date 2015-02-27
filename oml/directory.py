@@ -21,7 +21,11 @@ def get(vk):
     headers = {
         'User-Agent': settings.USER_AGENT
     }
-    r = requests.get(url, headers=headers)
+    try:
+        r = requests.get(url, headers=headers)
+    except:
+        logger.info('get failed %s', url)
+        return None
     sig = r.headers.get('X-Ed25519-Signature')
     data = r.content
     if sig and data:
@@ -47,8 +51,6 @@ def put(sk, data):
     try:
         r = requests.put(url, data, headers=headers, timeout=2)
     except:
-        import traceback
-        logger.info('directory.put failed: %s', data)
-        traceback.print_exc()
+        logger.info('put failed: %s', data)
         return False
     return r.status_code == 200

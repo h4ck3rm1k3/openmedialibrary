@@ -49,6 +49,8 @@ class FingerprintHTTPSConnection(http.client.HTTPSConnection):
                 self._fingerprint, len(self._fingerprint))
             return False
         logger.debug('ssl fingerprint: %s (match: %s)', fingerprint, fingerprint == self._fingerprint)
+        if fingerprint != self._fingerprint:
+            logger.debug('expected fingerprint: %s', self._fingerprint)
         return fingerprint == self._fingerprint
 
     def connect(self):

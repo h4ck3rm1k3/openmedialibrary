@@ -201,7 +201,6 @@ class Node(Thread):
         try:
             url = self.url
             if url:
-                logger.debug('try to connect to %s', url)
                 headers = {
                     'User-Agent': settings.USER_AGENT,
                     'X-Node-Protocol': settings.NODE_PROTOCOL,
@@ -215,20 +214,20 @@ class Node(Thread):
                     logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
                     return False
                 c = r.read()
-                logger.debug('ok')
+                logger.debug('can connect to: %s (%s)', url, self.user.nickname)
                 return True
         except:
+            logger.debug('can not connect to: %s (%s)', url, self.user.nickname)
             pass
         return False
 
     def _go_online(self):
         self.resolve()
         u = self.user
-        logger.debug('go_online peer=%s queued=%s (%s)', u.peered, u.queued, u.id)
         if (u.peered or u.queued) and self.host:
+            logger.debug('go_online peered=%s queued=%s %s [%s]:%s (%s)', u.peered, u.queued, u.id, self.host, self.port, u.nickname)
             try:
                 self.online = False
-                logger.debug('try to connect to %s at [%s]:%s', self.user_id, self.host, self.port)
                 if self.can_connect():
                     logger.debug('connected to [%s]:%s', self.host, self.port)
                     self.online = True
