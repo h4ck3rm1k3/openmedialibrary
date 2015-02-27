@@ -586,7 +586,7 @@ oml.ui.mainMenu = function() {
             canCut = canCopy && listData.editable,
             canPaste = listData.editable && clipboardItems,
             canAdd = canCopy && clipboardItems && clipboardType == 'book',
-            canDelete = listData.user == username && selectionItems,
+            canDelete = listData.user == '' && selectionItems,
             historyItems = oml.history.items(),
             undoText = oml.history.undoText(),
             redoText = oml.history.redoText();
