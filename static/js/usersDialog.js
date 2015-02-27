@@ -223,7 +223,7 @@ oml.ui.usersDialog = function() {
                     .appendTo($form);
 
                 Ox.Input({
-                        disabled: true,
+                        readonly: true,
                         label: Ox._('Your Public Key'),
                         labelWidth: 128,
                         value: oml.user.id,
@@ -235,7 +235,7 @@ oml.ui.usersDialog = function() {
                     .appendTo($form);
 
                 Ox.Input({
-                        disabled: true,
+                        readonly: true,
                         label: Ox._('Download Link'),
                         labelWidth: 128,
                         value: 'http://openmedialibrary.com/#download',
@@ -298,11 +298,11 @@ oml.ui.usersDialog = function() {
                                 isPeer = Ox.contains(peerIds, data.value),
                                 isValid = oml.validatePublicKey(data.value),
                                 peer = Ox.getObjectById(users, data.value),
-                                disabled = isOwn || isPeer || !isValid;
+                                readonly = isOwn || isPeer || !isValid;
                             $buttons[0].options({
-                                disabled: disabled
+                                readonly: readonly
                             });
-                            if (data.value && disabled) {
+                            if (data.value && readonly) {
                                 $warning.html(
                                     isOwn ? 'That\'s your own public key.'
                                     : isPeer ? 'That\'s '
@@ -326,7 +326,7 @@ oml.ui.usersDialog = function() {
             } else {
 
                 Ox.Input({
-                        disabled: true,
+                        readonly: true,
                         label: Ox._('Username'),
                         labelWidth: 128,
                         value: user.username,
@@ -338,7 +338,7 @@ oml.ui.usersDialog = function() {
                     .appendTo($form);
 
                 Ox.Input({
-                        disabled: true,
+                        readonly: true,
                         label: Ox._('Public Key'),
                         labelWidth: 128,
                         value: user.id,
@@ -350,7 +350,7 @@ oml.ui.usersDialog = function() {
                     .appendTo($form);
 
                 Ox.Input({
-                        disabled: true,
+                        readonly: true,
                         label: Ox._('Contact'),
                         labelWidth: 128,
                         value: user.contact || '',
