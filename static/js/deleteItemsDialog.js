@@ -28,6 +28,10 @@ oml.ui.deleteItemsDialog = function() {
                 oml.UI.set({listSelection: []});
                 Ox.Request.clearCache(); // to much?
                 oml.$ui.list.updateElement();
+                oml.user.ui.item && oml.UI.set({
+                    item: '',
+                    itemView: 'info'
+                });
             });
         });
 

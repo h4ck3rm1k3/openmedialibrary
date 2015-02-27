@@ -377,6 +377,11 @@ oml.ui.mainMenu = function() {
                     oml.addList(Ox.contains(id, 'smart'), Ox.contains(id, 'from'));
                 } else if (id == 'duplicatelist') {
                     oml.addList(ui._list);
+                } else if (id == 'deletefromlibrary') {
+                    var listData = oml.getListData();
+                    if (listData.own) {
+                        oml.ui.deleteItemsDialog().open();
+                    }
                 } else if (id == 'editlist') {
                     oml.ui.listDialog.open();
                 } else if (id == 'deletelist') {
