@@ -377,6 +377,15 @@ oml.ui.mainMenu = function() {
                     oml.addList(Ox.contains(id, 'smart'), Ox.contains(id, 'from'));
                 } else if (id == 'duplicatelist') {
                     oml.addList(ui._list);
+                } else if (id == 'delete') {
+                    var listData = oml.getListData();
+                    if (listData.editable && listData.type == 'static') {
+                        oml.doHistory('delete', ui.listSelection, ui._list, function() {
+                            oml.UI.set({listSelection: []});
+                            oml.$ui.folders.updateItems();
+                            oml.$ui.list.updateElement();
+                        });
+                    }
                 } else if (id == 'deletefromlibrary') {
                     var listData = oml.getListData();
                     if (listData.own) {
