@@ -321,8 +321,9 @@ class Item(db.Model):
         logger.debug('scrape %s', primaryid)
         if primaryid:
             m = meta.lookup(*primaryid)
-            m['primaryid'] = primaryid
-            self.meta = m
+            if m:
+                m['primaryid'] = primaryid
+                self.meta = m
         self.update()
 
     def queue_download(self):

@@ -23,7 +23,7 @@ def request(action, data):
 
 def find(query):
     logger.debug('find %s', query)
-    return request('findMetadata', {'query': query})['items']
+    return request('findMetadata', {'query': query}).get('items', [])
 
 def lookup(key, value):
     logger.debug('lookup %s %s', key, value)
