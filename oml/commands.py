@@ -6,6 +6,7 @@ import subprocess
 from os.path import join, exists, dirname
 import os
 import sys
+import shutil
 
 import settings
 
@@ -33,7 +34,10 @@ def version(module):
         version += '-' + get('git', 'describe', '--always').strip()
         os.chdir(root_dir)
     else:
-        version = settings.release['modules'][module]['version']
+        if module in settings.release['modules']:
+            version = settings.release['modules'][module]['version']
+        else:
+            version = -1
     return version
 
 def command_version(*args):
@@ -104,7 +108,10 @@ def command_update_static(*args):
     """
     import setup
     setup.create_db()
-    oxjs = os.path.join(settings.static_path, 'oxjs')
+    old_oxjs = os.path.join(settings.static_path, 'oxjs')
+    oxjs = os.path.join(settings.base_dir, '..', 'oxjs')
+    if os.path.exists(old_oxjs) and not os.path.exists(oxjs):
+        shutil.move(old_oxjs, oxjs)
     if not os.path.exists(oxjs):
         r('git', 'clone', 'https://git.0x2620.org/oxjs.git', oxjs)
     elif os.path.exists(os.path.join(oxjs, '.git')):
@@ -142,7 +149,7 @@ def command_release(*args):
                 h.update(chunk)
         return h.hexdigest()
 
-    MODULES = ['platform', 'openmedialibrary']
+    MODULES = ['platform', 'openmedialibrary', 'oxjs']
     VERSIONS = {module:version(module) for module in MODULES}
 
     EXCLUDE=[
