@@ -48,7 +48,7 @@ oml.ui.gridView = function() {
                     id: data.id,
                     info: info,
                     title: data.title,
-                    url: '/' + data.id + '/' + ui.icons + '128.jpg',
+                    url: '/' + data.id + '/' + ui.icons + '128.jpg?' + data.modified,
                     width: width
                 };
             },
@@ -58,7 +58,7 @@ oml.ui.gridView = function() {
                 }), callback);
             },
             keys: [
-                'author', 'coverRatio', 'extension', 'id', 'mediastate',
+                'author', 'coverRatio', 'extension', 'id', 'mediastate', 'modified',
                 'previewRatio', 'size', 'textsize', 'title'
             ],
             selected: ui.listSelection,

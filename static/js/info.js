@@ -30,13 +30,13 @@ oml.ui.info = function() {
                 id: id,
                 keys: [
                     'author', 'coverRatio',
-                    'description', 'title'
+                    'description', 'modified', 'title'
                 ]
             }, function(result) {
                 var data = result.data;
                 that.empty();
                 $('<img>')
-                    .attr({src: '/' + id + '/cover128.jpg'})
+                    .attr({src: '/' + id + '/cover128.jpg?' + data.modified})
                     .css({margin: '16px 0 8px 0'})
                     .appendTo(that);
                 $('<div>')

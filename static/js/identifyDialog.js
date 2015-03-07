@@ -240,6 +240,7 @@ oml.ui.identifyDialog = function(data) {
                             that.close();
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);
+                            oml.$ui.list.reloadList(true);
                             Ox.Request.clearCache(data.id);
                             oml.$ui.infoView.updateElement(data.id);
                         });
