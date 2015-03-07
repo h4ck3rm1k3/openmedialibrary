@@ -528,7 +528,8 @@ class File(db.Model):
         author = format_underscores(author)
 
         filename = '%s.%s' % (title, extension)
-        new_path = os.path.join(author[0].upper(), author, filename)
+        first = unicodedata.normalize('NFD', author[0].upper())[0].upper()
+        new_path = os.path.join(first, author, filename)
         new_path = new_path.replace('\x00', '')
         if self.path == new_path:
             return
@@ -536,7 +537,8 @@ class File(db.Model):
         while os.path.exists(os.path.join(prefix, new_path)):
             h = self.sha1[:len(h)+1]
             filename = '%s.%s.%s' % (title, h, extension)
-            new_path = os.path.join(author[0].upper(), author, filename)
+            first = unicodedata.normalize('NFD', author[0].upper())[0].upper()
+            new_path = os.path.join(first, author, filename)
             if current_path == os.path.join(prefix, new_path):
                 break
         if self.path != new_path:
