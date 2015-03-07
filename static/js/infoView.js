@@ -706,7 +706,9 @@ oml.ui.infoView = function(identifyData) {
     });
     that.bindEvent({
         mousedown: function() {
-            that.gainFocus();
+            setTimeout(function() {
+                !Ox.Focus.focusedElementIsInput() && that.gainFocus();
+            });
         }
     })
 
