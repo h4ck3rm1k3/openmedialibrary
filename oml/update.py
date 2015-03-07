@@ -55,10 +55,13 @@ def check():
     if settings.release:
         release_data = get(settings.server.get('release_url'))
         release = json.loads(release_data.decode('utf-8'))
-        old = settings.release['modules']['openmedialibrary']['version']
+        old = current_version('openmedialibrary')
         new = release['modules']['openmedialibrary']['version']
         return verify(release) and old < new
     return False
+
+def current_version(module):
+    return settings.release['modules'][module]['version'] if module in settings.release['modules'] else -1
 
 def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
@@ -70,7 +73,7 @@ def download():
         os.chdir(os.path.dirname(settings.base_dir))
         current_files = {'release.json'}
         for module in release['modules']:
-            if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
+            if release['modules'][module]['version'] > current_version(module):
                 module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
                 base_url = settings.server.get('release_url').rsplit('/', 1)[0]
                 url = '/'.join([base_url, release['modules'][module]['name']])
@@ -95,12 +98,12 @@ def install():
         return True
     with open(os.path.join(settings.updates_path, 'release.json')) as fd:
         release = json.load(fd)
-    old = settings.release['modules']['openmedialibrary']['version']
+    old = current_version('openmedialibrary')
     new = release['modules']['openmedialibrary']['version']
     if verify(release) and old < new:
         os.chdir(os.path.dirname(settings.base_dir))
         for module in release['modules']:
-            if release['modules'][module]['version'] > settings.release['modules'][module]['version']:
+            if release['modules'][module]['version'] > current_version(module):
                 module_tar = os.path.join(settings.updates_path, release['modules'][module]['name'])
                 if os.path.exists(module_tar) and ox.sha1sum(module_tar) == release['modules'][module]['sha1']:
                     #tar fails if old platform is moved before extract
@@ -153,7 +156,7 @@ def getVersion(data):
             return response
         with open(os.path.join(settings.updates_path, 'release.json')) as fd:
             release = json.load(fd)
-        current = settings.release['modules']['openmedialibrary']['version']
+        current = current_version('openmedialibrary')
         response['current'] = current
         new = release['modules']['openmedialibrary']['version']
         response['new'] = new
