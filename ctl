@@ -48,9 +48,7 @@ if [ "$1" == "start" ]; then
         python3 oml install_update
         cd "$BASE/$NAME"
     fi
-    python3 oml server $PID
-    rm -f $PID
-    exit $?
+    exec python3 oml server $PID
 fi
 if [ "$1" == "debug" ]; then
     cd "$BASE/$NAME"
@@ -59,8 +57,7 @@ if [ "$1" == "debug" ]; then
         exit 1
     fi
     shift
-    python3 oml server $@
-    exit $?
+    exec python3 oml server $@
 fi
 if [ "$1" == "stop" ]; then
     test -e $PID && kill `cat $PID`
@@ -89,8 +86,7 @@ if [ "$1" == "open" ]; then
 fi
 if [ "$1" == "ui" ]; then
     shift
-    python3 $NAME/oml/ui.py $@
-    exit $?
+    exec python3 $NAME/oml/ui.py $@
 fi
 if [ "$1" == "update" ]; then
     cd "$BASE/$NAME"
@@ -114,10 +110,8 @@ fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"
     shift
-    python3 $@
-    exit $?
+    exec python3 $@
 fi
 
 cd "$BASE/$NAME"
-python3 oml $@
-exit $?
+exec python3 oml $@

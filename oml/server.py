@@ -29,7 +29,7 @@ import logging
 class MainHandler(OMLHandler):
 
     def get(self, path):
-        path = os.path.join(settings.static_path, 'html/oml.html')
+        path = os.path.join(settings.static_path, 'html', 'oml.html')
         with open(path) as fd:
             content = fd.read()
         version = settings.MINOR_VERSION
@@ -42,10 +42,8 @@ class MainHandler(OMLHandler):
 
 def run():
     setup.create_db()
-    root_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
-    static_path = os.path.join(root_dir, 'static')
     #FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
     #logging.basicConfig(format=FORMAT)
     #logger = logging.getLogger('oml.app')
@@ -59,8 +57,8 @@ def run():
     }
 
     handlers = [
-        (r'/(favicon.ico)', StaticFileHandler, {'path': static_path}),
-        (r'/static/(.*)', StaticFileHandler, {'path': static_path}),
+        (r'/(favicon.ico)', StaticFileHandler, {'path': settings.static_path}),
+        (r'/static/(.*)', StaticFileHandler, {'path': settings.static_path}),
         (r'/(.*)/epub/(.*)', EpubHandler),
         (r'/(.*?)/reader/', ReaderHandler),
         (r'/(.*?)/pdf/', FileHandler),
@@ -116,6 +114,8 @@ def run():
         if state.nodes:
             state.nodes.join()
         http_server.stop()
+        if PID and os.path.exists(PID):
+            os.unlink(PID)
 
     signal.signal(signal.SIGTERM, shutdown)
 
