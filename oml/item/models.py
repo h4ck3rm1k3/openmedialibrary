@@ -324,6 +324,7 @@ class Item(db.Model):
             if m:
                 m['primaryid'] = primaryid
                 self.meta = m
+                self.modified = datetime.utcnow()
         self.update()
 
     def queue_download(self):
@@ -549,6 +550,38 @@ class File(db.Model):
         state.db.session.add(self)
         state.db.session.commit()
 
+class Scrape(db.Model):
+
+    __tablename__ = 'scrape'
+
+    item_id = sa.Column(sa.String(32), sa.ForeignKey('item.id'), primary_key=True)
+    item = sa.orm.relationship('Item', backref=sa.orm.backref('scraping', lazy='dynamic'))
+
+    added = sa.Column(sa.DateTime())
+
+    def __repr__(self):
+        return '='.join(map(str, [self.item_id, self.added]))
+
+    @classmethod
+    def get(cls, item_id):
+        return cls.query.filter_by(item_id=item_id).first()
+
+    @classmethod
+    def get_or_create(cls, item_id):
+        t = cls.get(item_id)
+        if not t:
+            t = cls(item_id=item_id)
+            t.added = datetime.utcnow()
+            t.save()
+        return t
+
+    def save(self):
+        state.db.session.add(self)
+        state.db.session.commit()
+
+    def remove(self):
+        state.db.session.delete(self)
+        state.db.session.commit()
 
 class Transfer(db.Model):
     __tablename__ = 'transfer'

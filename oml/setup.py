@@ -203,6 +203,15 @@ def upgrade_db(old, new=None):
     if old <= '20140527-120-3cb9819':
         run_sql('CREATE INDEX ix_find_findvalue ON find (findvalue)')
 
+    if old <= '20150307-272-557f4d3':
+        run_sql('''CREATE TABLE scrape (
+    item_id VARCHAR(32) NOT NULL, 
+    added DATETIME, 
+    PRIMARY KEY (item_id), 
+    FOREIGN KEY(item_id) REFERENCES item (id)
+)''')
+        run_sql('CREATE INDEX idx_scrape_added ON scrape (added)')
+
 def create_default_lists(user_id=None):
     with db.session():
         user_id = user_id or settings.USER_ID

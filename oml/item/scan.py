@@ -10,7 +10,7 @@ import time
 import ox
 
 from changelog import Changelog
-from item.models import File
+from item.models import File, Scrape
 from user.models import List
 from utils import remove_empty_folders
 from websocket import trigger_event
@@ -56,9 +56,10 @@ def add_file(id, f, prefix, from_=None):
     if item.meta.get('primaryid'):
         Changelog.record(user, 'edititem', item.id, dict([item.meta['primaryid']]))
     item.added = datetime.utcnow()
-    item.scrape()
     item.update_icons()
-    item.save()
+    item.modified = datetime.utcnow()
+    item.update()
+    Scrape.get_or_create(item.id)
     return file
 
 def run_scan():

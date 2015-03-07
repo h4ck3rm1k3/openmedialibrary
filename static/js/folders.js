@@ -333,6 +333,7 @@ oml.ui.folders = function() {
         },
         change: function(data) {
             Ox.print('got change event')
+            Ox.Request.clearCache();
         },
         'peering.accept': function(data) {
             Ox.print('peering.accept reload list')

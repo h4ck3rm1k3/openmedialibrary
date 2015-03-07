@@ -10,6 +10,8 @@ import state
 import settings
 import update
 
+from websocket import trigger_event
+
 import logging
 logger = logging.getLogger('oml.downloads')
 
@@ -47,6 +49,43 @@ class Downloads(Thread):
             while self._running:
                 self.download_next()
                 time.sleep(0.5)
+
+    def join(self):
+        self._running = False
+        return Thread.join(self)
+
+class ScrapeThread(Thread):
+
+    def __init__(self):
+        self._running = True
+        Thread.__init__(self)
+        self.daemon = True
+        self.start()
+
+    def scrape_queue(self):
+        import item.models
+        scraped = False
+        for s in item.models.Scrape.query.filter(
+            item.models.Scrape.added!=None,
+        ).order_by(item.models.Scrape.added):
+            if not self._running:
+                return False
+            logger.debug('scrape %s', s.item)
+            try:
+                s.item.scrape()
+                s.remove()
+                trigger_event('change', {})
+                scraped = True
+            except:
+                logger.debug('scrape failed %s', s.item, exc_info=1)
+        return scraped
+
+    def run(self):
+        time.sleep(2)
+        with db.session():
+            while self._running:
+                if not self.scrape_queue():
+                    time.sleep(10)
 
     def join(self):
         self._running = False

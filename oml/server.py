@@ -90,6 +90,7 @@ def run():
         state.node = node.server.start()
         state.nodes = nodes.Nodes()
         state.downloads = downloads.Downloads()
+        state.scraping = downloads.ScrapeThread()
         def add_users():
             with db.session():
                 for p in user.models.User.query.filter_by(peered=True):
@@ -112,6 +113,8 @@ def run():
             state.tasks.join()
         if state.nodes:
             state.nodes.join()
+        if state.scraping:
+            state.scraping.join()
         http_server.stop()
         if PID and os.path.exists(PID):
             os.unlink(PID)
