@@ -57,7 +57,7 @@ class User(db.Model):
     def name(self):
         name = self.nickname if self.id != settings.USER_ID else ''
         return name
-
+ 
     def json(self):
         j = {}
         if self.info:
@@ -263,7 +263,7 @@ class List(db.Model):
         return id
     
     def __repr__(self):
-        return self.public_id.encode('utf-8')
+        return self.public_id
 
     def items_count(self):
         key = 'list:' + self.public_id
