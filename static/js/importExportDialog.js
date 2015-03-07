@@ -339,7 +339,7 @@ oml.ui.importExportDialog = function(selected) {
     }
 
     function setButton(data) {
-        $progressButton[data.activity].options({
+        $progressButton[data.activity] && $progressButton[data.activity].options({
             title: !data.status ? Ox._(
                 data.activity == 'import' ? 'Cancel Import' : 'Cancel Export'
             ) : Ox._('Done')
