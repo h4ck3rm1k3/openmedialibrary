@@ -118,6 +118,11 @@ def command_update_static(*args):
         os.system('cd "%s" && git pull' % oxjs)
     r('python3', os.path.join(oxjs, 'tools', 'build', 'build.py'))
     r('python3', os.path.join(settings.static_path, 'py', 'build.py'))
+    reader = os.path.join(settings.base_dir, '..', 'reader')
+    if not os.path.exists(reader):
+        r('git', 'clone', 'https://git.0x2620.org/openmedialibrary_reader.git', reader)
+    elif os.path.exists(os.path.join(reader, '.git')):
+        os.system('cd "%s" && git pull' % reader)
 
 def command_release(*args):
     """
@@ -149,7 +154,7 @@ def command_release(*args):
                 h.update(chunk)
         return h.hexdigest()
 
-    MODULES = ['platform', 'openmedialibrary', 'oxjs']
+    MODULES = ['platform', 'openmedialibrary', 'oxjs', 'reader']
     VERSIONS = {module:version(module) for module in MODULES}
 
     EXCLUDE=[
@@ -166,7 +171,9 @@ def command_release(*args):
             if module in ('openmedialibrary', ):
                 cmd += ['--exclude', '*.pyc']
             if module == 'openmedialibrary':
-                cmd += ['--exclude', 'oxjs/examples', '--exclude', 'gunicorn.pid']
+                cmd += ['--exclude', 'gunicorn.pid']
+            if module == 'js':
+                cmd += ['--exclude', 'oxjs/examples']
             run(*cmd)
     release = {}
     release['modules'] = {module: {

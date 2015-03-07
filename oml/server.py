@@ -58,6 +58,9 @@ def run():
     handlers = [
         (r'/(favicon.ico)', StaticFileHandler, {'path': settings.static_path}),
         (r'/static/oxjs/(.*)', StaticFileHandler, {'path': os.path.join(settings.base_dir, '..', 'oxjs')}),
+        (r'/static/epub.js/(.*)', StaticFileHandler, {'path': os.path.join(settings.base_dir, '..', 'reader', 'epub,js')}),
+        (r'/static/pdf.js/(.*)', StaticFileHandler, {'path': os.path.join(settings.base_dir, '..', 'reader', 'pdf,js')}),
+        (r'/static/txt.js/(.*)', StaticFileHandler, {'path': os.path.join(settings.base_dir, '..', 'reader', 'txt,js')}),
         (r'/static/(.*)', StaticFileHandler, {'path': settings.static_path}),
         (r'/(.*)/epub/(.*)', EpubHandler),
         (r'/(.*?)/reader/', ReaderHandler),
