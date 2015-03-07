@@ -81,16 +81,15 @@ def command_postupdate(*args):
     """
         Called after update with -o old -n new
     """
-    def run(*args):
-        o, old, n, new = args
-        if o != '-o' or n != '-n':
-            print('usage: -o oldversion -n newversion')
-            sys.exit(1)
-        if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
-            if not os.path.exists(settings.db_path):
-                r('./ctl', 'setup')
-        import setup
-        setup.upgrade_db(old, new)
+    o, old, n, new = args
+    if o != '-o' or n != '-n':
+        print('usage: -o oldversion -n newversion')
+        sys.exit(1)
+    if old <= '20140521-65-e14c686' and new > '20140521-65-e14c686':
+        if not os.path.exists(settings.db_path):
+            r('./ctl', 'setup')
+    import setup
+    setup.upgrade_db(old, new)
 
 def command_setup(*args):
     """
@@ -214,7 +213,7 @@ def main():
     commands = [c[8:] for c in actions if  c.startswith('command_')]
     command = sys.argv[1] if len(sys.argv) > 1 else None
     if command and command in commands:
-        globals()["command_%s"%command](sys.argv[1:])
+        globals()["command_%s"%command](*sys.argv[2:])
     else:
         print("usage: ctl [action]")
         indent = max([len(command) for command in commands]) + 4
