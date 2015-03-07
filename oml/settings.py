@@ -18,6 +18,7 @@ if not os.path.exists(config_path):
     os.makedirs(config_path)
 
 db_path = os.path.join(config_path, 'data.db')
+log_path = os.path.join(config_path, 'debug.log')
 icons_db_path = os.path.join(config_path, 'icons.db')
 key_path = os.path.join(config_path, 'node.key')
 ssl_cert_path = os.path.join(config_path, 'node.ssl.crt')

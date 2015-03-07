@@ -44,13 +44,12 @@ def run():
     setup.create_db()
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
-    #FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
-    #logging.basicConfig(format=FORMAT)
-    #logger = logging.getLogger('oml.app')
-    #logger.warning('test')
     if not PID:
         logging.basicConfig(level=logging.DEBUG)
-
+    else:
+        logging.basicConfig(level=logging.DEBUG,
+            filename=settings.log_path, filemode='w',
+            format='%(asctime)s %(levelname)s %(message)s')
     options = {
         'debug': False,
         'gzip': True
