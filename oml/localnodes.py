@@ -37,6 +37,7 @@ class LocalNodesBase(Thread):
 
     _PORT = 9851 
     _TTL = 1
+    _TIMEOUT = 30
 
     def __init__(self, nodes):
         self._socket = None
@@ -74,6 +75,7 @@ class LocalNodesBase(Thread):
         while self._active:
             try:
                 s = self.get_socket()
+                s.settimeout(self._TIMEOUT)
                 s.bind(('', self._PORT))
                 while self._active:
                     data, addr = s.recvfrom(1024)
@@ -84,15 +86,17 @@ class LocalNodesBase(Thread):
                         if data:
                             self.update_node(data)
             except socket.timeout:
+                pass
+            except:
+                if self._active:
+                    logger.debug('receive failed. restart later', exc_info=1)
+                    time.sleep(10)
+            finally:
                 if self._active:
                     now = time.mktime(time.localtime())
                     if now - last > 60:
                         last = now
                         _thread.start_new_thread(self.send, ())
-            except:
-                if self._active:
-                    logger.debug('receive failed. restart later', exc_info=1)
-                    time.sleep(10)
 
     def verify(self, data):
         try:
