@@ -83,11 +83,17 @@ class FileHandler(OMLHandler):
             if not item or not path:
                 self.set_status(404)
                 return
-            mimetype={
+            mimetype = {
                 'epub': 'application/epub+zip',
                 'pdf': 'application/pdf',
                 'txt': 'text/plain',
             }.get(path.split('.')[-1], None)
+            if mimetype == 'text/plain':
+                try:
+                    open(path, 'rb').read().decode('utf-8')
+                    mimetype = 'text/plain; charset=utf-8'
+                except:
+                    mimetype = 'text/plain; charset=latin-1'
             if self._attachment:
                 disposition = os.path.basename(path)
             else:

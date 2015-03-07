@@ -75,7 +75,7 @@ def download():
                 base_url = settings.server.get('release_url').rsplit('/', 1)[0]
                 url = '/'.join([base_url, release['modules'][module]['name']])
                 if not os.path.exists(module_tar):
-                    print('download', os.path.basename(module_tar))
+                    print('downloading', os.path.basename(module_tar))
                     get(url, module_tar)
                     if ox.sha1sum(module_tar) != release['modules'][module]['sha1']:
                         os.unlink(module_tar)
