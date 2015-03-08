@@ -32,7 +32,7 @@ class MainHandler(OMLHandler):
         path = os.path.join(settings.static_path, 'html', 'oml.html')
         with open(path) as fd:
             content = fd.read()
-        version = settings.MINOR_VERSION
+        version = settings.MINOR_VERSION.split('-')[0]
         if version == 'git':
             version = int(time.mktime(time.gmtime()))
         content = content.replace('oml.js?1', 'oml.js?%s' % version)
