@@ -307,7 +307,7 @@ class Node(Thread):
         try:
             r = self._opener.open(url, timeout=self.TIMEOUT*2)
         except:
-            logger.debug('openurl failed %s', url, exec_info=1)
+            logger.debug('openurl failed %s', url, exc_info=1)
             return False
         if r.getcode() == 200:
             try:
@@ -337,7 +337,7 @@ class Node(Thread):
                 logger.debug('SPEED %s', ox.format_bits(self.download_speed))
                 return item.save_file(content)
             except:
-                logger.debug('download failed %s', url, exec_info=1)
+                logger.debug('download failed %s', url, exc_info=1)
                 return False
         else:
             logger.debug('FAILED %s', url)
