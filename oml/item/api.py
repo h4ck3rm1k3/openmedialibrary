@@ -12,6 +12,7 @@ from websocket import trigger_event
 import metaremote as meta
 from . import models
 from . import query
+from .person import get_sort_name
 import settings
 import state
 import utils
@@ -56,7 +57,13 @@ def find(data):
             else:
                 g = []
             if 'sort' in q:
-                g.sort(key=lambda k: k[q['sort'][0]['key']])
+                sort_type = utils.get_by_id(settings.config['itemKeys'], q['group']).get('sortType')
+                def _sort_key(k):
+                    if sort_type == 'person' and q['sort'][0]['key'] == 'name':
+                        return get_sort_name(k[q['sort'][0]['key']])
+                    else:
+                        return k[q['sort'][0]['key']]
+                g.sort(key=_sort_key)
                 if q['sort'][0]['operator'] == '-':
                     g.reverse()
             state.cache.set(key, g)

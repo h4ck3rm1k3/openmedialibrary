@@ -135,11 +135,11 @@ class Item(db.Model):
                         value = float(value)
                     elif sort_type == 'date':
                         pass
-                    elif sort_type == 'name':
+                    elif sort_type == 'person':
                         if not isinstance(value, list):
                             value = [value]
                         value = list(map(get_sort_name, value))
-                        value = ox.sort_string('\n'.join(value))
+                        value = ox.sort_string('\n'.join(value)).lower()
                     elif sort_type == 'title':
                         if isinstance(value, dict):
                             value = list(value.values())
