@@ -134,6 +134,8 @@ def command_release(*args):
     import hashlib
     import ed25519
 
+    release_name = args[0] if args else 'release'
+
     os.chdir(root_dir)
     with open(os.path.expanduser('~/.openmedialibrary_release.key'), 'rb') as fd:
         SIG_KEY=ed25519.SigningKey(fd.read())
@@ -172,7 +174,7 @@ def command_release(*args):
                 cmd += ['--exclude', '*.pyc']
             if module == 'openmedialibrary':
                 cmd += ['--exclude', 'gunicorn.pid']
-            if module == 'js':
+            if module == 'oxjs':
                 cmd += ['--exclude', 'oxjs/examples']
             run(*cmd)
     release = {}
@@ -182,9 +184,9 @@ def command_release(*args):
         'sha1': sha1sum(join('updates', '%s-%s.tar.bz2' % (module, VERSIONS[module])))
     } for module in MODULES}
     sign(release)
-    with open('updates/release.json', 'w') as fd:
+    with open('updates/%s.json' % release_name, 'w') as fd:
         json.dump(release, fd, indent=2, sort_keys=True)
-    print('signed latest release in updates/release.json')
+    print('signed latest release in updates/%s.json' % release_name)
 
 def command_shell(*args):
     '''
