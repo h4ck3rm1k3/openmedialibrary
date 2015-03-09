@@ -30,7 +30,7 @@ def get_ids(key, value):
                 for value in info[key]:
                     ids.append((key, value))
     if ids:
-        logger.debug('get_ids %s,%s => %s', key, value, ids)
+        logger.debug('get_ids %s %s => %s', key, value, ids)
     return ids
 
 def lookup(id):

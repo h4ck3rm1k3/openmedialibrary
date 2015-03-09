@@ -35,8 +35,7 @@ def get_ids(key, value):
             for value in info['isbn']:
                 ids.append(('isbn', value))
     if ids:
-        logger.debug('get_ids %s %s', key, value)
-        logger.debug('%s', ids)
+        logger.debug('get_ids %s %s => %s', key, value, ids)
     return ids
 
 def lookup(id):
