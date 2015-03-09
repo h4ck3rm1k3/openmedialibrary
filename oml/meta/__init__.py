@@ -22,6 +22,7 @@ providers = [
     ('loc', 'lccn'),
     ('worldcat', 'oclc'),
     ('lookupbyisbn', 'asin'),
+    ('lookupbyisbn', 'isbn'),
     ('abebooks', 'isbn')
 ]
 
