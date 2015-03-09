@@ -4,6 +4,8 @@
 def get_classification(id):
     name = '%s' % id
     base = ''.join([s for s in id.split('/')[0].split('.')[0] if s.isdigit()])
+    if base != '0':
+        base = base.lstrip('0')
     if base in DEWEY:
         name = '%s %s' % (name, DEWEY[base].decode('utf-8'))
     return name
