@@ -7,7 +7,7 @@ def get_classification(id):
     if base != '0':
         base = base.lstrip('0')
     if base in DEWEY:
-        name = '%s %s' % (name, DEWEY[base].decode('utf-8'))
+        name = '%s %s' % (name, DEWEY[base])
     return name
 
 DEWEY = {
