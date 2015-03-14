@@ -84,6 +84,8 @@ class FileHandler(OMLHandler):
                 self.set_status(404)
                 return
             mimetype = {
+                'cbr': 'application/x-cbr',
+                'cbz': 'application/x-cbz',
                 'epub': 'application/epub+zip',
                 'pdf': 'application/pdf',
                 'txt': 'text/plain',
@@ -108,7 +110,9 @@ class ReaderHandler(OMLHandler):
             if not item:
                 self.set_status(404)
                 return
-            if item.info['extension'] == 'epub':
+            if item.info['extension'] in ('cbr', 'cbz'):
+                html = 'html/cbr.html'
+            elif item.info['extension'] == 'epub':
                 html = 'html/epub.html'
             elif item.info['extension'] == 'pdf':
                 html = 'html/pdf.html'

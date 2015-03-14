@@ -10,6 +10,7 @@ import codecs
 import ox
 
 from . import pdf
+from . import cbr
 from . import epub
 from . import txt
 from . import opf
@@ -27,10 +28,12 @@ def metadata(f, from_=None):
     data['extension'] = ext
     data['size'] = os.stat(f).st_size
 
-    if ext == 'pdf':
-        info = pdf.info(f)
+    if ext == 'cbr':
+        info = cbr.info(f)
     elif ext == 'epub':
         info = epub.info(f)
+    elif ext == 'pdf':
+        info = pdf.info(f)
     elif ext == 'txt':
         info = txt.info(f)
 

@@ -22,7 +22,7 @@ import state
 import logging
 logger = logging.getLogger('oml.item.scan')
 
-extensions = ['epub', 'pdf', 'txt']
+extensions = ['epub', 'pdf', 'txt', 'cbr', 'cbz']
 
 def remove_missing():
     dirty = False
