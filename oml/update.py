@@ -61,7 +61,7 @@ def check():
     return False
 
 def current_version(module):
-    return settings.release['modules'][module]['version'] if module in settings.release['modules'] else -1
+    return settings.release['modules'][module]['version'] if module in settings.release['modules'] else ""
 
 def download():
     if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
