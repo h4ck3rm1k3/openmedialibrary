@@ -41,8 +41,10 @@ ulimit -S -n 2048
 if [ "$1" == "start" ]; then
     cd "$BASE/$NAME"
     if [ -e $PID ]; then
-        echo openmedialibrary already running
-        exit 1
+        if ps -p `cat "$PID"` > /dev/null; then
+            echo openmedialibrary already running
+            exit 1
+        fi
     fi
     if [ ! -d "$BASE/$NAME/.git" ]; then
         python3 oml install_update
