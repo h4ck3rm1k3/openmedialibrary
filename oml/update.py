@@ -114,9 +114,12 @@ def install():
                     tar.extractall()
                     tar.close()
                     os.chdir(os.path.dirname(settings.base_dir))
-                    shutil.move(module, '%s_old' % module)
+                    module_old = '%s_old' % module
+                    if os.path.exists(module):
+                        shutil.move(module, module_old)
                     shutil.move(os.path.join(new, module), module)
-                    shutil.rmtree('%s_old' % module)
+                    if os.path.exists(module_old):
+                        shutil.rmtree(module_old)
                     shutil.rmtree(new)
                 else:
                     os.unlink(module_tar)
