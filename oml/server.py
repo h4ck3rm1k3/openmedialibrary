@@ -26,6 +26,8 @@ import websocket
 
 import logging
 
+logger = logging.getLogger('oml')
+
 class MainHandler(OMLHandler):
 
     def get(self, path):
@@ -111,6 +113,7 @@ def run():
         host = settings.server['address']
     url = 'http://%s:%s/' % (host, settings.server['port'])
     print('open browser at %s' % url)
+    logger.debug('Starting OML %s at %s', settings.VERSION, url)
 
     def shutdown():
         if state.downloads:

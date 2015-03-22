@@ -121,8 +121,11 @@ oml.ui.transfersDialog = function() {
             });
 
     oml.bindEvent({
-        transfer: Ox.throttle(function() {
-            $list.reloadList(true);
+        transfer: Ox.throttle(function(data) {
+            var current = $list.value(data.id);
+            if (!Ox.isEmpty(current)  && current.progress != data.progress) {
+                $list.value(data.id, 'progress', data.progress);
+            }
         }, 1000)
     });
 
