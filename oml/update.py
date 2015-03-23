@@ -53,7 +53,7 @@ def get(url, filename=None):
 
 def check():
     if settings.release:
-        release_data = get(settings.server.get('release_url'))
+        release_data = get(settings.server.get('release_url', 'http://downloads.openmedialibrary.com/release.json'))
         release = json.loads(release_data.decode('utf-8'))
         old = current_version('openmedialibrary')
         new = release['modules']['openmedialibrary']['version']
