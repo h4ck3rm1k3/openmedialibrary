@@ -6,12 +6,7 @@ import json
 import os
 import sys
 import tarfile
-try:
-# For Python 3.0 and later
-    from urllib.request import urlopen
-except ImportError:
-# Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+from urllib.request import urlopen
 from threading import Thread
 import subprocess
 
@@ -59,7 +54,7 @@ class Install(Thread):
         with open('config/release.json', 'w') as fd:
             json.dump(release, fd, indent=2)
         if sys.platform == 'darwin':
-            self.install_launchd()
+            os.system('./ctl install_launcher')
         elif sys.platform.startswith('linux'):
             apt_packages = ''
             yum_packages = ''
@@ -88,7 +83,7 @@ class Install(Thread):
                     print('You need to install pdftocairo (part of poppler-utils)')
                 if 'miredo' in apt_packages:
                     print('You need to install miredo (or get IPv6 in another way)')
-            self.install_application()
+            os.system('./ctl install_launcher')
         self.status['done'] = True
 
     def download(self, url, filename):
@@ -111,54 +106,6 @@ class Install(Thread):
         with closing(urlopen(self.url('release.json'))) as u:
             data = json.loads(u.read().decode('utf-8'))
         return data
-
-    def install_application(self):
-        app = os.path.expanduser('~/.local/share/applications/openmedialibrary.desktop')
-        with open(app, 'w') as fd:
-            fd.write('''[Desktop Entry]
-Type=Application
-Name=Open Media Library
-Comment=Open Media Library
-Exec=%s/ctl open
-Icon=%s/openmedialibrary/static/png/oml.png
-Terminal=false
-Categories=Network;FileTransfer;P2P;
-''' % (self.target, self.target))
-
-        start = os.path.expanduser('~/.config/autostart/openmedialibrary.desktop')
-        makefolder(start)
-        with open(start, 'w') as fd:
-            fd.write('''[Desktop Entry]
-Type=Application
-Exec=%s/ctl start
-Icon=%s/openmedialibrary/static/png/oml.png
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=Start Open Media Library
-Comment=
-''' % (self.target, self.target))
-
-    def install_launchd(self):
-        plist = os.path.expanduser('~/Library/LaunchAgents/com.openmedialibrary.loginscript.plist')
-        with open(plist, 'w') as f:
-            f.write('''<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-    <dict>
-        <key>Label</key>
-        <string>com.openmedialibrary.loginscript</string>
-        <key>ProgramArguments</key>
-        <array>
-            <string>%s/ctl</string>
-            <string>start</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-    </dict>
-</plist>''' % self.target)
-        os.system('launchctl load "%s"' % plist)
-        os.system('launchctl start com.openmedialibrary.loginscript')
 
     def url(self, url):
         return self.base_url + url

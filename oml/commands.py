@@ -9,18 +9,9 @@ import sys
 import shutil
 
 import settings
+from utils import run, get
 
 root_dir = dirname(settings.base_dir)
-
-def run(*cmd):
-    p = subprocess.Popen(cmd, close_fds=True)
-    p.wait()
-    return p.returncode
-
-def get(*cmd):
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-    stdout, error = p.communicate()
-    return stdout.decode()
 
 def r(*cmd):
     print(' '.join(cmd))
@@ -63,6 +54,20 @@ def command_stop(*args):
         Stop Open Media Libary
     """
     pass
+
+def command_install_launcher(*args):
+    """
+        Install launcher
+    """
+    import integration
+    integration.install_launcher()
+
+def command_uninstall_launcher(*args):
+    """
+        Uninstall launcher
+    """
+    import integration
+    integration.uninstall_launcher()
 
 def command_install_update(*args):
     """

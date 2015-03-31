@@ -230,3 +230,18 @@ def datetime2ts(dt):
 
 def ts2datetime(ts):
     return datetime.utcfromtimestamp(float(ts))
+
+def run(*cmd):
+    p = subprocess.Popen(cmd, close_fds=True)
+    p.wait()
+    return p.returncode
+
+def get(*cmd):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    stdout, error = p.communicate()
+    return stdout.decode()
+
+def makefolder(path):
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
