@@ -62,6 +62,11 @@ if [ "$1" == "debug" ]; then
     exec python3 oml server $@
 fi
 if [ "$1" == "stop" ]; then
+    if [ $SYSTEM == "Darwin" ]; then
+        launchd_name="com.openmedialibrary.loginscript"
+        launchd_plist="$HOME/Library/LaunchAgents/${launchd_name}.plist"
+        test -e "$launchd_plist" && launchctl stop "$launchd_name"
+    fi
     test -e $PID && kill `cat $PID`
     test -e $PID && rm $PID
     exit $?
