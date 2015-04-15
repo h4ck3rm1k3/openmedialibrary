@@ -16,7 +16,7 @@ Networking
 ----------
 
 At this time you need a working IPv6 connection to use Open Media Libary.
-If you dont have native IPv6 you can use Teredo/Miredo (`apt-get install miredo`)
+If you don't have native IPv6 you can use Teredo/Miredo (`apt-get install miredo`)
 or get a tunnel Hurricane Electric (https://tunnelbroker.net/)
 or SixSS (https://sixxs.net).
 
@@ -39,7 +39,7 @@ To update to latest version:
 
     ./ctl update
 
-On Linux you need a working python3 installation with pillow, pyhon-lxml and poppler-utils:
+On Linux you need a working python3 installation with pillow, python-lxml and poppler-utils:
 
     apt-get install python3.4 python3-pil python3-lxml poppler-utils
 
@@ -48,7 +48,7 @@ Platform
 ----------
 
 If you install Open Media Library on a architecture/os that is currently
-not upported, you need a working python 3.4 installation and the dependencies
+not supported, you need a working python 3.4 installation and the dependencies
 listed in requirements.txt and requirements-shared.txt:
 
     pip3 install -r requirements.txt
