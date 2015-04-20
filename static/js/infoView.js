@@ -219,7 +219,7 @@ oml.ui.infoView = function(identifyData) {
         if (data.mediastate == 'unavailable' && !ui._lists) {
             setListItems();
         }
-        var $element = data.mediastate == 'unavailable'
+        var $element = (data.mediastate == 'unavailable' || Ox.isUndefined(data.mediastate))
             ? Ox.FormElementGroup({
                 elements: [
                     Ox.Button({
@@ -540,12 +540,12 @@ oml.ui.infoView = function(identifyData) {
                                 editable: isEditable,
                                 format: function(value) {
                                     return key == 'language'
-                                        ? formatValue(value, key)
+                                        ? formatValue(value.split('; '), key)
                                         : value;
                                 },
                                 placeholder: formatLight('unknown'),
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
-                                value: data[key] || ''
+                                value: data[key] ? key == 'language' ? data[key].join('; ') : data[key] : ''
                             })
                             .bindEvent({
                                 submit: function(event) {
@@ -648,7 +648,7 @@ oml.ui.infoView = function(identifyData) {
                                 .text(title)
                                 .appendTo($data);
                             Ox.makeArray(data[id.key]/*FIXME!*/).forEach(function(value) {
-                                var isPrimary = data.primaryid[0] == id.key
+                                var isPrimary = data.primaryid && data.primaryid[0] == id.key
                                     && data.primaryid[1] == value;
                                 value = Ox.encodeHTMLEntities(value);
                                 Ox.Element({

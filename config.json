@@ -76,7 +76,7 @@
         {
             "id": "language",
             "title": "Language",
-            "type": "string",
+            "type": ["string"],
             "columnWidth": 128,
             "filter": true,
             "find": true,
@@ -112,6 +112,7 @@
             "type": "string",
             "columnWidth": 80,
             "format": {"type": "upper", "args": []},
+            "filter": true,
             "sort": true
         },
         {
