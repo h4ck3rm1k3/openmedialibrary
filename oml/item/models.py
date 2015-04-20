@@ -130,7 +130,10 @@ class Item(db.Model):
                 sort_type = key.get('sortType', key['type'])
                 if value:
                     if sort_type == 'integer':
-                        value = int(value)
+                        if isinstance(value, str):
+                            value = int(re.sub('[^0-9]', '', value))
+                        else:
+                            value = int(value)
                     elif sort_type == 'float':
                         value = float(value)
                     elif sort_type == 'date':
