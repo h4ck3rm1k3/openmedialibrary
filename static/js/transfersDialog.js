@@ -6,7 +6,7 @@ oml.ui.transfersDialog = function() {
 
         $list = Ox.TableList({
             columns: [
-                'title', 'extension', 'size',
+                'id', 'title', 'extension', 'size',
                 'transferadded', 'transferprogress'
             ].map(function(id) {
                 var key = Ox.getObjectById(oml.config.itemKeys, id);
@@ -18,7 +18,7 @@ oml.ui.transfersDialog = function() {
                     id: id,
                     operator: oml.getSortOperator(id),
                     title: Ox._(key.title),
-                    visible: true,
+                    visible: id != 'id',
                     width: id == 'title' ? 240
                         : id == 'transferadded' ? 144
                         : id == 'transferprogress' ? 80 - Ox.UI.SCROLLBAR_SIZE
@@ -123,8 +123,8 @@ oml.ui.transfersDialog = function() {
     oml.bindEvent({
         transfer: Ox.throttle(function(data) {
             var current = $list.value(data.id);
-            if (!Ox.isEmpty(current)  && current.progress != data.progress) {
-                $list.value(data.id, 'progress', data.progress);
+            if (!Ox.isEmpty(current)  && current.transferprogress != data.progress) {
+                $list.value(data.id, 'transferprogress', data.progress);
             }
         }, 1000)
     });
