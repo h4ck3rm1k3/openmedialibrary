@@ -96,7 +96,7 @@ oml.ui.filtersOuterPanel = function() {
         oml.$ui.filters.forEach(function($filter, index) {
             $filter.resizeColumn(
                 'name',
-                filterSizes[index] - 44 - Ox.UI.SCROLLBAR_SIZE
+                filterSizes[index] - 48 - Ox.UI.SCROLLBAR_SIZE
             );
         });
         return that;

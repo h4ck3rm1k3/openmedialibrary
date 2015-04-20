@@ -41,7 +41,7 @@ oml.ui.transfersDialog = function() {
             },
             keys: ['author'],
             scrollbarVisible: true,
-            sort: [{key: 'transferprogress', operator: '-'}],
+            sort: [{key: 'transferadded', operator: '-'}],
             unique: 'id'
         }),
 
