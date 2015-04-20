@@ -30,7 +30,7 @@ oml.ui.folderList = function(options) {
                 {
                     id: 'name',
                     visible: true,
-                    width: ui.sidebarSize - 58,
+                    width: ui.sidebarSize - 16 - 48,
                 },
                 {
                     align: 'right',
@@ -43,7 +43,7 @@ oml.ui.folderList = function(options) {
                     },
                     id: 'items',
                     visible: true,
-                    width: 42
+                    width: 48
                 }
             ],
             draggable: options.draggable,

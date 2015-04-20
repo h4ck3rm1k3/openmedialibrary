@@ -17,7 +17,7 @@ oml.ui.filter = function(id) {
                     operator: '+',
                     title: Ox._(filter.title),
                     visible: true,
-                    width: filterSize - 44 - Ox.UI.SCROLLBAR_SIZE
+                    width: filterSize - 48 - Ox.UI.SCROLLBAR_SIZE
                 },
                 {
                     align: 'right',
@@ -28,7 +28,7 @@ oml.ui.filter = function(id) {
                     operator: '-',
                     title: '#',
                     visible: true,
-                    width: 44
+                    width: 48
                 }
             ],
             columnsVisible: true,
@@ -157,10 +157,20 @@ oml.ui.filter = function(id) {
         })
         .bindEvent({
             change: function(data) {
-                
+                var isOuter = filterIndex % 4 == 0, id = data.checked[0].id;
+                ui.filters[filterIndex] = Ox.getObjectById(oml.config.user.ui.filters, id);
+                ui._filterState = oml.getFilterState(ui.find);
+                oml.$ui[isOuter ? 'filtersOuterPanel' : 'filtersInnerPanel'].replaceElement(
+                    isOuter ? filterIndex / 2 : filterIndex - 1,
+                    oml.$ui.filters[filterIndex] = oml.ui.filter(id)
+                );
             },
             click: function(data) {
-                
+                if (data.id == 'clearFilter') {
+                    that.options({selected: []}).triggerEvent('select', {ids: []});
+                } else if (data.id == 'clearFilters') {
+                    oml.clearFilters();
+                }
             }
         })
         .appendTo(that.$bar.$element);

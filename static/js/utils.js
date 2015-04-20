@@ -951,7 +951,7 @@ oml.resizeFilters = function() {
 oml.resizeListFolders = function() {
     // FIXME: does this have to be here?
     var width = oml.getListFoldersWidth(),
-        columnWidth = width - 58;
+        columnWidth = width - 16 - 48;
     oml.$ui.librariesList
         .css({width: width + 'px'})
         .resizeColumn('name', columnWidth);
