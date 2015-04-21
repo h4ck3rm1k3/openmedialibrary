@@ -237,12 +237,12 @@ oml.ui.identifyDialog = function(data) {
                             $metadataSelect.value() == 'original'
                             ? oml.api.resetMetadata : Ox.noop
                         )({id: ui.item}, function(result) {
-                            that.close();
                             Ox.Request.clearCache('find');
                             oml.$ui.browser.reloadList(true);
                             oml.$ui.list.reloadList(true);
                             Ox.Request.clearCache(data.id);
                             oml.$ui.infoView.updateElement(data.id);
+                            that.close();
                         });
                     });
                 }
