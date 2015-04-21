@@ -123,6 +123,7 @@ class Item(db.Model):
         return f.fullpath() if f else None
 
     def update_sort(self):
+        update = False
         s = Sort.get_or_create(self.id)
         for key in config['itemKeys']:
             if key.get('sort'):
@@ -158,19 +159,24 @@ class Item(db.Model):
                             value = ox.sort_string(value).lower()
                 elif isinstance(value, list): #empty list
                     value = ''
-                setattr(s, key['id'], value)
-        state.db.session.add(s)
+                if getattr(s, key['id']) != value:
+                    setattr(s, key['id'], value)
+                    update = True
+        if update:
+            state.db.session.add(s)
 
     def update_find(self):
 
         def add(k, v):
-            f = Find(item_id=self.id, key=k)
-            if isinstance(v, bytes):
-                v = v.decode('utf-8')
-            f.findvalue = unicodedata.normalize('NFKD', v).lower()
-            f.value = v
-            state.db.session.add(f)
+            f = Find.query.filter_by(item_id=self.id, key=k, value=v).first()
+            if not f:
+                f = Find(item_id=self.id, key=k)
+            if f.value != v:
+                f.findvalue = unicodedata.normalize('NFKD', v).lower()
+                f.value = v
+                state.db.session.add(f)
 
+        keys = []
         for key in config['itemKeys']:
             if key.get('find') or key.get('filter') or key.get('type') in [['string'], 'string']:
                 value = self.json().get(key['id'], None)
@@ -178,17 +184,22 @@ class Item(db.Model):
                     value = re.compile(key.get('filterMap')).findall(value)
                     if value: value = value[0]
                 if value:
-                    Find.query.filter_by(item_id=self.id, key=key['id']).delete()
+                    keys.append(key['id'])
                     if isinstance(value, dict):
                         value = ' '.join(list(value.values()))
                     if not isinstance(value, list):
                         value = [value]
+                    value = [
+                        v.decode('utf-8') if isinstance(v, bytes) else v
+                        for v in value
+                    ]
                     for v in value:
                         add(key['id'], v)
-                else:
-                    f = Find.get(self.id, key['id'])
-                    if f:
+                    for f in Find.query.filter_by(item_id=self.id,
+                            key=key['id']).filter(Find.value.notin_(value)):
                         state.db.session.delete(f)
+        for f in Find.query.filter_by(item_id=self.id).filter(Find.key.notin_(keys)):
+            state.db.session.delete(f)
 
     def update(self):
         for key in ('mediastate', 'coverRatio', 'previewRatio'):
@@ -252,7 +263,8 @@ class Item(db.Model):
                 key = self.meta['primaryid'][0]
         record = {}
         if id:
-            self.meta[key] = id
+            if not key in self.meta or not key in self.meta[key]:
+                self.meta[key] = list(set([id] + self.meta.get(key, [])))
             self.meta['primaryid'] = [key, id]
             record[key] = id
         else:
@@ -450,7 +462,7 @@ class Find(db.Model):
     findvalue = sa.Column(sa.Text(), index=True)
 
     def __repr__(self):
-        return ('%s=%s' % (self.key, self.findvalue)).encode('utf-8')
+        return '%s=%s' % (self.key, self.findvalue)
 
     @classmethod
     def get(cls, item, key):
