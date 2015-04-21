@@ -72,6 +72,9 @@ oml.ui.browser = function() {
             sort: ui.listSort,
             unique: 'id'
         })
+        .css({
+            'overflow-y': 'hidden'
+        })
         .bindEvent({
             open: function(data) {
                 if (that.value(data.ids[0], 'mediastate') == 'available') {
