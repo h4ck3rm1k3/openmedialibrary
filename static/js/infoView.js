@@ -535,7 +535,6 @@ oml.ui.infoView = function(identifyData) {
                         $('<span>')
                             .html(formatKey(key))
                             .appendTo($div);
-                        Ox.print('colors', key, data[key])
                         Ox.EditableContent({
                                 clickLink: oml.clickLink,
                                 editable: isEditable,
