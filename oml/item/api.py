@@ -17,6 +17,9 @@ import settings
 import state
 import utils
 
+from . import person_api
+from . import title_api
+
 import logging
 logger = logging.getLogger('oml.item.api')
 

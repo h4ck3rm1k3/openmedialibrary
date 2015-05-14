@@ -46,3 +46,9 @@ class Person(db.Model):
         state.db.session.add(self)
         state.db.session.commit()
 
+    def json(self, keys=None):
+        r = {}
+        r['name'] = self.name
+        r['sortname'] = self.sortname
+        r['numberofnames'] = self.numberofnames
+        return r

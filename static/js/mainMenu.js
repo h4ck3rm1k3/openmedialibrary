@@ -456,6 +456,14 @@ oml.ui.mainMenu = function() {
                         oml.localStorage('enableDebugMode', true);
                     }
                     window.location.reload();
+                } else if (id == 'sortnames') {
+                    (oml.$ui.namesDialog || (
+                        oml.$ui.namesDialog = oml.ui.namesDialog()
+                    )).open();
+                } else if (id == 'sorttitles') {
+                    (oml.$ui.titlesDialog || (
+                        oml.$ui.titlesDialog = oml.ui.titlesDialog()
+                    )).open();
                 } else {
                     Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
                 }
