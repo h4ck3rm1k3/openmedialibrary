@@ -57,7 +57,10 @@ oml.ui.usersDialog = function() {
         }),
 
         // FIXME: WRONG!
-        $users = Ox.Element().css({background: 'rgb(240, 240, 240)'}),
+        $users = Ox.Element().css({
+            background: 'rgb(240, 240, 240)',
+            overflowX: 'hidden'
+        }),
 
         $user = Ox.Element(),
 
@@ -152,8 +155,7 @@ oml.ui.usersDialog = function() {
                                 : '<span class="OxLight">' + value + '</span>'
                         },
                         id: 'title',
-                        visible: true,
-                        width: 240
+                        visible: true
                     }
                 ],
                 items: [
