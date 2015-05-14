@@ -71,7 +71,7 @@ def run():
         (r'/(.*?)/pdf/', FileHandler),
         (r'/(.*?)/txt/', FileHandler),
         (r'/(.*?)/get/', FileHandler, {
-            'download': True
+            'attachment': True
         }),
         (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler),
         (r'/api/', oxtornado.ApiHandler, dict(context=db.session)),

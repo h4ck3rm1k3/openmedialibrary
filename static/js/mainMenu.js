@@ -464,6 +464,8 @@ oml.ui.mainMenu = function() {
                     (oml.$ui.titlesDialog || (
                         oml.$ui.titlesDialog = oml.ui.titlesDialog()
                     )).open();
+                } else if (id == 'download') {
+                    document.location.href = '/' + oml.user.ui.item + '/get/';
                 } else {
                     Ox.print('MAIN MENU DOES NOT YET HANDLE', id);
                 }
