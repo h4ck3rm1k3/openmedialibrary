@@ -439,6 +439,10 @@ oml.ui.preferencesDialog = function() {
                 if (key == 'theme') {
                     Ox.Theme(value);
                 }
+                if (key == 'showDebugMenu') {
+                    oml.UI.set({'showDebugMenu': value});
+                    oml.updateDebugMenu();
+                }
             }
         });
 

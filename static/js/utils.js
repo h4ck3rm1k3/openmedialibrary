@@ -993,3 +993,9 @@ oml.validatePublicKey = function(value) {
     return /^[A-Za-z0-9+\/]{43}$/.test(value);
 };
 
+oml.updateDebugMenu = function() {
+    var menu = $('.OxTitle').filter(function(i, e) {
+        return e.innerHTML == 'Debug'
+    });
+    oml.user.ui.showDebugMenu ? menu.show() : menu.hide();
+};

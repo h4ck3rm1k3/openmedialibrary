@@ -590,6 +590,7 @@ oml.ui.mainMenu = function() {
             oml.UI.set({showSidebar: !ui.showSidebar});
         }
     });
+    setTimeout(oml.updateDebugMenu);
 
     function getEditMenu() {
         var listData = oml.getListData(),
