@@ -155,7 +155,8 @@ oml.ui.usersDialog = function() {
                                 : '<span class="OxLight">' + value + '</span>'
                         },
                         id: 'title',
-                        visible: true
+                        visible: true,
+                        width: 240 - Ox.SCROLLBAR_SIZE
                     }
                 ],
                 items: [
