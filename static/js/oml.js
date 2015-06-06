@@ -93,6 +93,25 @@
             Ox.$window.on({
                 resize: oml.resizeWindow
             });
+            Ox.$document.on({
+                dragenter: function(event) {
+                    event.preventDefault();
+                },
+                dragover: function(event) {
+                    event.preventDefault();
+                },
+                drop: function(event) {
+                    if (event.originalEvent.dataTransfer.files) {
+                        event.preventDefault();
+                        oml.upload(event.originalEvent.dataTransfer.files, function(response) {
+                            setTimeout(function() {
+                                oml.UI.set({listSelection: response.data.ids});
+                                oml.reloadList();
+                            }, 50);
+                        });
+                    }
+                }
+            });
             oml.$ui.appPanel = oml.ui.appPanel().appendTo(Ox.$body);
             oml.$ui.loadingIcon.updateElement(Ox.Request.requests());
             Ox.Request.bindEvent({

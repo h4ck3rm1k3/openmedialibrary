@@ -8,11 +8,23 @@ import os
 from urllib.request import quote
 import zipfile
 
-from .models import Item
+import ox
+
+from .models import Item, File
+from user.models import List
+from .scan import add_file
 import db
 import settings
 import tornado.web
+import tornado.gen
+import tornado.concurrent
 
+from oxtornado import json_dumps, json_response
+
+from media import get_id
+
+import logging
+logger = logging.getLogger('item.handlers')
 
 class OMLHandler(tornado.web.RequestHandler):
 
@@ -126,3 +138,60 @@ class ReaderHandler(OMLHandler):
             item.update_sort()
             item.save()
             return serve_static(self, os.path.join(settings.static_path, html), 'text/html')
+
+class UploadHandler(tornado.web.RequestHandler):
+
+    def initialize(self, context=None):
+        self._context = context
+
+    def get(self):
+        self.write('use POST')
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        if 'origin' in self.request.headers and self.request.host not in self.request.headers['origin']:
+            logger.debug('reject cross site attempt to access api %s', self.request)
+            self.set_status(403)
+            self.write('')
+            return
+        def save_files(context, request, callback):
+            listname = request.arguments.get('list', None)
+            if listname:
+                listname = listname[0]
+                if isinstance(listname, bytes):
+                    listname = listname.decode('utf-8')
+            with context():
+                prefs = settings.preferences
+                ids = []
+                for upload in request.files.get('files', []):
+                    filename = upload.filename
+                    id = get_id(data=upload.body)
+                    ids.append(id)
+                    file = File.get(id)
+                    if not file:
+                        prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+                        prefix_imported = os.path.join(prefix_books, 'Imported/')
+                        ox.makedirs(prefix_imported)
+                        import_name = os.path.join(prefix_imported, filename)
+                        n = 1
+                        while os.path.exists(import_name):
+                            n += 1
+                            name, extension = filename.rsplit('.', 1)
+                            import_name = os.path.join(prefix_imported, '%s [%d].%s' % (name, n, extension))
+                        with open(import_name, 'wb') as fd:
+                            fd.write(upload.body)
+                        file = add_file(id, import_name, prefix_books)
+            if listname and ids:
+                l = List.get(settings.USER_ID, listname)
+                if l:
+                    l.add_items(ids)
+            response = json_response({'ids': ids})
+            callback(response)
+
+        response = yield tornado.gen.Task(save_files, self._context, self.request)
+        if not 'status' in response:
+            response = json_response(response)
+        response = json_dumps(response)
+        self.set_header('Content-Type', 'application/json')
+        self.write(response)

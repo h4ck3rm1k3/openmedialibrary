@@ -13,7 +13,7 @@ from tornado.web import StaticFileHandler, Application
 
 from cache import Cache
 from item.handlers import EpubHandler, ReaderHandler, FileHandler
-from item.handlers import OMLHandler
+from item.handlers import OMLHandler, UploadHandler
 from item.icons import IconHandler
 import db
 import node.server
@@ -74,6 +74,7 @@ def run():
             'attachment': True
         }),
         (r'/(.*)/(cover|preview)(\d*).jpg', IconHandler),
+        (r'/api/upload/', UploadHandler, dict(context=db.session)),
         (r'/api/', oxtornado.ApiHandler, dict(context=db.session)),
         (r'/ws', websocket.Handler),
         (r"(.*)", MainHandler),

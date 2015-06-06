@@ -999,3 +999,33 @@ oml.updateDebugMenu = function() {
     });
     oml.user.ui.showDebugMenu ? menu.show() : menu.hide();
 };
+
+oml.supportedExtensions = ['pdf', 'epub', 'cbr', 'cbz'];
+oml.upload = function(files, callback) {
+    var request = new XMLHttpRequest(),
+        url = '/api/upload/';
+    request.onreadystatechange = function() {
+        if (request.readyState == 4) {
+            if (request.status == 200) {
+                callback(JSON.parse(request.responseText), null);
+            } else {
+                callback(null, {
+                    code: request.status,
+                    text: request.statusText
+                });
+            }
+        }
+    };
+    var formData = new FormData();
+    for (var i=0; i < files.length; i++) {
+        var extension = Ox.last(files[i].name.split('.'));
+        if (Ox.contains(oml.supportedExtensions, extension)) {
+            formData.append('files', files[i]);
+        }
+    }
+    if (oml.user.ui._list[0] == ':' && oml.user.ui._list.length > 1) {
+        formData.append('list', oml.user.ui._list.slice(1));
+    }
+    request.open('post', url, true);
+    request.send(formData);
+};
