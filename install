@@ -49,10 +49,6 @@ class Install(Thread):
         os.symlink('openmedialibrary/ctl', 'ctl')
         self.status['progress'] = 0
         self.status['installing'] = 'setup'
-        os.system('./ctl setup')
-        self.status['progress'] = 1
-        with open('config/release.json', 'w') as fd:
-            json.dump(release, fd, indent=2)
         if sys.platform == 'darwin':
             os.system('./ctl install_launcher')
         elif sys.platform.startswith('linux'):
@@ -84,6 +80,10 @@ class Install(Thread):
                 if 'miredo' in apt_packages:
                     print('You need to install miredo (or get IPv6 in another way)')
             os.system('./ctl install_launcher')
+        os.system('./ctl setup')
+        self.status['progress'] = 1
+        with open('config/release.json', 'w') as fd:
+            json.dump(release, fd, indent=2)
         self.status['done'] = True
 
     def download(self, url, filename):
