@@ -69,7 +69,7 @@ class Install(Thread):
 
             if has_bin('apt-get') and apt_packages:
                 print('Installing additional packages: %s' % apt_packages)
-                os.system('sudo apt-get install ' + apt_packages)
+                os.system('sudo apt-get install -y ' + apt_packages)
             elif has_bin('yum') and yum_packages:
                 print('Installing additional packages: %s' % yum_packages)
                 os.system('sudo yum install ' + yum_packages)
