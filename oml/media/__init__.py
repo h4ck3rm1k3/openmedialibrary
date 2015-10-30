@@ -43,7 +43,7 @@ def metadata(f, from_=None):
         opf_info = opf.info(metadata_opf)
 
     for key in (
-        'title', 'author', 'date', 'publisher',
+        'title', 'author', 'date', 'publisher', 'description',
         'language', 'textsize', 'pages',
         'isbn', 'asin'
     ):
