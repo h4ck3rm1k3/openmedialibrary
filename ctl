@@ -39,6 +39,20 @@ hash -r 2>/dev/null
 ulimit -S -n 2048
 
 if [ "$1" == "start" ]; then
+    if [ $SYSTEM == "Darwin" ]; then
+        launchd_name="com.openmedialibrary.loginscript"
+        launchd_plist="$HOME/Library/LaunchAgents/${launchd_name}.plist"
+        if [ -e "$launchd_plist" ]; then
+            launchctl stop "$launchd_name"
+            launchctl unload "$launchd_plist"
+            rm "$launchd_plist"
+        fi
+    fi
+    if [ $SYSTEM == "Linux" ]; then
+        if [ -e "$HOME/.config/autostart/openmedialibrary.desktop" ]; then
+            rm "$HOME/.config/autostart/openmedialibrary.desktop"
+        fi
+    fi
     cd "$BASE/$NAME"
     if [ -e $PID ]; then
         if ps -p `cat "$PID"` > /dev/null; then

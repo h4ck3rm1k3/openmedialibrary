@@ -49,9 +49,7 @@ class Install(Thread):
         os.symlink('openmedialibrary/ctl', 'ctl')
         self.status['progress'] = 0
         self.status['installing'] = 'setup'
-        if sys.platform == 'darwin':
-            os.system('./ctl install_launcher')
-        elif sys.platform.startswith('linux'):
+        if sys.platform.startswith('linux'):
             apt_packages = ''
             yum_packages = ''
             try:

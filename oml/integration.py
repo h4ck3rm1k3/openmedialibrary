@@ -31,6 +31,7 @@ def uninstall_launcher():
                 os.unlink(f)
 
 def install_launchd():
+    return
     name = 'com.openmedialibrary.loginscript'
     plist = os.path.expanduser('~/Library/LaunchAgents/%s.plist'%name)
     if os.path.exists(plist):
@@ -68,15 +69,3 @@ Terminal=false
 Categories=Network;FileTransfer;P2P;
 ''' % {'base': root_dir})
 
-    start = os.path.expanduser('~/.config/autostart/openmedialibrary.desktop')
-    makefolder(start)
-    with open(start, 'w') as fd:
-            fd.write('''[Desktop Entry]
-Type=Application
-Name=Start Open Media Library
-Exec=%(base)s/ctl start
-Icon=%(base)s/openmedialibrary/static/png/oml.png
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-''' % {'base': root_dir})
