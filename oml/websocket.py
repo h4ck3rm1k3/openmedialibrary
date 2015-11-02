@@ -19,7 +19,12 @@ class Handler(WebSocketHandler):
     def check_origin(self, origin):
         # allow access to websocket from site, installer and loader (local file)
         return self.request.host in origin or \
-            origin in ('http://127.0.0.1:9842', 'null', 'file:///')
+            origin in (
+                'http://127.0.0.1:9841',
+                'http://127.0.0.1:9842',
+                'file:///',
+                'null'
+            )
 
     def open(self):
         if self.request.headers['origin'] not in ('null', 'http://127.0.0.1:9842') \
