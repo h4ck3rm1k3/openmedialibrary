@@ -91,7 +91,7 @@ def lookup(id):
             data['date'] = date
             data['place'] = [place]
         elif ':' in data['publisher']:
-            place, publisher = data['publisher'].split(':', 2)
+            place, publisher = data['publisher'].split(':', 1)
             data['place'] = [place.strip()]
             data['publisher'] = publisher.split(',')[0].strip()
             m = re.compile('\d{4}').findall(publisher)
