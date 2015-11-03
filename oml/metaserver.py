@@ -50,6 +50,7 @@ def getMetadata(data):
     key, value = next(iter(data.items()))
     if key == 'isbn':
         value = utils.normalize_isbn(value)
+    logger.debug('getMetadata key=%s value=%s', key, value)
     response = meta.lookup(key, value)
     if response:
         response['primaryid'] = [key, value]

@@ -164,9 +164,15 @@ class API(object):
                 data[key] = json.dumps(data[key])
         url = self.base + '/' + action + '?' + urlencode(data)
         if timeout is None:
-            result = json.loads(read_url(url).decode('utf-8'))
+            r = read_url(url).decode('utf-8')
+            if '504 Gateway Time-out' in r:
+                r = read_url(url, timeout=-1).decode('utf-8')
+            result = json.loads(r)
         else:
-            result = json.loads(read_url(url, timeout=timeout).decode('utf-8'))
+            r = read_url(url, timeout).decode('utf-8')
+            if '504 Gateway Time-out' in r:
+                r = read_url(url, timeout=-1).decode('utf-8')
+            result = json.loads(r)
         if 'status' in result and result['status'] == 'error' or 'error' in result:
             logger.info('FAILED %s %s', action, data)
             logger.info('URL %s', url)

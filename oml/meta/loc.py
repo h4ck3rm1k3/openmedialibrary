@@ -19,7 +19,7 @@ def get_ids(key, value):
     ids = []
     if key == 'isbn':
         url = 'http://www.loc.gov/search/?q=%s&all=true' % value
-        html = ox.cache.read_url(url).decode('utf-8')
+        html = ox.cache.read_url(url).decode('utf-8', 'ignore')
         match = re.search('"http://lccn.loc.gov/(\d+)"', html)
         if match:
             ids.append(('lccn', match.group(1)))
