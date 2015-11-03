@@ -15,7 +15,7 @@ base = 'http://www.abebooks.com'
 def get_ids(key, value):
     ids = []
     if key == 'isbn':
-        url = '%s/servlet/SearchResults?isbn=%s&sts=t' % (base, id)
+        url = '%s/servlet/SearchResults?isbn=%s&sts=t' % (base, value)
         data = read_url(url, unicode=True)
         urls = re.compile('href="(/servlet/BookDetailsPL[^"]+)"').findall(data)
         if urls:

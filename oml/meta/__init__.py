@@ -21,6 +21,7 @@ providers = [
     ('openlibrary', 'olid'),
     ('loc', 'lccn'),
     ('worldcat', 'oclc'),
+    ('worldcat', 'isbn'),
     ('lookupbyisbn', 'asin'),
     ('lookupbyisbn', 'isbn'),
     ('abebooks', 'isbn')
@@ -36,23 +37,31 @@ def find(query):
     '''
     return results
 
+def lookup_provider(arg):
+    provider, id, ids, key, value = arg
+    values = set()
+    for key, value in ids:
+        if key == id or provider in ('openlibrary', ):
+            for kv in globals()[provider].get_ids(key, value):
+                values.add(kv)
+    return values
+
 def lookup(key, value):
     if not isvalid_id(key, value):
         return {}
     data = {key: [value]}
-    ids = [(key, value)]
+    ids = set([(key, value)])
     provider_data = {}
     done = False
+
     while not done:
         done = True
         for provider, id in providers:
-            for key, value in ids:
-                for kv in globals()[provider].get_ids(key, value):
-                    if not kv in ids:
-                        ids.append(kv)
-                        done = False
+            result = lookup_provider((provider, id, ids, key, value))
+            done = not result - ids
+            ids.update(result)
     logger.debug('FIXME: sort ids')
-    ids.sort(key=lambda i: ox.sort_string(''.join(i)))
+    ids = sorted(ids, key=lambda i: ox.sort_string(''.join(i)))
     logger.debug('IDS %s', ids)
     for k, v in ids:
         for provider, id in providers:

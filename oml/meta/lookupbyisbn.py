@@ -31,7 +31,7 @@ def get_ids(key, value):
         m = re.compile('href="(/Lookup/Book/[^"]+?)"').findall(data)
         if m:
             asin = m[0].split('/')[-3]
-            if not stdnum.isbn.is_valid(asin):
+            if stdnum.isbn.to_isbn10(asin) or not stdnum.isbn.is_valid(asin):
                 ids.append(('asin', asin))
     if key == 'isbn':
         add_other_isbn(value)
@@ -89,5 +89,6 @@ def lookup(id):
     return r
 
 def amazon_lookup(asin):
-    html = read_url('http://www.amazon.com/dp/%s' % asin).decode('utf-8', 'ignore')
+    url = 'http://www.amazon.com/dp/%s' % asin
+    html = read_url(url, timeout=-1).decode('utf-8', 'ignore')
     return list(set(find_isbns(find_re(html, 'Formats</h3>.*?</table'))))
