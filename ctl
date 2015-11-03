@@ -9,13 +9,13 @@ if [ -e oml ]; then
 fi
 BASE=`pwd`
 SYSTEM=`uname -s`
-SYSTEM_=`uname -s`
 PLATFORM=`uname -m`
 
 if [ $SYSTEM == "Linux" ]; then
-    SYSTEM="${SYSTEM}_${PLATFORM}"
+    export PLATFORM_ENV="$BASE/platform/${SYSTEM}_${PLATFORM}"
+else
+    export PLATFORM_ENV="$BASE/platform/$SYSTEM"
 fi
-export PLATFORM_ENV="$BASE/platform/$SYSTEM"
 if [ $SYSTEM == "Darwin" ]; then
     export DYLD_FALLBACK_LIBRARY_PATH="$PLATFORM_ENV/lib"
 fi
@@ -39,7 +39,7 @@ hash -r 2>/dev/null
 # allow more open files
 ulimit -S -n 2048
 
-if [ "$1" == "start" ]; then
+function remove_loginscript {
     if [ $SYSTEM == "Darwin" ]; then
         launchd_name="com.openmedialibrary.loginscript"
         launchd_plist="$HOME/Library/LaunchAgents/${launchd_name}.plist"
@@ -49,7 +49,11 @@ if [ "$1" == "start" ]; then
             rm "$launchd_plist"
         fi
     fi
-    if [ $SYSTEM_ == "Linux" ]; then
+}
+
+if [ "$1" == "start" ]; then
+    remove_loginscript
+    if [ $SYSTEM == "Linux" ]; then
         if [ -e "$HOME/.config/autostart/openmedialibrary.desktop" ]; then
             rm "$HOME/.config/autostart/openmedialibrary.desktop"
         fi
@@ -77,11 +81,7 @@ if [ "$1" == "debug" ]; then
     exec python3 oml server $@
 fi
 if [ "$1" == "stop" ]; then
-    if [ $SYSTEM == "Darwin" ]; then
-        launchd_name="com.openmedialibrary.loginscript"
-        launchd_plist="$HOME/Library/LaunchAgents/${launchd_name}.plist"
-        test -e "$launchd_plist" && launchctl stop "$launchd_name"
-    fi
+    remove_loginscript
     test -e $PID && kill `cat $PID`
     test -e $PID && rm $PID
     exit $?
@@ -97,12 +97,10 @@ if [ "$1" == "restart" ]; then
     fi
 fi
 if [ "$1" == "open" ]; then
-    #time to switch to python and use webbrowser.open_tab?
-    echo $SYSTEM
     if [ $SYSTEM == "Darwin" ]; then
         open "/Applications/Open Media Library.app"
     fi
-    if [ $SYSTEM_ == "Linux" ]; then
+    if [ $SYSTEM == "Linux" ]; then
         exec python3 "$NAME/oml/gtkwebkit.py" $@
     fi
     exit 0
