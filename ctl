@@ -9,6 +9,7 @@ if [ -e oml ]; then
 fi
 BASE=`pwd`
 SYSTEM=`uname -s`
+SYSTEM_=`uname -s`
 PLATFORM=`uname -m`
 
 if [ $SYSTEM == "Linux" ]; then
@@ -16,7 +17,7 @@ if [ $SYSTEM == "Linux" ]; then
 fi
 export PLATFORM_ENV="$BASE/platform/$SYSTEM"
 if [ $SYSTEM == "Darwin" ]; then
-	export DYLD_FALLBACK_LIBRARY_PATH="$PLATFORM_ENV/lib"
+    export DYLD_FALLBACK_LIBRARY_PATH="$PLATFORM_ENV/lib"
 fi
 PATH="$PLATFORM_ENV/bin:$PATH"
 
@@ -48,7 +49,7 @@ if [ "$1" == "start" ]; then
             rm "$launchd_plist"
         fi
     fi
-    if [ $SYSTEM == "Linux" ]; then
+    if [ $SYSTEM_ == "Linux" ]; then
         if [ -e "$HOME/.config/autostart/openmedialibrary.desktop" ]; then
             rm "$HOME/.config/autostart/openmedialibrary.desktop"
         fi
@@ -96,18 +97,19 @@ if [ "$1" == "restart" ]; then
     fi
 fi
 if [ "$1" == "open" ]; then
-    "$0" start &
     #time to switch to python and use webbrowser.open_tab?
+    echo $SYSTEM
     if [ $SYSTEM == "Darwin" ]; then
-        open "$BASE/$NAME/static/html/load.html"
-    else
-        xdg-open "$BASE/$NAME/static/html/load.html"
+        open "/Applications/Open Media Library.app"
+    fi
+    if [ $SYSTEM_ == "Linux" ]; then
+        exec python3 "$NAME/oml/gtkwebkit.py" $@
     fi
     exit 0
 fi
 if [ "$1" == "ui" ]; then
     shift
-    exec python3 $NAME/oml/ui.py $@
+    exec python3 "$NAME/oml/ui.py" $@
 fi
 if [ "$1" == "update" ]; then
     cd "$BASE/$NAME"
