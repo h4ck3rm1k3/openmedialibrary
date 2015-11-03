@@ -22,7 +22,7 @@ class Handler(WebSocketHandler):
             origin in (
                 'http://127.0.0.1:9841',
                 'http://127.0.0.1:9842',
-                'file:///',
+                'file://',
                 'null'
             )
 
