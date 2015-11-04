@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.3
 from __future__ import division, with_statement, print_function
 
 from contextlib import closing
@@ -53,7 +53,7 @@ class Install(Thread):
             apt_packages = ''
             dnf_packages = ''
             try:
-                import Image
+                from PIL import Image
                 import lxml
             except:
                 apt_packages += ' python3.4 python3-pil python3-lxml'
@@ -126,6 +126,9 @@ def has_bin(cmd):
     return subprocess.call(['which', cmd], stdout=subprocess.PIPE) == 0
 
 if __name__ == '__main__':
+    if sys.version_info[:2] != (3,4):
+        print("You need python3.4")
+        sys.exit(1)
     if len(sys.argv) == 1:
         if sys.platform == 'darwin':
             target = os.path.expanduser('~/Library/Application Support/Open Media Libary')
