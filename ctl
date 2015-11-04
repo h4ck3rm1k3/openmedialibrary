@@ -66,10 +66,10 @@ if [ "$1" == "start" ]; then
         fi
     fi
     if [ ! -d "$BASE/$NAME/.git" ]; then
-        python3.4 oml install_update
+        python3 oml install_update
         cd "$BASE/$NAME"
     fi
-    exec python3.4 oml server $PID
+    exec python3 oml server $PID
 fi
 if [ "$1" == "debug" ]; then
     cd "$BASE/$NAME"
@@ -78,7 +78,7 @@ if [ "$1" == "debug" ]; then
         exit 1
     fi
     shift
-    exec python3.4 oml server $@
+    exec python3 oml server $@
 fi
 if [ "$1" == "stop" ]; then
     remove_loginscript
@@ -101,13 +101,13 @@ if [ "$1" == "open" ]; then
         open "/Applications/Open Media Library.app"
     fi
     if [ $SYSTEM == "Linux" ]; then
-        exec python3.4 "$NAME/oml/gtkwebkit.py" $@
+        exec python3 "$NAME/oml/gtkwebkit.py" $@
     fi
     exit 0
 fi
 if [ "$1" == "ui" ]; then
     shift
-    exec python3.4 "$NAME/oml/ui.py" $@
+    exec python3 "$NAME/oml/ui.py" $@
 fi
 if [ "$1" == "update" ]; then
     cd "$BASE/$NAME"
@@ -124,15 +124,15 @@ if [ "$1" == "update" ]; then
         NEW=`"$0" version`
         "$0" postupdate -o $OLD -n $NEW
     else
-        python3.4 oml update
+        python3 oml update
     fi
     exit $?
 fi
 if [ "$1" == "python" ]; then
     cd "$BASE/$NAME"
     shift
-    exec python3.4 $@
+    exec python3 $@
 fi
 
 cd "$BASE/$NAME"
-exec python3.4 oml $@
+exec python3 oml $@
