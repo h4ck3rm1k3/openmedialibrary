@@ -54,11 +54,10 @@ class Install(Thread):
             dnf_packages = ''
             try:
                 import Image
-                import simplejson
                 import lxml
             except:
-                apt_packages += ' python3.4 python3-pil python-simplejson python3-lxml'
-                dnf_packages += ' python3-pillow python3-simplejson python3-lxml'
+                apt_packages += ' python3.4 python3-pil python3-lxml'
+                dnf_packages += ' python3-pillow python3-lxml'
             try:
                 import gi
                 gi.require_version('WebKit2', '4.0')
@@ -66,24 +65,32 @@ class Install(Thread):
             except:
                 apt_packages += ' gir1.2-webkit2-4.0'
                 dnf_packages += ' webkitgtk4'
+            try:
+                import OpenSSL
+            except:
+                apt_packages += ' python3-openssl'
+                dnf_packages += ' python3-pyOpenSSL'
+
             if not has_bin('pdftocairo'):
                 apt_packages += ' poppler-utils'
                 dnf_packages += ' poppler-utils'
             if not os.path.exists('/usr/sbin/miredo'):
                 apt_packages += ' miredo'
+                dnf_packages += ' miredo-client'
 
             if has_bin('apt-get') and apt_packages:
                 print('Installing additional packages: %s' % apt_packages)
                 os.system('sudo apt-get install -y ' + apt_packages)
             elif has_bin('dnf') and dnf_packages:
                 print('Installing additional packages: %s' % dnf_packages)
-                os.system('sudo dnf install ' + dnf_packages)
+                os.system('sudo dnf install -y ' + dnf_packages)
             else:
-                print('You need to install Pillow, simplejson and lxml\ni.e. sudo pip3 install pillow simplejson lxml')
+                print('You need to install Pillow, lxml and pyOpenSSL\ni.e. sudo pip3 install pillow lxml pyOpenSSL')
                 if 'poppler' in apt_packages:
                     print('You need to install pdftocairo (part of poppler-utils)')
                 if 'miredo' in apt_packages:
                     print('You need to install miredo (or get IPv6 in another way)')
+                input("After installing those packages, press Enter to continue...")
             os.system('./ctl install_launcher')
         os.system('./ctl setup')
         self.status['progress'] = 1
