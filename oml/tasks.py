@@ -9,7 +9,7 @@ from websocket import trigger_event
 
 
 import logging
-logger = logging.getLogger('oml.websocket')
+logger = logging.getLogger('oml.tasks')
 
 class Tasks(Thread):
 
@@ -26,17 +26,20 @@ class Tasks(Thread):
         while self.connected:
             m = self.q.get()
             if m:
-                action, data = m
-                if action == 'ping':
-                    trigger_event('pong', data)
-                elif action == 'import':
-                    item.scan.run_import(data)
-                elif action == 'scan':
-                    item.scan.run_scan()
-                elif action == 'update':
-                    trigger_event('error', {'error': 'not implemented'})
-                else:
-                    trigger_event('error', {'error': 'unknown action'})
+                try:
+                    action, data = m
+                    if action == 'ping':
+                        trigger_event('pong', data)
+                    elif action == 'import':
+                        item.scan.run_import(data)
+                    elif action == 'scan':
+                        item.scan.run_scan()
+                    elif action == 'update':
+                        trigger_event('error', {'error': 'not implemented'})
+                    else:
+                        trigger_event('error', {'error': 'unknown action'})
+                except:
+                    logger.debug('task failed', exc_info=1)
             self.q.task_done()
 
     def join(self):
