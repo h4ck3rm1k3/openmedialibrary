@@ -228,6 +228,7 @@ class Item(db.Model):
     def delete(self, commit=True):
         Sort.query.filter_by(item_id=self.id).delete()
         Transfer.query.filter_by(item_id=self.id).delete()
+        Scrape.query.filter_by(item_id=self.id).delete()
         state.db.session.delete(self)
         if commit:
             state.db.session.commit()
