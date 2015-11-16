@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from io import BytesIO
 import re
+from urllib.parse import unquote
 
 from PIL import Image
 import stdnum.isbn
@@ -18,34 +19,42 @@ logger = logging.getLogger('oml.media.epub')
 
 def cover(path):
     logger.debug('cover %s', path)
-    z = zipfile.ZipFile(path)
     data = None
+    try:
+        z = zipfile.ZipFile(path)
+    except zipfile.BadZipFile:
+        logger.debug('invalid epub file %s', path)
+        return data
     for f in z.filelist:
         if 'cover' in f.filename.lower() and f.filename.split('.')[-1] in ('jpg', 'jpeg', 'png'):
             logger.debug('using %s', f.filename)
             data = z.read(f.filename)
             break
     if not data:
-        opf = [f.filename for f in z.filelist if f.filename.endswith('opf')]
+        files = [f.filename for f in z.filelist]
+        opf = [f for f in files if f.endswith('opf')]
         if opf:
             info = ET.fromstring(z.read(opf[0]))
             manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
             for e in manifest.getchildren():
                 if 'image' in e.attrib['media-type']:
-                    filename = e.attrib['href']
+                    filename = unquote(e.attrib['href'])
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                    data = z.read(filename)
-                    break
+                    if filename in files:
+                        data = z.read(filename)
+                        break
                 elif 'html' in e.attrib['media-type']:
-                    filename = e.attrib['href']
+                    filename = unquote(e.attrib['href'])
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
                     html = z.read(filename).decode('utf-8')
                     img = re.compile('<img.*?src="(.*?)"').findall(html)
                     if img:
-                        img = os.path.normpath(os.path.join(os.path.dirname(filename), img[0]))
-                        logger.debug('using %s', img)
-                        data = z.read(img)
-                        break
+                        img = unquote(img[0])
+                        img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
+                        if img in files:
+                            logger.debug('using %s', img)
+                            data = z.read(img)
+                            break
     if not data:
         img = Image.new('RGB', (80, 128))
         o = BytesIO()
@@ -56,7 +65,11 @@ def cover(path):
 
 def info(epub):
     data = {}
-    z = zipfile.ZipFile(epub)
+    try:
+        z = zipfile.ZipFile(epub)
+    except zipfile.BadZipFile:
+        logger.debug('invalid epub file %s', epub)
+        return data
     opf = [f.filename for f in z.filelist if f.filename.endswith('opf')]
     if opf:
         info = ET.fromstring(z.read(opf[0]))
