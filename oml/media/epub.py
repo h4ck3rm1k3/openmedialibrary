@@ -75,7 +75,7 @@ def info(epub):
         info = ET.fromstring(z.read(opf[0]))
         metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
         for e in metadata.getchildren():
-            if e.text:
+            if e.text and e.text not in ('unknown', 'none'):
                 key = e.tag.split('}')[-1]
                 key = {
                     'creator': 'author',

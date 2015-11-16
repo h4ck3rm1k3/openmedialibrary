@@ -41,7 +41,6 @@ def metadata(f, from_=None):
     metadata_opf = os.path.join(os.path.dirname(from_ or f), 'metadata.opf')
     if os.path.exists(metadata_opf):
         opf_info = opf.info(metadata_opf)
-
     for key in (
         'title', 'author', 'date', 'publisher', 'description',
         'language', 'textsize', 'pages',
