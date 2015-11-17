@@ -48,7 +48,10 @@ class Handler(WebSocketHandler):
     def post(self, event, data):
         message = json_dumps([event, data])
         main = IOLoop.instance()
-        main.add_callback(lambda: self.write_message(message))
+        if self.ws_connection is None:
+            self.on_close()
+        else:
+            main.add_callback(lambda: self.write_message(message))
 
 def trigger_event(event, data):
     if len(state.websockets):
