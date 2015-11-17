@@ -73,6 +73,8 @@ class ScrapeThread(Thread):
             logger.debug('scrape %s', s.item)
             try:
                 s.item.scrape()
+                for f in s.item.files:
+                    f.move()
                 s.remove()
                 trigger_event('change', {})
                 scraped = True
