@@ -98,9 +98,9 @@ def install():
         return True
     with open(os.path.join(settings.updates_path, 'release.json')) as fd:
         release = json.load(fd)
-    old = current_version('openmedialibrary')
-    new = release['modules']['openmedialibrary']['version']
-    if verify(release) and old < new:
+    old_version = current_version('openmedialibrary')
+    new_version = release['modules']['openmedialibrary']['version']
+    if verify(release) and old_version < new_version:
         os.chdir(os.path.dirname(settings.base_dir))
         for module in release['modules']:
             if release['modules'][module]['version'] > current_version(module):
@@ -128,7 +128,7 @@ def install():
         for cmd in [
                 ['./ctl', 'stop'],
                 ['./ctl', 'setup'],
-                ['./ctl', 'postupdate', '-o', old, '-n', new]
+                ['./ctl', 'postupdate', '-o', old_version, '-n', new_version]
             ]:
             subprocess.call(cmd)
         return True
