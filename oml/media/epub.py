@@ -48,6 +48,8 @@ def cover(path):
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
                     html = z.read(filename).decode('utf-8')
                     img = re.compile('<img.*?src="(.*?)"').findall(html)
+                    #svg image
+                    img += re.compile('<image.*?href="(.*?)"').findall(html)
                     if img:
                         img = unquote(img[0])
                         img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
