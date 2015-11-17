@@ -18,10 +18,10 @@ oml.ui.appDialog = function() {
                     $logo = Ox.Element(),
                     $text = Ox.Element()
                         .addClass('OxTextPage'),
-                    title = Ox.getObjectById(
+                    title = Ox._(Ox.getObjectById(
                         Ox.getObjectById(oml.config.pages, 'app').parts,
                         id
-                    ).title;
+                    ).title);
                 $('<img>')
                     .attr({
                         src: '/static/png/oml.png'
@@ -44,9 +44,9 @@ oml.ui.appDialog = function() {
                     oml.api.getVersion(function(response) {
                         if (response.data.update) {
                             if (response.data.current == 'git') {
-                                $update.html('A new version of Open Media Library is available in git.<br>To update run: <code>./ctl update</code>');
+                                $update.html(Ox._('A new version of Open Media Library is available in git.<br>To update run: <code>./ctl update</code>'));
                             } else {
-                                $update.html('A new version of Open Media Library is available');
+                                $update.html(Ox._('A new version of Open Media Library is available'));
                                 Ox.Button({
                                     id: 'update',
                                     title: Ox._('Install Now')
@@ -65,7 +65,11 @@ oml.ui.appDialog = function() {
                                 }).appendTo($content);
                             }
                         } else {
-                            $update.html('No updates available')
+                            if (response.data.current == 'git') {
+                                $update.html(Ox._('No updates available'));
+                            } else {
+                                $update.html(Ox._('You are running Version {0}. No updates available', [response.data.current]));
+                            }
                         }
                     });
                 } else {
