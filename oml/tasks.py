@@ -45,7 +45,6 @@ class Tasks(Thread):
     def join(self):
         self.connected = False
         self.q.put(None)
-        self.q.join()
         return Thread.join(self)
 
     def queue(self, action, data=None):

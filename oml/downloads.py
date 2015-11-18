@@ -35,6 +35,8 @@ class Downloads(Thread):
         for t in item.models.Transfer.query.filter(
             item.models.Transfer.added!=None,
             item.models.Transfer.progress<1).order_by(item.models.Transfer.added):
+            if not self._running:
+                return False
             for u in t.item.users:
                 if state.nodes.is_online(u.id):
                     logger.debug('DOWNLOAD %s %s', t.item, u)
@@ -69,7 +71,7 @@ class ScrapeThread(Thread):
             item.models.Scrape.added!=None,
         ).order_by(item.models.Scrape.added):
             if not self._running:
-                return False
+                return True
             logger.debug('scrape %s', s.item)
             try:
                 s.item.scrape()

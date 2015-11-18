@@ -119,13 +119,13 @@ def run():
     def shutdown():
         if state.downloads:
             state.downloads.join()
-        if state.tasks:
-            state.tasks.join()
         if state.nodes:
             state.nodes.join()
         if state.scraping:
             state.scraping.join()
         http_server.stop()
+        if state.tasks:
+            state.tasks.join()
         if PID and os.path.exists(PID):
             os.unlink(PID)
 

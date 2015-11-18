@@ -31,6 +31,8 @@ def remove_missing():
         prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
         if os.path.exists(prefix):
             for f in File.query:
+                if not state.tasks.connected:
+                    return
                 path = f.item.get_path()
                 if not os.path.exists(path):
                     dirty = True
@@ -73,6 +75,8 @@ def run_scan():
         books = []
         for root, folders, files in os.walk(prefix):
             for f in files:
+                if not state.tasks.connected:
+                    return
                 #if f.startswith('._') or f == '.DS_Store':
                 if f.startswith('.'):
                     continue
@@ -84,6 +88,8 @@ def run_scan():
         position = 0
         added = 0
         for f in ox.sorted_strings(books):
+            if not state.tasks.connected:
+                return
             position += 1
             id = media.get_id(f)
             file = File.get(id)
@@ -96,6 +102,7 @@ def run_import(options=None):
     options = options or {}
 
     with db.session():
+        logger.debug('run_import')
         prefs = settings.preferences
         prefix = os.path.expanduser(options.get('path', prefs['importPath']))
         if os.path.islink(prefix):
@@ -128,6 +135,8 @@ def run_import(options=None):
         count = 0
         for root, folders, files in os.walk(prefix):
             for f in files:
+                if not state.tasks.connected:
+                    return
                 #if f.startswith('._') or f == '.DS_Store':
                 if f.startswith('.'):
                     continue

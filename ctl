@@ -82,8 +82,21 @@ if [ "$1" == "debug" ]; then
 fi
 if [ "$1" == "stop" ]; then
     remove_loginscript
-    test -e $PID && kill `cat $PID`
-    test -e $PID && rm $PID
+    if [ -e $PID ]; then
+        _PID=`cat $PID`
+        kill $_PID
+        waited=0
+        while ps -p $_PID > /dev/null
+        do
+            sleep 1
+            waited=$(($waited+1))
+            if [ $waited -gt 10 ]; then
+                kill -9 $_PID
+                sleep 1
+            fi
+        done
+        test -e $PID && rm $PID
+    fi
     exit $?
 fi
 if [ "$1" == "restart" ]; then
