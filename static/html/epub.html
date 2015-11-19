@@ -11,24 +11,32 @@
         <link rel="stylesheet" href="/static/epub.js/css/normalize.css">
         <link rel="stylesheet" href="/static/epub.js/css/main.css">
         <link rel="stylesheet" href="/static/epub.js/css/popup.css">
+        <style>
+            .arrow {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -o-user-select: none;
+                -ms-user-select: none;
+                user-select: text;
+
+            }
+        </style>
 
         <script src="/static/epub.js/libs/jquery-2.1.0.min.js"></script>
 
-        <script src="/static/epub.js/libs/zip.min.js"></script>        
+        <script src="/static/epub.js/libs/zip.min.js"></script>
 
         <script>
             "use strict";
-            
-            document.onreadystatechange = function () {  
+            var reader;
+            document.onreadystatechange = function () {
               if (document.readyState == "complete") {
                 EPUBJS.filePath = "/static/epub.js/libs/";
                 EPUBJS.cssPath = "/static/epub.js/css/";
                 // fileStorage.filePath = EPUBJS.filePath;
-
-                var reader = ePubReader(document.location.pathname.replace(/\/reader\//, '/epub/'));
-              }  
+                reader = ePubReader(document.location.pathname.replace(/\/reader\//, '/epub/'));
+              }
             };
-        
         </script>
                 
         <!-- Render -->
@@ -103,7 +111,7 @@
         <div id="viewer"></div>
         <div id="next" class="arrow">›</div>
         
-        <div id="loader"><img src="img/loader.gif"></div>
+        <div id="loader"><img src="/static/epub.js/img/loader.gif"></div>
       </div>
       <div class="modal md-effect-1" id="settings-modal">
           <div class="md-content">
