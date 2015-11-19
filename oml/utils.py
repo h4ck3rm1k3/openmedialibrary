@@ -61,7 +61,7 @@ def resize_image(data, width=None, size=None):
     else:
         data = StringIO(data)
     source = Image.open(data)
-    if source.mode == 'P':
+    if source.mode not in ('1', 'CMYK', 'L', 'RGB', 'RGBA', 'RGBX', 'YCbCr'):
         source = source.convert('RGB')
     source_width = source.size[0]
     source_height = source.size[1]
