@@ -118,15 +118,21 @@ def run():
 
     def shutdown():
         if state.downloads:
+            logger.debug('shutdown downloads')
             state.downloads.join()
         if state.scraping:
+            logger.debug('shutdown scraping')
             state.scraping.join()
+        logger.debug('shutdown http_server')
         http_server.stop()
         if state.tasks:
+            logger.debug('shutdown tasks')
             state.tasks.join()
         if state.nodes:
+            logger.debug('shutdown nodes')
             state.nodes.join()
         if PID and os.path.exists(PID):
+            logger.debug('remove %s', PID)
             os.unlink(PID)
 
     signal.signal(signal.SIGTERM, shutdown)

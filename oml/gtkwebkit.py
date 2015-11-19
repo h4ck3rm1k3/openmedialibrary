@@ -13,11 +13,6 @@ base = dirname(dirname(dirname(abspath(__file__))))
 icon = os.path.join(base, 'openmedialibrary/static/png/oml.png')
 title = "Open Media Library"
 
-def drop_cb(wid, context, x, y, time):
-    print([str(t) for t in context.targets])
-    context.finish(True, False, time)
-    return True
-
 def on_key_press_event(widget, event):
     if event.state & Gdk.ModifierType.CONTROL_MASK and event.keyval == 113:
         Gtk.main_quit()
