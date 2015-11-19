@@ -531,6 +531,9 @@ class File(db.Model):
         j = self.item.json()
 
         current_path = self.fullpath()
+        if not os.path.exists(current_path):
+            logger.debug('file is missing. %s', current_path)
+            return
         author = '; '.join([ox.canonical_name(a) for a in j.get('author', [])])
         if not author:
             author = 'Unknown Author'
