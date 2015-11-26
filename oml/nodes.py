@@ -76,12 +76,13 @@ class Node(Thread):
 
     @property
     def url(self):
+        url = None
         if self.local:
             if ':' in self.local:
                 url = 'https://[%s]:%s' % (self.local, self.port)
             else:
                 url = 'https://%s:%s' % (self.local, self.port)
-        else:
+        elif len(self.user_id) == 16:
             url = 'https://%s.onion:9851' % self.user_id
         return url
 
@@ -95,6 +96,22 @@ class Node(Thread):
         else:
             self.local = None
             self.port = 9851
+        if len(self.user_id) == 43:
+            self.migrate_id()
+
+
+    def migrate_id(self):
+        key = self.user_id.encode()
+        vk = ed25519.VerifyingKey(key, encoding=ENCODING)
+        try:
+            r = directory.get(vk)
+        except:
+            logger.debug('directory failed', exc_info=1)
+            r = None
+        if r and 'id' in r and len(r['id']) == 16:
+            u = self.user
+            self.user_id = r['id']
+            u.migreate_id(self.user_id)
 
     def get_local(self):
         if self._nodes and self._nodes._local:
@@ -421,6 +438,7 @@ class Nodes(Thread):
         return Thread.join(self)
 
 def publish_node():
+    logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     update_online()
     state.check_nodes = PeriodicCallback(check_nodes, 120000)
     state.check_nodes.start()
@@ -428,13 +446,21 @@ def publish_node():
     state._online.start()
 
 def update_online():
+    logger.debug('=======================================================')
     online = state.tor and state.tor.is_online()
+    logger.debug('update online %s', online)
     if online != state.online:
         state.online = online
         trigger_event('status', {
             'id': settings.USER_ID,
             'online': state.online
         })
+    if state.online:
+        r = directory.put(settings.sk, {
+            'id': settings.USER_ID,
+        })
+        logger.debug('push id to directory %s', r)
+    logger.debug('=======================================================')
 
 def check_nodes():
     if state.online:

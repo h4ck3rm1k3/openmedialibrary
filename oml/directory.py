@@ -5,15 +5,16 @@
 
 import logging
 
-import requests
 import ed25519
 import json
+import tor_request
 
 import settings
 
 logger = logging.getLogger('oml.directory')
 
 base = settings.server['directory_service']
+base = 'http://hpjats6xixrleoqg.onion:25519'
 
 def get(vk):
     id = vk.to_ascii(encoding='base64').decode()
@@ -22,12 +23,14 @@ def get(vk):
         'User-Agent': settings.USER_AGENT
     }
     try:
-        r = requests.get(url, headers=headers)
+        opener = tor_request.get_opener()
+        opener.addheaders = list(zip(headers.keys(), headers.values()))
+        r = opener.open(url)
     except:
-        logger.info('get failed %s', url)
+        logger.info('get failed %s', url, exc_info=1)
         return None
     sig = r.headers.get('X-Ed25519-Signature')
-    data = r.content
+    data = r.read()
     if sig and data:
         vk = ed25519.VerifyingKey(id, encoding='base64')
         try:
@@ -49,8 +52,11 @@ def put(sk, data):
         'X-Ed25519-Signature': sig
     }
     try:
-        r = requests.put(url, data, headers=headers, timeout=2)
+        #r = requests.put(url, data, headers=headers, timeout=2)
+        opener = tor_request.get_opener()
+        opener.addheaders = list(zip(headers.keys(), headers.values()))
+        r = opener.open(url, data)
     except:
-        logger.info('put failed: %s', data)
+        logger.info('put failed: %s', data, exc_info=1)
         return False
-    return r.status_code == 200
+    return r.status == 200

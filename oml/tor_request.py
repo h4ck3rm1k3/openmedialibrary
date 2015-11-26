@@ -46,7 +46,8 @@ def create_tor_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         sock = socks.socksocket(af, socktype, proto)
         if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
             sock.settimeout(timeout)
-        sock.set_proxy(socks.SOCKS5, "localhost", state.tor.socks_port, True)
+        socks_port = state.tor.socks_port if state.tor else 9150
+        sock.set_proxy(socks.SOCKS5, "localhost", socks_port, True)
         if source_address:
             sock.bind(source_address)
         sock.connect(sa)

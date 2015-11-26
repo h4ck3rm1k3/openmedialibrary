@@ -128,6 +128,19 @@ class User(db.Model):
             n += 1
         self.nickname = nickname
 
+    def migrate_id(self, service_id):
+        if len(service_id) == 16:
+            statements = [
+                "UPDATE user SET id = '{nid}' WHERE id = '{oid}'",
+                "UPDATE list SET user_id = '{nid}' WHERE user_id = '{oid}'",
+                "UPDATE useritem SET user_id = '{nid}' WHERE user_id = '{oid}'",
+                "UPDATE changelog SET user_id = '{nid}' WHERE user_id = '{oid}'",
+            ]
+            with db.session() as session:
+                for sql in statements:
+                    session.connection().execut(sql.format(oid=self.id, nid=service_id))
+                session.commit()
+
 list_items = sa.Table('listitem', db.metadata,
     sa.Column('list_id', sa.Integer(), sa.ForeignKey('list.id')),
     sa.Column('item_id', sa.String(32), sa.ForeignKey('item.id'))
