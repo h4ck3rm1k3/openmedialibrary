@@ -4,3 +4,4 @@ ed25519>=1.4
 SQLAlchemy==0.9.7
 pyopenssl>=0.15
 pyCrypto>=2.6.1
+pillow

@@ -11,10 +11,14 @@ BASE=`pwd`
 SYSTEM=`uname -s`
 PLATFORM=`uname -m`
 
+if [ -e "$BASE/local_platform" ]; then
+    export PLATFORM_ENV="$BASE/local_platform"
+else
 if [ $SYSTEM == "Linux" ]; then
     export PLATFORM_ENV="$BASE/platform/${SYSTEM}_${PLATFORM}"
 else
     export PLATFORM_ENV="$BASE/platform/$SYSTEM"
+fi
 fi
 if [ $SYSTEM == "Darwin" ]; then
     export DYLD_FALLBACK_LIBRARY_PATH="$PLATFORM_ENV/lib"
