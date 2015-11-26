@@ -24,7 +24,7 @@ from changelog import Changelog
 import directory
 from websocket import trigger_event
 from localnodes import LocalNodes
-from ssl_request import get_opener
+from tor_request import get_opener
 import state
 import db
 
@@ -35,7 +35,6 @@ ENCODING='base64'
 
 class Node(Thread):
     _running = True
-    _cert = None
     host = None
     online = False
     download_speed = 0
@@ -44,8 +43,7 @@ class Node(Thread):
     def __init__(self, nodes, user):
         self._nodes = nodes
         self.user_id = user.id
-        key = user.id.encode()
-        self.vk = ed25519.VerifyingKey(key, encoding=ENCODING)
+        self._opener = get_opener(self.user_id)
         logger.debug('new Node %s online=%s', self.user_id, self.online)
         self._q = Queue()
         Thread.__init__(self)
@@ -78,65 +76,50 @@ class Node(Thread):
 
     @property
     def url(self):
-        if self.host:
-            if ':' in self.host:
-                url = 'https://[%s]:%s' % (self.host, self.port)
+        if self.local:
+            if ':' in self.local:
+                url = 'https://[%s]:%s' % (self.local, self.port)
             else:
-                url = 'https://%s:%s' % (self.host, self.port)
+                url = 'https://%s:%s' % (self.local, self.port)
         else:
-            url = None
+            url = 'https://%s.onion:9851' % self.user_id
         return url
 
     def resolve(self):
         logger.debug('resolve node')
         r = self.get_local()
-        if not r:
-            try:
-                r = directory.get(self.vk)
-            except:
-                logger.debug('directory failed', exc_info=1)
-                r = None
         if r:
-            self.host = r['host']
+            self.local = r['host']
             if 'port' in r:
                 self.port = r['port']
-            if r['cert'] != self._cert:
-                self._cert = r['cert']
-                self._opener = get_opener(self._cert)
         else:
-            self.host = None
+            self.local = None
             self.port = 9851
 
     def get_local(self):
         if self._nodes and self._nodes._local:
-            local = self._nodes._local.get(self.user_id)
-            if local and local['cert'] != self._cert:
-                self._cert = local['cert']
-                self._opener = get_opener(self._cert)
-            return local
+            return self._nodes._local.get(self.user_id)
         return None
 
     def request(self, action, *args):
-        url = self.url
-        if not url:
-            self.resolve()
+        logger.debug('request %s%s', action, args)
+        self.resolve()
         url = self.url
         if not self.url:
             logger.debug('unable to find host %s', self.user_id)
             self.online = False
             return None
+        logger.debug('url=%s', url)
         content = json.dumps([action, args]).encode()
-        sig = settings.sk.sign(content, encoding=ENCODING).decode()
+        #sig = settings.sk.sign(content, encoding=ENCODING).decode()
         headers = {
             'User-Agent': settings.USER_AGENT,
             'X-Node-Protocol': settings.NODE_PROTOCOL,
             'Accept': 'text/plain',
             'Accept-Encoding': 'gzip',
             'Content-Type': 'application/json',
-            'X-Ed25519-Key': settings.USER_ID,
-            'X-Ed25519-Signature': sig,
         }
-        self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
+        self._opener.addheaders = list(zip(headers.keys(), headers.values()))
         logger.debug('headers: %s', self._opener.addheaders)
         try:
             self._opener.timeout = self.TIMEOUT
@@ -173,12 +156,15 @@ class Node(Thread):
                 state.update_required = True
             return None
 
-        sig = r.headers.get('X-Ed25519-Signature')
+        '''
+        sig = r.headers.get('X-Node-Signature')
         if sig and self._valid(data, sig):
             response = json.loads(data.decode('utf-8'))
         else:
             logger.debug('invalid signature %s', data)
             response = None
+        '''
+        response = json.loads(data.decode('utf-8'))
         logger.debug('response: %s', response)
         return response
 
@@ -206,7 +192,7 @@ class Node(Thread):
                     'X-Node-Protocol': settings.NODE_PROTOCOL,
                     'Accept-Encoding': 'gzip',
                 }
-                self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
+                self._opener.addheaders = list(zip(headers.keys(), headers.values()))
                 self._opener.timeout = 1
                 r = self._opener.open(url)
                 version = r.headers.get('X-Node-Protocol', None)
@@ -217,19 +203,19 @@ class Node(Thread):
                 logger.debug('can connect to: %s (%s)', url, self.user.nickname)
                 return True
         except:
-            logger.debug('can not connect to: %s (%s)', url, self.user.nickname)
+            logger.debug('can not connect to: %s (%s)', url, self.user.nickname, exc_info=1)
             pass
         return False
 
     def _go_online(self):
         self.resolve()
         u = self.user
-        if (u.peered or u.queued) and self.host:
-            logger.debug('go_online peered=%s queued=%s %s [%s]:%s (%s)', u.peered, u.queued, u.id, self.host, self.port, u.nickname)
+        if u.peered or u.queued:
+            logger.debug('go_online peered=%s queued=%s %s [%s]:%s (%s)', u.peered, u.queued, u.id, self.local, self.port, u.nickname)
             try:
                 self.online = False
                 if self.can_connect():
-                    logger.debug('connected to [%s]:%s', self.host, self.port)
+                    logger.debug('connected to %s', self.url)
                     self.online = True
                     if u.queued:
                         logger.debug('queued peering event pending=%s peered=%s', u.pending, u.peered)
@@ -299,11 +285,12 @@ class Node(Thread):
         from item.models import Transfer
         url = '%s/get/%s' % (self.url, item.id)
         headers = {
+            'X-Node-Protocol': settings.NODE_PROTOCOL,
             'User-Agent': settings.USER_AGENT,
         }
         t1 = datetime.utcnow()
         logger.debug('download %s', url)
-        self._opener.addheaders = zip(headers.keys(), headers.values())
+        self._opener.addheaders = list(zip(headers.keys(), headers.values()))
         try:
             r = self._opener.open(url, timeout=self.TIMEOUT*2)
         except:
@@ -352,7 +339,7 @@ class Node(Thread):
                 headers = {
                     'User-Agent': settings.USER_AGENT,
                 }
-                self._opener.addheaders = list(zip(list(headers.keys()), list(headers.values())))
+                self._opener.addheaders = list(zip(headers.keys(), headers.values()))
                 r = self._opener.open(url)
                 if r.getcode() == 200:
                     with open(path, 'w') as fd:
@@ -379,7 +366,7 @@ class Nodes(Thread):
         self.start()
 
     def cleanup(self):
-        if self._running:
+        if self._running and self._local:
             self._local.cleanup()
 
     def queue(self, *args):
@@ -401,7 +388,8 @@ class Nodes(Thread):
         else:
             nodes = [self._nodes[target]]
         for node in nodes:
-            getattr(node, action)(*args)
+            r = getattr(node, action)(*args)
+            logger.debug('call node api %s->%s%s = %s', node.user_id, action, args, r)
 
     def _add(self, user_id):
         if user_id not in self._nodes:
@@ -428,5 +416,30 @@ class Nodes(Thread):
         self._q.put(None)
         for node in list(self._nodes.values()):
             node.join()
-        self._local.join()
+        if self._local:
+            self._local.join()
         return Thread.join(self)
+
+def publish_node():
+    update_online()
+    state.check_nodes = PeriodicCallback(check_nodes, 120000)
+    state.check_nodes.start()
+    state._online = PeriodicCallback(update_online, 60000)
+    state._online.start()
+
+def update_online():
+    online = state.tor and state.tor.is_online()
+    if online != state.online:
+        state.online = online
+        trigger_event('status', {
+            'id': settings.USER_ID,
+            'online': state.online
+        })
+
+def check_nodes():
+    if state.online:
+        with db.session():
+            for u in user.models.User.query.filter_by(queued=True):
+                if not state.nodes.is_online(u.id):
+                    logger.debug('queued peering message for %s trying to connect...', u.id)
+                    state.nodes.queue('add', u.id)

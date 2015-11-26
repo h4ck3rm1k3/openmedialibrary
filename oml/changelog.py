@@ -7,7 +7,7 @@ import json
 
 import sqlalchemy as sa
 
-from utils import valid, datetime2ts, ts2datetime
+from utils import datetime2ts, ts2datetime
 from websocket import trigger_event
 import db
 import settings
@@ -56,7 +56,6 @@ class Changelog(db.Model):
         c.data = json.dumps([action] + list(args), ensure_ascii=False)
         _data = str(c.revision) + str(c.timestamp) + c.data
         _data = _data.encode()
-        c.sig = settings.sk.sign(_data, encoding='base64').decode()
         state.db.session.add(c)
         state.db.session.commit()
         if state.nodes:
@@ -64,45 +63,38 @@ class Changelog(db.Model):
 
     @classmethod
     def apply_changes(cls, user, changes):
+        trigger = changes
         for change in changes:
-            if not Changelog.apply_change(user, change, trigger=False):
+            if not cls.apply_change(user, change, trigger=False):
                 logger.debug('FAIL %s', change)
+                trigger = False
                 break
                 return False
-        if changes:
+        if trigger:
             trigger_event('change', {});
         return True
 
     @classmethod
-    def apply_change(cls, user, change, rebuild=False, trigger=True):
-        revision, timestamp, sig, data = change
-        last = Changelog.query.filter_by(user_id=user.id).order_by('-revision').first()
+    def apply_change(cls, user, change, trigger=True):
+        revision, timestamp, data = change
+        last = cls.query.filter_by(user_id=user.id).order_by('-revision').first()
         next_revision = last.revision + 1 if last else 0
         if revision == next_revision:
-            _data = str(revision) + str(timestamp) + data
-            _data = _data.encode()
-            if rebuild:
-                sig = settings.sk.sign(_data, encoding='base64').decode()
-            if valid(user.id, _data, sig):
-                c = cls()
-                c.created = datetime.utcnow()
-                c.timestamp = timestamp
-                c.user_id = user.id
-                c.revision = revision
-                c.data = data
-                c.sig = sig
-                args = json.loads(data)
-                logger.debug('apply change from %s: %s', user.name, args)
-                if getattr(c, 'action_' + args[0])(user, timestamp, *args[1:]):
-                    logger.debug('change applied')
-                    state.db.session.add(c)
-                    state.db.session.commit()
-                    if trigger:
-                        trigger_event('change', {});
-                    return True
-            else:
-                logger.debug('INVLAID SIGNATURE ON CHANGE %s', change)
-                raise Exception('invalid signature')
+            c = cls()
+            c.created = datetime.utcnow()
+            c.timestamp = timestamp
+            c.user_id = user.id
+            c.revision = revision
+            c.data = data
+            args = json.loads(data)
+            logger.debug('apply change from %s: %s', user.name, args)
+            if getattr(c, 'action_' + args[0])(user, timestamp, *args[1:]):
+                logger.debug('change applied')
+                state.db.session.add(c)
+                state.db.session.commit()
+                if trigger:
+                    trigger_event('change', {});
+                return True
         else:
             logger.debug('revsion does not match! got %s expecting %s', revision, next_revision)
             return False
@@ -110,26 +102,9 @@ class Changelog(db.Model):
     def __repr__(self):
         return self.data
 
-    def verify(self):
-        _data = str(self.revision) + str(self.timestamp) + self.data
-        _data = _data.encode()
-        return valid(self.user_id, _data, self.sig.encode())
-
-    @classmethod
-    def _rebuild(cls):
-        for c in cls.query.filter_by(user_id=settings.USER_ID):
-            _data = str(c.revision) + str(c.timestamp) + c.data
-            _data = _data.encode()
-            c.sig = settings.sk.sign(_data, encoding='base64')
-            state.db.session.add(c)
-        state.db.session.commit()
-
     def json(self):
         timestamp = self.timestamp or datetime2ts(self.created)
-        sig = self.sig
-        if isinstance(sig, bytes):
-            sig = sig.decode()
-        return [self.revision, timestamp, sig, self.data]
+        return [self.revision, timestamp, self.data]
 
     @classmethod
     def restore(cls, user_id, path=None):
@@ -161,9 +136,9 @@ class Changelog(db.Model):
         if not i:
             i = Item.get_or_create(itemid, info)
             i.modified = ts2datetime(timestamp)
-        if user not in i.users:
-            i.users.append(user)
-        i.update()
+            if user not in i.users:
+                i.users.append(user)
+            i.update()
         return True
 
     def action_edititem(self, user, timestamp, itemid, meta):

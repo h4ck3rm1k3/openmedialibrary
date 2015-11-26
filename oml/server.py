@@ -96,14 +96,23 @@ def run():
         import user
         import downloads
         import nodes
+        import tor
+        state.tor = tor.Tor()
         state.node = node.server.start()
-        state.nodes = nodes.Nodes()
         state.downloads = downloads.Downloads()
         state.scraping = downloads.ScrapeThread()
+        state.nodes = nodes.Nodes()
         def add_users():
-            with db.session():
-                for p in user.models.User.query.filter_by(peered=True):
-                    state.nodes.queue('add', p.id)
+            if not state.tor.is_online():
+                state.main.add_callback(add_users)
+            else:
+                with db.session():
+                    for u in user.models.User.query.filter_by(peered=True):
+                        state.nodes.queue('add', u.id)
+                    for u in user.models.User.query.filter_by(queued=True):
+                        logger.debug('adding queued node... %s', u.id)
+                        state.nodes.queue('add', u.id)
+                nodes.publish_node()
         state.main.add_callback(add_users)
     state.main.add_callback(start_node)
     if ':' in settings.server['address']:
@@ -117,6 +126,8 @@ def run():
     logger.debug('Starting OML %s at %s', settings.VERSION, url)
 
     def shutdown():
+        if state.tor:
+            state.tor._shutdown = True
         if state.downloads:
             logger.debug('shutdown downloads')
             state.downloads.join()
@@ -131,6 +142,11 @@ def run():
         if state.nodes:
             logger.debug('shutdown nodes')
             state.nodes.join()
+        if state.node:
+            state.node.stop()
+        if state.tor:
+            logger.debug('shutdown tor')
+            state.tor.shutdown()
         if PID and os.path.exists(PID):
             logger.debug('remove %s', PID)
             os.unlink(PID)

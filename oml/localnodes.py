@@ -14,23 +14,38 @@ from settings import preferences, server, USER_ID, sk
 import state
 import db
 import user.models
+from tor_request import get_opener
+import settings
 
 import logging
 logger = logging.getLogger('oml.localnodes')
 
 def can_connect(data):
     try:
+        opener = get_opener(data['id'])
+        headers = {
+            'User-Agent': settings.USER_AGENT,
+            'X-Node-Protocol': settings.NODE_PROTOCOL,
+            'Accept-Encoding': 'gzip',
+        }
         if ':' in data['host']:
-            s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+            url = 'https://[{host}]:{port}'.format(**data)
         else:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(1)
-        s.connect((data['host'], data['port']))
-        s.close()
+            url = 'https://{host}:{port}'.format(**data)
+        opener.addheaders = list(zip(headers.keys(), headers.values()))
+        opener.timeout = 1
+        logger.debug('try connection %s', url)
+        r = opener.open(url)
+        version = r.headers.get('X-Node-Protocol', None)
+        if version != settings.NODE_PROTOCOL:
+            logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
+            return False
+        c = r.read()
+        logger.debug('can connect to local node')
         return True
     except:
+        logger.debug('can_connect failed', exc_info=1)
         pass
-    logger.debug('can_connect failed')
     return False
 
 class LocalNodesBase(Thread):
@@ -53,13 +68,12 @@ class LocalNodesBase(Thread):
         self.host = self.get_ip()
         if self.host:
             message = json.dumps({
+                'id': USER_ID,
                 'username': preferences.get('username', 'anonymous'),
                 'host': self.host,
-                'port': server['node_port'],
-                'cert': server['cert']
+                'port': server['node_port']
             })
-            sig = sk.sign(message.encode(), encoding='base64').decode()
-            packet = json.dumps([sig, USER_ID, message]).encode()
+            packet = message.encode()
         else:
             packet = None
         return packet
@@ -100,18 +114,13 @@ class LocalNodesBase(Thread):
 
     def verify(self, data):
         try:
-            packet = json.loads(data.decode())
+            message = json.loads(data.decode())
         except:
             return None
-        if len(packet) == 3:
-            sig, user_id, data = packet
-            if valid(user_id, data, sig):
-                message = json.loads(data)
-                message['id'] = user_id
-                for key in ['id', 'username', 'host', 'port', 'cert']:
-                    if key not in message:
-                        return None
-                return message
+        for key in ['id', 'username', 'host', 'port']:
+            if key not in message:
+                return None
+        return message
 
     def update_node(self, data):
         #fixme use local link address
@@ -233,7 +242,7 @@ class LocalNodes(object):
         if not server['localnode_discovery']:
             return
         self._nodes4 = LocalNodes4(self._nodes)
-        self._nodes6 = LocalNodes6(self._nodes)
+        #self._nodes6 = LocalNodes6(self._nodes)
 
     def cleanup(self):
         if self._active:

@@ -395,7 +395,6 @@ class Item(db.Model):
     def remove_file(self):
         for f in self.files.all():
             path = f.fullpath()
-            logger.debug('remove file %s', path)
             if os.path.exists(path):
                 os.unlink(path)
                 remove_empty_folders(os.path.dirname(path))

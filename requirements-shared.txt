@@ -6,3 +6,5 @@ html5lib
 git+http://git.0x2620.org/python-ox.git#egg=python-ox
 python-stdnum==0.9
 PyPDF2==1.23
+pysocks
+stem

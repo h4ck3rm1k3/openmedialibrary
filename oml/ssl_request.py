@@ -6,24 +6,34 @@ import http.client
 import urllib.request, urllib.error, urllib.parse
 import hashlib
 import logging
+import base64
+from OpenSSL import crypto
+
 logger = logging.getLogger('oml.ssl_request')
 
+def get_service_id(cert):
+    # compute sha1 of public key and encode first half in base32
+    key = crypto.load_certificate(crypto.FILETYPE_ASN1, cert).get_pubkey()
+    public_key = crypto.dump_privatekey(crypto.FILETYPE_ASN1, key)[22:]
+    service_id = base64.b32encode(hashlib.sha1(public_key).digest()[:10]).lower()
+    return service_id
+
 class InvalidCertificateException(http.client.HTTPException, urllib.error.URLError):
-    def __init__(self, fingerprint, cert, reason):
+    def __init__(self, service_id, cert, reason):
         http.client.HTTPException.__init__(self)
-        self._fingerprint = fingerprint
-        self._cert_fingerprint = hashlib.sha1(cert).hexdigest()
+        self._service_id = service_id
+        self._cert_service_id = get_service_id(cert)
         self.reason = reason
 
     def __str__(self):
         return ('%s (local) != %s (remote) (%s)\n' %
-                (self._fingerprint, self._cert_fingerprint, self.reason))
+                (self._service_id, self._cert_service_id, self.reason))
 
-class FingerprintHTTPSConnection(http.client.HTTPSConnection):
+class ServiceIdHTTPSConnection(http.client.HTTPSConnection):
 
-    def __init__(self, host, port=None, fingerprint=None, check_hostname=None, context=None, **kwargs):
-        self._fingerprint = fingerprint
-        if self._fingerprint:
+    def __init__(self, host, port=None, service_id=None, check_hostname=None, context=None, **kwargs):
+        self._service_id = service_id
+        if self._service_id:
             check_hostname = False
             # dont fial for older verions of python
             # without ssl._create_default_https_context
@@ -37,45 +47,36 @@ class FingerprintHTTPSConnection(http.client.HTTPSConnection):
         http.client.HTTPSConnection.__init__(self, host, port,
                 check_hostname=check_hostname, context=context, **kwargs)
 
-    def _check_fingerprint(self, cert):
-        if len(self._fingerprint) == 40:
-            fingerprint = hashlib.sha1(cert).hexdigest()
-        elif len(self._fingerprint) == 64:
-            fingerprint = hashlib.sha256(cert).hexdigest()
-        elif len(self._fingerprint) == 128:
-            fingerprint = hashlib.sha512(cert).hexdigest()
-        else:
-            logging.error('unkown _fingerprint length %s (%s)',
-                self._fingerprint, len(self._fingerprint))
-            return False
-        logger.debug('ssl fingerprint: %s (match: %s)', fingerprint, fingerprint == self._fingerprint)
-        if fingerprint != self._fingerprint:
-            logger.debug('expected fingerprint: %s', self._fingerprint)
-        return fingerprint == self._fingerprint
+    def _check_service_id(self, cert):
+        service_id = get_service_id(cert)
+        logger.debug('ssl service_id: %s (match: %s)', service_id, service_id == self._service_id)
+        if service_id != self._service_id:
+            logger.debug('expected service_id: %s', self._service_id)
+        return service_id == self._service_id
 
     def connect(self):
         http.client.HTTPSConnection.connect(self)
-        if self._fingerprint:
+        if self._service_id:
             cert = self.sock.getpeercert(binary_form=True)
-            if not self._check_fingerprint(cert):
-                raise InvalidCertificateException(self._fingerprint, cert,
-                                                  'fingerprint mismatch')
+            if not self._check_service_id(cert):
+                raise InvalidCertificateException(self._service_id, cert,
+                                                  'service_id mismatch')
         #logger.debug('CIPHER %s VERSION %s', self.sock.cipher(), self.sock.ssl_version)
 
-class FingerprintHTTPSHandler(urllib.request.HTTPSHandler):
+class ServiceIdHTTPSHandler(urllib.request.HTTPSHandler):
 
-    def __init__(self, debuglevel=0, context=None, check_hostname=None, fingerprint=None):
+    def __init__(self, debuglevel=0, context=None, check_hostname=None, service_id=None):
         urllib.request.AbstractHTTPHandler.__init__(self, debuglevel)
         self._context = context
         self._check_hostname = check_hostname
-        self._fingerprint = fingerprint
+        self._service_id = service_id
 
     def https_open(self, req):
-        return self.do_open(FingerprintHTTPSConnection, req,
+        return self.do_open(ServiceIdHTTPSConnection, req,
             context=self._context, check_hostname=self._check_hostname,
-            fingerprint=self._fingerprint)
+            service_id=self._service_id)
 
-def get_opener(fingerprint):
-    handler = FingerprintHTTPSHandler(fingerprint=fingerprint)
+def get_opener(service_id):
+    handler = ServiceIdHTTPSHandler(service_id=service_id)
     opener = urllib.request.build_opener(handler)
     return opener

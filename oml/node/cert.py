@@ -8,7 +8,6 @@ import OpenSSL
 
 import settings
 
-
 def get_fingerprint():
     with open(settings.ssl_cert_path) as fd:
         data = fd.read()
@@ -17,7 +16,7 @@ def get_fingerprint():
 
 def generate_ssl():
     key = OpenSSL.crypto.PKey()
-    key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
+    key.generate_key(OpenSSL.crypto.TYPE_RSA, 1024)
     with open(settings.ssl_key_path, 'wb') as fd:
         os.chmod(settings.ssl_key_path, 0o600)
         fd.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))

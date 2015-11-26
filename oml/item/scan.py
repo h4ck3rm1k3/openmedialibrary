@@ -44,7 +44,6 @@ def add_file(id, f, prefix, from_=None):
     user = state.user()
     path = f[len(prefix):]
     data = media.metadata(f, from_)
-    print(path)
     file = File.get_or_create(id, data, path)
     item = file.item
     if 'primaryid' in file.info:

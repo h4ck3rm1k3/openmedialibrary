@@ -1,9 +1,10 @@
-websockets = []
-nodes = False
-tasks = False
-main = None
-online = False
 host = None
+main = None
+nodes = False
+online = False
+tasks = False
+tor = False
+websockets = []
 
 activity = {}
 

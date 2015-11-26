@@ -990,7 +990,7 @@ oml.updateFilterMenus = function() {
 };
 
 oml.validatePublicKey = function(value) {
-    return /^[A-Za-z0-9+\/]{43}$/.test(value);
+    return /^[a-z0-9+\/]{16}$/.test(value);
 };
 
 oml.updateDebugMenu = function() {

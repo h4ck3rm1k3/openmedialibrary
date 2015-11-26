@@ -6,6 +6,7 @@ import os
 import ed25519
 
 from pdict import pdict
+from utils import get_user_id
 
 base_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 static_path = os.path.join(base_dir, 'static')
@@ -22,7 +23,7 @@ log_path = os.path.join(config_path, 'debug.log')
 icons_db_path = os.path.join(config_path, 'icons.db')
 key_path = os.path.join(config_path, 'node.key')
 ssl_cert_path = os.path.join(config_path, 'node.ssl.crt')
-ssl_key_path = os.path.join(config_path, 'node.ssl.key')
+ssl_key_path = os.path.join(config_path, 'tor', 'private_key')
 
 
 if os.path.exists(oml_config_path):
@@ -64,7 +65,9 @@ else:
         fd.write(sk.to_bytes())
         os.chmod(key_path, 0o400)
 
-USER_ID = vk.to_ascii(encoding='base64').decode()
+USER_ID = get_user_id(ssl_key_path, ssl_cert_path)
+OLD_USER_ID = vk.to_ascii(encoding='base64').decode()
+
 OML_UPDATE_KEY='K55EZpPYbP3X+3mA66cztlw1sSaUMqGwfTDKQyP2qOU'
 
 if 'modules' in release and 'openmedialibrary' in release['modules']:
@@ -72,7 +75,7 @@ if 'modules' in release and 'openmedialibrary' in release['modules']:
 else:
     MINOR_VERSION = 'git'
 
-NODE_PROTOCOL="0.1"
+NODE_PROTOCOL="0.2"
 VERSION="%s.%s" % (NODE_PROTOCOL, MINOR_VERSION)
 
 

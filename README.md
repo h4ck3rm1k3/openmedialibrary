@@ -39,10 +39,10 @@ To update to latest version:
 
     ./ctl update
 
-On Linux you need a working python3 installation with pillow, python-lxml and poppler-utils:
+On Linux you need a working python3.4 installation with pillow, python-lxml, pyOpenSSL and pyCrypto and popler-utils:
 
-    apt-get install python3.4 python3-pil python3-lxml poppler-utils
-
+    apt-get install python3.4 python3-pil python3-lxml \
+                    python3-pyopenssl python3-crypto poppler-utils
 
 Platform
 ----------

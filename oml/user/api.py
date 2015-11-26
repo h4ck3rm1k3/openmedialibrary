@@ -297,7 +297,7 @@ def requestPeering(data):
             nickname (optional)
         }
     '''
-    if len(data.get('id', '')) != 43:
+    if len(data.get('id', '')) != 16:
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
@@ -321,7 +321,7 @@ def acceptPeering(data):
             message
         }
     '''
-    if len(data.get('id', '')) != 43:
+    if len(data.get('id', '')) != 16:
         logger.debug('invalid user id')
         return {}
     logger.debug('acceptPeering... %s', data)
@@ -341,7 +341,7 @@ def rejectPeering(data):
             message
         }
     '''
-    if len(data.get('id', '')) != 43:
+    if len(data.get('id', '')) != 16:
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
@@ -360,7 +360,7 @@ def removePeering(data):
             message
         }
     '''
-    if len(data.get('id', '')) != 43:
+    if len(data.get('id', '')) != 16:
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
@@ -377,7 +377,7 @@ def cancelPeering(data):
         takes {
         }
     '''
-    if len(data.get('id', '')) != 43:
+    if len(data.get('id', '')) != 16:
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])

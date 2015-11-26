@@ -89,7 +89,7 @@ class ScrapeThread(Thread):
         with db.session():
             while self._running:
                 if not self.scrape_queue():
-                    time.sleep(10)
+                    time.sleep(1)
 
     def join(self):
         self._running = False

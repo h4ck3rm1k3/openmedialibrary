@@ -12,11 +12,22 @@ import socket
 import io
 import gzip
 import time
+import hashlib
 from datetime import datetime
 import subprocess
+import base64
 
 import ox
 import ed25519
+from OpenSSL.crypto import (
+    load_privatekey, load_certificate,
+    dump_privatekey, dump_certificate,
+    FILETYPE_ASN1, FILETYPE_PEM, PKey, TYPE_RSA,
+    X509, X509Extension
+)
+from Crypto.PublicKey import RSA
+from Crypto.Util.asn1 import DerSequence
+
 
 from meta.utils import normalize_isbn, find_isbns
 
@@ -127,6 +138,79 @@ def valid(key, value, sig):
     except:
         return False
     return True
+
+def get_user_id(private_key, cert_path):
+    if os.path.exists(private_key):
+        with open(private_key) as fd:
+            key = load_privatekey(FILETYPE_PEM, fd.read())
+        if key.bits() != 1024:
+            os.unlink(private_key)
+        else:
+            user_id = get_service_id(private_key)
+    if not os.path.exists(private_key):
+        if os.path.exists(cert_path):
+            os.unlink(cert_path)
+        folder = os.path.dirname(private_key)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            os.chmod(folder, 0o700)
+        key = PKey()
+        key.generate_key(TYPE_RSA, 1024)
+        with open(private_key, 'wb') as fd:
+            os.chmod(private_key, 0o600)
+            fd.write(dump_privatekey(FILETYPE_PEM, key))
+            os.chmod(private_key, 0o400)
+        user_id = get_service_id(private_key)
+    if not os.path.exists(cert_path):
+        ca = X509()
+        ca.set_version(2)
+        ca.set_serial_number(1)
+        ca.get_subject().CN = user_id
+        ca.gmtime_adj_notBefore(0)
+        ca.gmtime_adj_notAfter(24 * 60 * 60)
+        ca.set_issuer(ca.get_subject())
+        ca.set_pubkey(key)
+        ca.add_extensions([
+          X509Extension(b"basicConstraints", True, b"CA:TRUE, pathlen:0"),
+          X509Extension(b"nsCertType", True, b"sslCA"),
+          X509Extension(b"extendedKeyUsage", True,
+            b"serverAuth,clientAuth,emailProtection,timeStamping,msCodeInd,msCodeCom,msCTLSign,msSGC,msEFS,nsSGC"),
+          X509Extension(b"keyUsage", False, b"keyCertSign, cRLSign"),
+          X509Extension(b"subjectKeyIdentifier", False, b"hash", subject=ca),
+        ])
+        ca.sign(key, "sha256")
+        with open(cert_path, 'wb') as fd:
+            fd.write(dump_certificate(FILETYPE_PEM, ca))
+    return user_id
+
+def get_service_id(private_key_file=None, cert=None):
+    '''
+    service_id is the first half of the sha1 of the rsa public key encoded in base32
+    '''
+    if private_key_file:
+        with open(private_key_file, 'rb') as fd:
+            private_key = fd.read()
+        public_key = RSA.importKey(private_key).publickey().exportKey('DER')[22:]
+        # compute sha1 of public key and encode first half in base32
+        service_id = base64.b32encode(hashlib.sha1(public_key).digest()[:10]).lower().decode()
+        '''
+        # compute public key from priate key and export in DER format
+        # ignoring the SPKI header(22 bytes)
+        key = load_privatekey(FILETYPE_PEM, private_key)
+        cert = X509()
+        cert.set_pubkey(key)
+        public_key = dump_privatekey(FILETYPE_ASN1, cert.get_pubkey())[22:]
+        # compute sha1 of public key and encode first half in base32
+        service_id = base64.b32encode(hashlib.sha1(public_key).digest()[:10]).lower().decode()
+        '''
+    elif cert:
+        # compute sha1 of public key and encode first half in base32
+        key = load_certificate(FILETYPE_ASN1, cert).get_pubkey()
+        pub_der = DerSequence()
+        pub_der.decode(dump_privatekey(FILETYPE_ASN1, key))
+        public_key = RSA.construct((pub_der._seq[1], pub_der._seq[2])).exportKey('DER')[22:]
+        service_id = base64.b32encode(hashlib.sha1(public_key).digest()[:10]).lower().decode()
+    return service_id
 
 def get_public_ipv6():
     try:

@@ -70,6 +70,11 @@ class Install(Thread):
             except:
                 apt_packages += ' python3-openssl'
                 dnf_packages += ' python3-pyOpenSSL'
+            try:
+                import Crypto
+            except:
+                apt_packages += ' python3-crypto'
+                dnf_packages += ' python3-pyCrypto'
 
             if not has_bin('pdftocairo'):
                 apt_packages += ' poppler-utils'

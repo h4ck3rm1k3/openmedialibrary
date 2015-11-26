@@ -200,6 +200,7 @@ def upgrade_db(old, new=None):
         if old <= '20140526-118-d451eb3' and new > '20140526-118-d451eb3':
             import item.models
             item.models.Find.query.filter_by(key='list').delete()
+
     if old <= '20140527-120-3cb9819':
         run_sql('CREATE INDEX ix_find_findvalue ON find (findvalue)')
 
@@ -211,6 +212,18 @@ def upgrade_db(old, new=None):
     FOREIGN KEY(item_id) REFERENCES item (id)
 )''')
         run_sql('CREATE INDEX idx_scrape_added ON scrape (added)')
+    if old <= '20151118-346-7e86e68':
+        old_key = os.path.join(settings.config_path, 'node.ssl.key')
+        if os.path.exists(old_key):
+            os.unlink(old_key)
+        statements = [
+            "UPDATE user SET id = '{nid}' WHERE id = '{oid}'",
+            "UPDATE list SET user_id = '{nid}' WHERE user_id = '{oid}'",
+            "UPDATE useritem SET user_id = '{nid}' WHERE user_id = '{oid}'",
+            "UPDATE changelog SET user_id = '{nid}' WHERE user_id = '{oid}'",
+        ]
+        for sql in statements:
+            run_sql(sql.format(oid=settings.OLD_USER_ID, nid=settings.USER_ID))
 
 def create_default_lists(user_id=None):
     with db.session():
