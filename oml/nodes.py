@@ -438,7 +438,6 @@ class Nodes(Thread):
         return Thread.join(self)
 
 def publish_node():
-    logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     update_online()
     state.check_nodes = PeriodicCallback(check_nodes, 120000)
     state.check_nodes.start()
@@ -446,7 +445,6 @@ def publish_node():
     state._online.start()
 
 def update_online():
-    logger.debug('=======================================================')
     online = state.tor and state.tor.is_online()
     logger.debug('update online %s', online)
     if online != state.online:
@@ -460,7 +458,6 @@ def update_online():
             'id': settings.USER_ID,
         })
         logger.debug('push id to directory %s', r)
-    logger.debug('=======================================================')
 
 def check_nodes():
     if state.online:
