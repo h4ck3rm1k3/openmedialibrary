@@ -111,7 +111,7 @@ class Node(Thread):
         if r and 'id' in r and len(r['id']) == 16:
             u = self.user
             self.user_id = r['id']
-            u.migreate_id(self.user_id)
+            u.migrate_id(self.user_id)
 
     def get_local(self):
         if self._nodes and self._nodes._local:
