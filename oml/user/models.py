@@ -131,6 +131,7 @@ class User(db.Model):
     def migrate_id(self, service_id):
         if len(service_id) == 16:
             statements = [
+                "DELETE FROM user WHERE id = '{nid}'",
                 "UPDATE user SET id = '{nid}' WHERE id = '{oid}'",
                 "UPDATE list SET user_id = '{nid}' WHERE user_id = '{oid}'",
                 "UPDATE useritem SET user_id = '{nid}' WHERE user_id = '{oid}'",
@@ -138,7 +139,7 @@ class User(db.Model):
             ]
             with db.session() as session:
                 for sql in statements:
-                    session.connection().execut(sql.format(oid=self.id, nid=service_id))
+                    session.connection().execute(sql.format(oid=self.id, nid=service_id))
                 session.commit()
 
 list_items = sa.Table('listitem', db.metadata,
