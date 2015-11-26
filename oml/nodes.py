@@ -453,11 +453,13 @@ def update_online():
             'id': settings.USER_ID,
             'online': state.online
         })
-    if state.online:
+    if not settings.server.get('migrated_id', False):
         r = directory.put(settings.sk, {
             'id': settings.USER_ID,
         })
         logger.debug('push id to directory %s', r)
+        if r:
+            settings.server['migrated_id'] = True
 
 def check_nodes():
     if state.online:
