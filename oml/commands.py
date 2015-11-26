@@ -25,7 +25,7 @@ def version(module):
         version += '-' + get('git', 'describe', '--always').strip()
         os.chdir(root_dir)
     else:
-        if module in settings.release['modules']:
+        if 'modules' in settings.release and module in settings.release['modules']:
             version = settings.release['modules'][module]['version']
         else:
             version = -1

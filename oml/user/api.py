@@ -341,7 +341,7 @@ def rejectPeering(data):
             message
         }
     '''
-    if len(data.get('id', '')) != 16:
+    if len(data.get('id', '')) not in (16, 43):
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])
@@ -360,7 +360,7 @@ def removePeering(data):
             message
         }
     '''
-    if len(data.get('id', '')) != 16:
+    if len(data.get('id', '')) not in (16, 43):
         logger.debug('invalid user id')
         return {}
     u = models.User.get_or_create(data['id'])

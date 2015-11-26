@@ -112,6 +112,7 @@ class Node(Thread):
             u = self.user
             self.user_id = r['id']
             u.migrate_id(self.user_id)
+            self._opener = get_opener(self.user_id)
 
     def get_local(self):
         if self._nodes and self._nodes._local:
