@@ -220,7 +220,7 @@ class Node(Thread):
                 logger.debug('can connect to: %s (%s)', url, self.user.nickname)
                 return True
         except:
-            logger.debug('can not connect to: %s (%s)', url, self.user.nickname, exc_info=1)
+            logger.debug('can not connect to: %s (%s)', url, self.user.nickname)
             pass
         return False
 
@@ -246,7 +246,7 @@ class Node(Thread):
                     if self.online:
                         self.pullChanges()
             except:
-                logger.debug('failed to connect to %s', self.user_id, exc_info=1)
+                logger.debug('failed to connect to %s', self.user_id)
                 self.online = False
         else:
             self.online = False
