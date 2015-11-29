@@ -141,12 +141,13 @@ class LocalNodesBase(Thread):
         if can_connect(data):
             self._nodes[data['id']] = data
             with db.session():
-                u = user.models.User.get_or_create(data['id'])
-                u.info['username'] = data['username']
-                u.info['local'] = data
-                u.update_name()
-                u.save()
-                state.nodes.queue('add', u.id)
+                u = user.models.User.get(data['id'])
+                if u:
+                    u.info['username'] = data['username']
+                    u.info['local'] = data
+                    u.update_name()
+                    u.save()
+                    state.nodes.queue('add', u.id)
             self.send()
 
     def get_ip(self):

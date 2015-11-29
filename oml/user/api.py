@@ -83,8 +83,16 @@ def getUsers(data):
         }
     '''
     users = []
+    ids = set()
     for u in models.User.query.filter(models.User.id!=settings.USER_ID).all():
         users.append(u.json())
+        ids.add(u.id)
+    for id in state.nodes._local._nodes:
+        if id not in ids:
+            n = state.nodes._local._nodes[id].copy()
+            n['online'] = True
+            n['name'] = n['username']
+            users.append(n)
     users.sort(key=lambda u: ox.sort_string(str(u.get('index', '')) + 'Z' + (u.get('name') or '')))
     return {
         "users": users
