@@ -80,3 +80,5 @@ VERSION="%s.%s" % (NODE_PROTOCOL, MINOR_VERSION)
 
 
 USER_AGENT = 'OpenMediaLibrary/%s' % VERSION
+
+DEBUG_HTTP = server.get('debug_http', False)

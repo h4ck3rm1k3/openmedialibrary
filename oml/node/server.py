@@ -98,6 +98,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def version_string(self):
         return settings.USER_AGENT
 
+    def log_message(self, format, *args):
+        if settings.DEBUG_HTTP:
+            logger.debug("%s - - [%s] %s\n", self.address_string(),
+                         self.log_date_time_string(), format%args)
+
     def do_HEAD(self):
         return self.do_GET()
 
@@ -124,7 +129,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('X-Node-Protocol', settings.NODE_PROTOCOL)
                 self.send_header('Content-Length', str(os.path.getsize(path)))
                 self.end_headers()
-                logger.debug('GET file %s', id)
                 with open(path, 'rb') as f:
                     while 1:
                         data = f.read(16384)

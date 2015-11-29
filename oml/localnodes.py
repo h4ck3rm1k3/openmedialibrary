@@ -34,18 +34,15 @@ def can_connect(data):
             url = 'https://{host}:{port}'.format(**data)
         opener.addheaders = list(zip(headers.keys(), headers.values()))
         opener.timeout = 1
-        logger.debug('try connection %s', url)
         r = opener.open(url)
         version = r.headers.get('X-Node-Protocol', None)
         if version != settings.NODE_PROTOCOL:
             logger.debug('version does not match local: %s remote %s', settings.NODE_PROTOCOL, version)
             return False
         c = r.read()
-        logger.debug('can connect to local node')
         return True
     except:
-        logger.debug('can_connect failed', exc_info=1)
-        pass
+        logger.debug('failed to connect to local node %s', data, exc_info=1)
     return False
 
 class LocalNodesBase(Thread):
@@ -175,7 +172,7 @@ class LocalNodes4(LocalNodesBase):
     def send(self):
         packet = self.get_packet()
         if packet:
-            logger.debug('send4 %s', packet)
+            #logger.debug('send4 %s', packet)
             sockaddr = (self._BROADCAST, self._PORT)
             s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt (socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self._TTL)
@@ -205,7 +202,7 @@ class LocalNodes6(LocalNodesBase):
     def send(self):
         packet = self.get_packet()
         if packet:
-            logger.debug('send6 %s', packet)
+            #logger.debug('send6 %s', packet)
             ttl = struct.pack('@i', self._TTL)
             address = self._BROADCAST + get_interface()
             addrs = socket.getaddrinfo(address, self._PORT, socket.AF_INET6, socket.SOCK_DGRAM)

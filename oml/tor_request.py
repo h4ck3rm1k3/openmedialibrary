@@ -81,9 +81,8 @@ class TorHTTPSConnection(http.client.HTTPSConnection):
 
     def _check_service_id(self, cert):
         service_id = get_service_id(cert=cert)
-        logger.debug('ssl service_id: %s (match: %s)', service_id, service_id == self._service_id)
         if service_id != self._service_id:
-            logger.debug('expected service_id: %s', self._service_id)
+            logger.debug('service_id mismatch: %s expected: %s', service_id, self._service_id)
         return service_id == self._service_id
 
     def connect(self):

@@ -42,18 +42,31 @@ class MainHandler(OMLHandler):
         self.set_header('Content-Length', str(len(content)))
         self.write(content)
 
+def log_request(handler):
+    if settings.DEBUG_HTTP:
+        if handler.get_status() < 400:
+            log_method = logger.info
+        elif handler.get_status() < 500:
+            log_method = logger.warning
+        else:
+            log_method = logger.error
+        request_time = 1000.0 * handler.request.request_time()
+        log_method("%d %s %.2fms", handler.get_status(),
+                   handler._request_summary(), request_time)
 def run():
     setup.create_db()
     PID = sys.argv[2] if len(sys.argv) > 2 else None
 
+    log_format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
     if not PID:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     else:
         logging.basicConfig(level=logging.DEBUG,
             filename=settings.log_path, filemode='w',
-            format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+            format=log_format)
     options = {
         'debug': False,
+        'log_function': log_request,
         'gzip': True
     }
 

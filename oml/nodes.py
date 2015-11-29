@@ -447,7 +447,6 @@ def publish_node():
 
 def update_online():
     online = state.tor and state.tor.is_online()
-    logger.debug('update online %s', online)
     if online != state.online:
         state.online = online
         trigger_event('status', {
