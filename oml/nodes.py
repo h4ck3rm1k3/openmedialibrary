@@ -29,7 +29,7 @@ import state
 import db
 
 import logging
-logger = logging.getLogger('oml.nodes')
+logger = logging.getLogger(__name__)
 
 ENCODING='base64'
 

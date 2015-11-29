@@ -16,7 +16,7 @@ from threading import Thread
 from functools import wraps
 
 import logging
-logger = logging.getLogger('oxtornado')
+logger = logging.getLogger(__name__)
 
 
 def json_response(data=None, status=200, text='ok'):

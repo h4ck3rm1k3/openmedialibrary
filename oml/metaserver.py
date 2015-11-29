@@ -13,7 +13,7 @@ import meta
 import utils
 
 import logging
-logger = logging.getLogger('metaoml')
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 def findMetadata(data):

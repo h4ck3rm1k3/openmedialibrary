@@ -12,7 +12,7 @@ from .marc_countries import COUNTRIES
 from .utils import normalize_isbn
 
 import logging
-logger = logging.getLogger('meta.loc')
+logger = logging.getLogger(__name__)
 
 
 def get_ids(key, value):

@@ -32,7 +32,7 @@ from Crypto.Util.asn1 import DerSequence
 from meta.utils import normalize_isbn, find_isbns
 
 import logging
-logger = logging.getLogger('oml.utils')
+logger = logging.getLogger(__name__)
 
 ENCODING='base64'
 

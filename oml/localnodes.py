@@ -18,7 +18,7 @@ from tor_request import get_opener
 import settings
 
 import logging
-logger = logging.getLogger('oml.localnodes')
+logger = logging.getLogger(__name__)
 
 def can_connect(data):
     try:
@@ -248,6 +248,11 @@ class LocalNodes(object):
         if self._active:
             for id in list(self._nodes.keys()):
                 if not can_connect(self._nodes[id]):
+                    with db.session():
+                        u = user.models.User.get(id)
+                        if u and 'local' in u.info:
+                            del u.info['local']
+                            u.save()
                     del self._nodes[id]
                 if not self._active:
                     break

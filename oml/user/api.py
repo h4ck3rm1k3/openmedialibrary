@@ -16,7 +16,7 @@ import settings
 import state
 
 import logging
-logger = logging.getLogger('oml.user.api')
+logger = logging.getLogger(__name__)
 
 
 def init(data):

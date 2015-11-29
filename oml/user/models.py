@@ -14,7 +14,7 @@ import settings
 import state
 
 import logging
-logger = logging.getLogger('oml.user.models')
+logger = logging.getLogger(__name__)
 
 class User(db.Model):
     __tablename__ = 'user'

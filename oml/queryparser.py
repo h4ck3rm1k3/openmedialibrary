@@ -9,7 +9,7 @@ import utils
 import settings
 
 import logging
-logger = logging.getLogger('queryparser')
+logger = logging.getLogger(__name__)
 
 def get_operator(op, type='str'):
     return {

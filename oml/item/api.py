@@ -21,7 +21,7 @@ from . import person_api
 from . import title_api
 
 import logging
-logger = logging.getLogger('oml.item.api')
+logger = logging.getLogger(__name__)
 
 
 def find(data):

@@ -8,7 +8,7 @@ import stdnum.isbn
 from .utils import find_isbns
 
 import logging
-logger = logging.getLogger('meta.google')
+logger = logging.getLogger(__name__)
 
 
 def find(query):

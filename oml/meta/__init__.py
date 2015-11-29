@@ -14,7 +14,7 @@ from . import google
 from . import duckduckgo
 
 import logging
-logger = logging.getLogger('meta')
+logger = logging.getLogger(__name__)
 
 
 providers = [

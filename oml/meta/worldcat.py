@@ -12,7 +12,7 @@ import stdnum.isbn
 from .utils import normalize_isbn
 
 import logging
-logger = logging.getLogger('meta.worldcat')
+logger = logging.getLogger(__name__)
 
 
 base_url = 'http://www.worldcat.org'

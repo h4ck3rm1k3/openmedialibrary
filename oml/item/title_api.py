@@ -7,7 +7,7 @@ from . import query
 
 
 import logging
-logger = logging.getLogger('oml.item.title_api')
+logger = logging.getLogger(__name__)
 
 
 def editTitle(data):

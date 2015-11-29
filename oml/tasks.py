@@ -9,7 +9,7 @@ from websocket import trigger_event
 
 
 import logging
-logger = logging.getLogger('oml.tasks')
+logger = logging.getLogger(__name__)
 
 class Tasks(Thread):
 

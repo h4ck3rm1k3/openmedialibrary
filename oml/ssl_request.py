@@ -9,7 +9,7 @@ import logging
 import base64
 from OpenSSL import crypto
 
-logger = logging.getLogger('oml.ssl_request')
+logger = logging.getLogger(__name__)
 
 def get_service_id(cert):
     # compute sha1 of public key and encode first half in base32

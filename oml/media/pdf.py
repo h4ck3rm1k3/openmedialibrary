@@ -16,7 +16,7 @@ import settings
 from utils import normalize_isbn, find_isbns
 
 import logging
-logger = logging.getLogger('oml.meta.pdf')
+logger = logging.getLogger(__name__)
 
 def cover(pdf):
     if sys.platform == 'darwin':

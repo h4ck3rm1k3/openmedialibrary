@@ -29,7 +29,7 @@ from . import nodeapi
 from .sslsocket import fileobject
 
 import logging
-logger = logging.getLogger('oml.node.server')
+logger = logging.getLogger(__name__)
 
 
 def get_service_id(key):

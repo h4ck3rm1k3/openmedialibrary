@@ -9,7 +9,7 @@ import settings
 import state
 
 import logging
-logger = logging.getLogger('oml.node.nodeapi')
+logger = logging.getLogger(__name__)
 
 def api_pullChanges(remote_id, user_id=None, from_=None, to=None):
     if user_id and not from_ and not to:

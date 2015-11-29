@@ -13,7 +13,7 @@ import update
 from websocket import trigger_event
 
 import logging
-logger = logging.getLogger('oml.downloads')
+logger = logging.getLogger(__name__)
 
 class Downloads(Thread):
 

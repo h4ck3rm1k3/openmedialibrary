@@ -20,7 +20,7 @@ import settings
 import state
 
 import logging
-logger = logging.getLogger('oml.item.scan')
+logger = logging.getLogger(__name__)
 
 extensions = ['epub', 'pdf', 'txt', 'cbr', 'cbz']
 

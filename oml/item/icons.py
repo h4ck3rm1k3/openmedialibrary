@@ -17,7 +17,7 @@ from utils import resize_image
 import db
 
 import logging
-logger = logging.getLogger('oml.item.icons')
+logger = logging.getLogger(__name__)
 
 
 class Icons(dict):

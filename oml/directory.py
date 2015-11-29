@@ -11,7 +11,7 @@ import tor_request
 
 import settings
 
-logger = logging.getLogger('oml.directory')
+logger = logging.getLogger(__name__)
 
 base = settings.server['directory_service']
 base = 'http://hpjats6xixrleoqg.onion:25519'

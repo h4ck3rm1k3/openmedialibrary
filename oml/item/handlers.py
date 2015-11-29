@@ -24,7 +24,7 @@ from oxtornado import json_dumps, json_response
 from media import get_id
 
 import logging
-logger = logging.getLogger('item.handlers')
+logger = logging.getLogger(__name__)
 
 class OMLHandler(tornado.web.RequestHandler):
 

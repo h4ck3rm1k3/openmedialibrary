@@ -8,7 +8,7 @@ from .person import Person
 
 
 import logging
-logger = logging.getLogger('oml.item.person_api')
+logger = logging.getLogger(__name__)
 
 
 def parse(data, model):

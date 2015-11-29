@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 from ox.cache import read_url
 
 import logging
-logger = logging.getLogger('metaremote')
+logger = logging.getLogger(__name__)
 
 def request(action, data):
         data = urlencode({

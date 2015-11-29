@@ -8,7 +8,7 @@ from ox.cache import read_url
 import lxml.html
 
 import logging
-logger = logging.getLogger('meta.abebooks')
+logger = logging.getLogger(__name__)
 
 base = 'http://www.abebooks.com'
 

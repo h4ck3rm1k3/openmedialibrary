@@ -26,7 +26,7 @@ import websocket
 
 import logging
 
-logger = logging.getLogger('oml')
+logger = logging.getLogger(__name__)
 
 class MainHandler(OMLHandler):
 
@@ -51,7 +51,7 @@ def run():
     else:
         logging.basicConfig(level=logging.DEBUG,
             filename=settings.log_path, filemode='w',
-            format='%(asctime)s %(levelname)s %(message)s')
+            format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
     options = {
         'debug': False,
         'gzip': True
@@ -108,6 +108,9 @@ def run():
             else:
                 with db.session():
                     for u in user.models.User.query.filter_by(peered=True):
+                        if 'local' in u.info:
+                            del u.info['local']
+                            u.save()
                         state.nodes.queue('add', u.id)
                     for u in user.models.User.query.filter_by(queued=True):
                         logger.debug('adding queued node... %s', u.id)

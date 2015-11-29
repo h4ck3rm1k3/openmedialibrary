@@ -11,7 +11,7 @@ from oxtornado import json_dumps
 import state
 
 import logging
-logger = logging.getLogger('oml.websocket')
+logger = logging.getLogger(__name__)
 
 
 class Handler(WebSocketHandler):

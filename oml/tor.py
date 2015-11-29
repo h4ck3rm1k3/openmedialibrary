@@ -7,11 +7,10 @@ import stem
 from stem.control import Controller
 import settings
 
-import logging
 import state
-import time
 
-logger = logging.getLogger('oml.tor')
+import logging
+logger = logging.getLogger(__name__)
 
 class TorDaemon(Thread):
     def __init__(self):
@@ -75,6 +74,7 @@ DirReqStatistics 0
             self.p = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
             for line in self.p.stdout:
                 self._status.append(line)
+                logger.debug(line)
             self.p = None
 
     def shutdown(self):

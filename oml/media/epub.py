@@ -15,7 +15,7 @@ import stdnum.isbn
 from utils import normalize_isbn, find_isbns
 
 import logging
-logger = logging.getLogger('oml.media.epub')
+logger = logging.getLogger(__name__)
 
 def cover(path):
     logger.debug('cover %s', path)

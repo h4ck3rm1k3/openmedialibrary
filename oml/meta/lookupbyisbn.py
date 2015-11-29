@@ -11,7 +11,7 @@ import stdnum.isbn
 from .utils import find_isbns
 
 import logging
-logger = logging.getLogger('meta.lookupbyisbn')
+logger = logging.getLogger(__name__)
 
 
 base = 'http://www.lookupbyisbn.com'

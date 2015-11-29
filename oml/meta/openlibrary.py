@@ -13,7 +13,7 @@ from .marc_countries import COUNTRIES
 from .utils import normalize_isbn
 
 import logging
-logger = logging.getLogger('meta.openlibrary')
+logger = logging.getLogger(__name__)
 
 
 KEYS = {

@@ -29,7 +29,7 @@ import state
 import utils
 
 import logging
-logger = logging.getLogger('oml.item.model')
+logger = logging.getLogger(__name__)
 
 user_items = sa.Table('useritem', db.metadata,
     sa.Column('user_id', sa.String(43), sa.ForeignKey('user.id')),

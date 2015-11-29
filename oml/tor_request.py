@@ -13,7 +13,7 @@ import settings
 import state
 from utils import get_service_id, get_local_ipv4
 
-logger = logging.getLogger('oml.tor_request')
+logger = logging.getLogger(__name__)
 
 class InvalidCertificateException(http.client.HTTPException, urllib.error.URLError):
     def __init__(self, service_id, cert, reason):
