@@ -14,7 +14,7 @@ import settings
 import state
 
 import logging
-logger = logging.getLogger('oml.changelog')
+logger = logging.getLogger(__name__)
 
 class Changelog(db.Model):
     '''
@@ -242,16 +242,17 @@ class Changelog(db.Model):
         return True
 
     def action_addpeer(self, user, timestamp, peerid, username):
-        from user.models import User
-        if not 'users' in user.info:
-            user.info['users'] = {}
-        user.info['users'][peerid] = username
-        user.save()
-        peer = User.get_or_create(peerid)
-        if not 'username' in peer.info:
-            peer.info['username'] = username
-            peer.update_name()
-            peer.save()
+        if len(peerid) == 16:
+            from user.models import User
+            if not 'users' in user.info:
+                user.info['users'] = {}
+            user.info['users'][peerid] = username
+            user.save()
+            peer = User.get_or_create(peerid)
+            if not 'username' in peer.info:
+                peer.info['username'] = username
+                peer.update_name()
+                peer.save()
         return True
 
     def action_removepeer(self, user, timestamp, peerid):
