@@ -79,9 +79,6 @@ class Install(Thread):
             if not has_bin('pdftocairo'):
                 apt_packages += ' poppler-utils'
                 dnf_packages += ' poppler-utils'
-            if not os.path.exists('/usr/sbin/miredo'):
-                apt_packages += ' miredo'
-                dnf_packages += ' miredo-client'
 
             if has_bin('apt-get') and apt_packages:
                 print('Installing additional packages: %s' % apt_packages)
@@ -93,8 +90,6 @@ class Install(Thread):
                 print('You need to install Pillow, lxml and pyOpenSSL\ni.e. sudo pip3 install pillow lxml pyOpenSSL')
                 if 'poppler' in apt_packages:
                     print('You need to install pdftocairo (part of poppler-utils)')
-                if 'miredo' in apt_packages:
-                    print('You need to install miredo (or get IPv6 in another way)')
                 input("After installing those packages, press Enter to continue...")
             os.system('./ctl install_launcher')
         os.system('./ctl setup')
