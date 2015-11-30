@@ -331,8 +331,18 @@ def makefolder(path):
         os.makedirs(dirname)
 
 
-def open_folder(folder):
-    cmd = 'open'
-    if sys.platform.startswith('linux'):
-        cmd = 'xdg-open'
-    subprocess.Popen([cmd, folder], close_fds=True)
+def open_folder(folder=None, path=None):
+    cmd = []
+    if path and not folder:
+        folder = os.path.dirname(path)
+    if folder and not path:
+        path = folder
+    if sys.platform == 'darwin':
+        if folder and not path:
+            path = folder
+        cmd += ['open', '-R', path]
+    elif sys.platform.startswith('linux'):
+        cmd += ['xdg-open', folder]
+    else:
+        logger.debug('unsupported platform %s', sys.platform)
+    subprocess.Popen(cmd, close_fds=True)

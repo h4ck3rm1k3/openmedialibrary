@@ -339,6 +339,6 @@ def openFolder(data):
     if item:
         path = item.get_path()
         if path:
-            utils.open_folder(os.path.dirname(path))
+            utils.open_folder(path=path)
     return response
 actions.register(openFolder, cache=False)
