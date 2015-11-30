@@ -219,6 +219,8 @@ class Node(Thread):
                     return False
                 c = r.read()
                 logger.debug('can connect to: %s (%s)', url, self.user.nickname)
+                if self.user.peered:
+                    self.pullChanges()
                 return True
         except:
             logger.debug('can not connect to: %s (%s)', url, self.user.nickname)
@@ -244,7 +246,7 @@ class Node(Thread):
                         else:
                             #fixme, what about cancel/reject peering here?
                             self.peering('removePeering')
-                    if self.peered and self.online:
+                    if u.peered and self.online:
                         self.pullChanges()
             except:
                 logger.debug('failed to connect to %s', self.user_id)
@@ -474,8 +476,3 @@ def check_nodes():
                 if not state.nodes.is_online(u.id):
                     logger.debug('queued peering message for %s trying to connect...', u.id)
                     state.nodes.queue('add', u.id)
-            for u in user.models.User.query.filter_by(peered=True):
-                if state.nodes.is_online(u.id):
-                    u.pullChanges()
-                else:
-                    u.go_online()
