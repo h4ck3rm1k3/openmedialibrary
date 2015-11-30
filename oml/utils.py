@@ -329,3 +329,10 @@ def makefolder(path):
     dirname = os.path.dirname(path)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
+
+
+def open_folder(folder):
+    cmd = 'open'
+    if sys.platform.startswith('linux'):
+        cmd = 'xdg-open'
+    subprocess.Popen([cmd, folder], close_fds=True)

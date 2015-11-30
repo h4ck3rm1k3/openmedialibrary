@@ -2,6 +2,7 @@
 # vi:si:et:sw=4:sts=4:ts=4
 import json
 import hashlib
+import os
 
 from sqlalchemy.orm import load_only
 from sqlalchemy import func
@@ -331,3 +332,13 @@ def cancelImport(data):
     })
     return {}
 actions.register(cancelImport, cache=False)
+
+def openFolder(data):
+    response = {}
+    item = models.Item.get(data['id'])
+    if item:
+        path = item.get_path()
+        if path:
+            utils.open_folder(os.path.dirname(path))
+    return response
+actions.register(openFolder, cache=False)
