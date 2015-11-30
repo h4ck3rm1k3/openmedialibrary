@@ -9,12 +9,17 @@ import tarfile
 import urllib.request, urllib.error, urllib.parse
 import shutil
 import subprocess
+import sys
 
 import ed25519
 import ox
 from oxtornado import actions
 
 import settings
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 ENCODING='base64'
@@ -138,8 +143,29 @@ def install():
                 ['./ctl', 'postupdate', '-o', old_version, '-n', new_version]
             ]:
             subprocess.call(cmd)
+        upgrade_app()
         return True
     return True
+
+def get_app_version(app):
+    plist = app + '/Contents/Info.plist'
+    if os.path.exists(plist):
+        cmd = ['defaults', 'read', plist, 'CFBundleShortVersionString']
+        return subprocess.check_output(cmd).strip()
+
+def upgrade_app():
+    if sys.platform == 'darwin':
+        base = os.path.dirname(settings.base_dir)
+        bundled_app = base + 'platform/Darwin/Applications/Open Media Library.app'
+        app = '/Applications/Open Media Library.app'
+        version = get_app_version(app)
+        current_version = get_app_version(bundled_app)
+        if version and current_version and version != current_version:
+            try:
+                shutil.rmtree(app)
+                shutil.copytree(bundled_app, app)
+            except:
+                logger.debug('Failed to update Application', exc_info=1)
 
 def getVersion(data):
     '''
