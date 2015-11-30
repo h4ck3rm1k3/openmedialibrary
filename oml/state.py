@@ -1,3 +1,4 @@
+bandwidth = None
 host = None
 main = None
 nodes = False

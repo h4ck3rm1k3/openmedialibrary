@@ -184,7 +184,7 @@ def getVersion(data):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
         new = stdout.strip()[:40]
-        response['update'] = current != new
+        response['update'] = len(new) == 40 and current != new
     else:
         if not os.path.exists(os.path.join(settings.updates_path, 'release.json')):
             return response

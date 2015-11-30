@@ -10,24 +10,34 @@ oml.ui.connectionButton = function() {
         })
         .bindEvent({
             // ...
-        });
+        }),
+        bandwidth;
 
     /*
-    oml.ui.statusIcon(oml.user.online ? 'connected' : 'disconnected')
+    oml.ui.statusIcon(oml.user)
         .css({float: 'left'})
         .appendTo(that);
     */
 
-    Ox.Element()
+    function formatBandwidth(up, down) {
+        return '&darr;'+Ox.formatValue(down, 'b')+' / &uarr;'+Ox.formatValue(up, 'b')+'';
+    }
+
+    bandwidth = Ox.Element()
         .addClass('OxLight')
         .css({
             float: 'left',
             marginTop: '2px',
             fontSize: '9px'
         })
-        .html('&darr;0K/&uarr;0K')
+        .html(formatBandwidth(0, 0))
         .appendTo(that);
 
+    oml.bindEvent({
+        bandwidth: function(data) {
+            bandwidth.html(formatBandwidth(data.up, data.down));
+        }
+    });
     return that;
 
 };

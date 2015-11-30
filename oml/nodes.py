@@ -244,7 +244,7 @@ class Node(Thread):
                         else:
                             #fixme, what about cancel/reject peering here?
                             self.peering('removePeering')
-                    if self.online:
+                    if self.peered and self.online:
                         self.pullChanges()
             except:
                 logger.debug('failed to connect to %s', self.user_id)
@@ -316,24 +316,30 @@ class Node(Thread):
             return False
         if r.getcode() == 200:
             try:
+                fileobj = r
                 if r.headers.get('content-encoding', None) == 'gzip':
-                    content = gzip.GzipFile(fileobj=r).read()
-                else:
-                    content = b''
-                    ct = datetime.utcnow()
-                    for chunk in iter(lambda: r.read(16*1024), b''):
-                        content += chunk
-                        if (datetime.utcnow() - ct).total_seconds() > 1:
-                            ct = datetime.utcnow()
-                            t = Transfer.get(item.id)
-                            t.progress = len(content) / item.info['size']
-                            t.save()
-                            trigger_event('transfer', {
-                                'id': item.id, 'progress': t.progress
-                            })
-                    '''
-                    content = r.read()
-                    '''
+                    fileobj = gzip.GzipFile(fileobj=r)
+                content = b''
+                ct = datetime.utcnow()
+                size = 0
+                for chunk in iter(lambda: fileobj.read(16*1024), b''):
+                    content += chunk
+                    size += len(chunk)
+                    since_ct = (datetime.utcnow() - ct).total_seconds()
+                    if since_ct > 1:
+                        ct = datetime.utcnow()
+                        t = Transfer.get(item.id)
+                        t.progress = len(content) / item.info['size']
+                        t.save()
+                        trigger_event('transfer', {
+                            'id': item.id, 'progress': t.progress
+                        })
+                        if state.bandwidth:
+                            state.bandwidth.download(size/since_ct)
+                            size = 0
+                '''
+                content = fileobj.read()
+                '''
 
                 t2 = datetime.utcnow()
                 duration = (t2-t1).total_seconds()
@@ -468,3 +474,8 @@ def check_nodes():
                 if not state.nodes.is_online(u.id):
                     logger.debug('queued peering message for %s trying to connect...', u.id)
                     state.nodes.queue('add', u.id)
+            for u in user.models.User.query.filter_by(peered=True):
+                if state.nodes.is_online(u.id):
+                    u.pullChanges()
+                else:
+                    u.go_online()

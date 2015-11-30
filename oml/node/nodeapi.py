@@ -34,6 +34,8 @@ def api_pullChanges(remote_id, user_id=None, from_=None, to=None):
     return [c.json() for c in qs]
 
 def api_pushChanges(user_id, changes):
+    logger.debug('pushChanges no longer used, ignored')
+    return True
     user = User.get(user_id)
     if not Changelog.apply_changes(user, changes):
         logger.debug('FAILED TO APPLY CHANGE')

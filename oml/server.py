@@ -110,6 +110,8 @@ def run():
         import downloads
         import nodes
         import tor
+        import bandwidth
+        state.bandwidth = bandwidth.Bandwidth()
         state.tor = tor.Tor()
         state.node = node.server.start()
         state.downloads = downloads.Downloads()

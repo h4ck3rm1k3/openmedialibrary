@@ -58,8 +58,8 @@ class Changelog(db.Model):
         _data = _data.encode()
         state.db.session.add(c)
         state.db.session.commit()
-        if state.nodes:
-            state.nodes.queue('peered', 'pushChanges', [c.json()])
+        #if state.nodes:
+        #    state.nodes.queue('peered', 'pushChanges', [c.json()])
 
     @classmethod
     def apply_changes(cls, user, changes):
