@@ -599,16 +599,29 @@ oml.ui.infoView = function(identifyData) {
 
                     // -------- Description
 
-                    if (data.description) {
+                    if (data.description || isEditable) {
                         $('<div>')
                             .css({
                                 marginTop: '8px',
                                 textAlign: 'justify'
-                            })
-                            .html(
-                                Ox.encodeHTMLEntities(data.description)
-                            )
-                            .appendTo($info);
+                            }).append(
+                                Ox.EditableContent({
+                                        clickLink: oml.clickLink,
+                                        editable: isEditable,
+                                        format: function(value) {
+                                            return Ox.encodeHTMLEntities(value);
+                                        },
+                                        placeholder: formatLight('No Description'),
+                                        tooltip: isEditable ? oml.getEditTooltip() : '',
+                                        type: 'textarea',
+                                        value: data.description || ''
+                                    })
+                                    .bindEvent({
+                                        submit: function(event) {
+                                            editMetadata(key, event.value);
+                                        }
+                                    })
+                            ).appendTo($info);
                     }
 
                     $('<div>').css({height: '16px'}).appendTo($info);
