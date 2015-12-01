@@ -184,22 +184,24 @@ PRAGMA journal_mode=WAL
 def upgrade_db(old, new=None):
     if new:
         if old <= '20140525-92-eac91e7' and new > '20140525-92-eac91e7':
-            import user.models
-            for u in user.models.User.query:
-                u.update_name()
-                u.save()
-            import item.models
-            for f in item.models.File.query:
-                changed = False
-                for key in ('mediastate', 'coverRatio', 'previewRatio'):
-                    if key in f.info:
-                        del f.info[key]
-                        changed = True
-                if changed:
-                    f.save()
+            with db.session():
+                import user.models
+                for u in user.models.User.query:
+                    u.update_name()
+                    u.save()
+                import item.models
+                for f in item.models.File.query:
+                    changed = False
+                    for key in ('mediastate', 'coverRatio', 'previewRatio'):
+                        if key in f.info:
+                            del f.info[key]
+                            changed = True
+                    if changed:
+                        f.save()
         if old <= '20140526-118-d451eb3' and new > '20140526-118-d451eb3':
-            import item.models
-            item.models.Find.query.filter_by(key='list').delete()
+            with db.session():
+                import item.models
+                item.models.Find.query.filter_by(key='list').delete()
 
     if old <= '20140527-120-3cb9819':
         run_sql('CREATE INDEX ix_find_findvalue ON find (findvalue)')
@@ -224,11 +226,12 @@ def upgrade_db(old, new=None):
         ]
         for sql in statements:
             run_sql(sql.format(oid=settings.OLD_USER_ID, nid=settings.USER_ID))
-    if old <= '20151201-378-75164a8':
-        import item.models
-        for i in item.models.Item.query:
-            for f in i.files.all():
-                f.move()
+    if old <= '20151201-384-03c2439':
+        with db.session():
+            import item.models
+            for i in item.models.Item.query:
+                for f in i.files.all():
+                    f.move()
 
 def create_default_lists(user_id=None):
     with db.session():
