@@ -273,7 +273,7 @@ class Node(Thread):
         })
 
     def pullChanges(self):
-        if not self.online:
+        if not self.online or not self.user.peered:
             return True
         last = Changelog.query.filter_by(user_id=self.user_id).order_by('-revision').first()
         from_revision = last.revision + 1 if last else 0
