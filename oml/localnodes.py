@@ -42,7 +42,8 @@ def can_connect(data):
         c = r.read()
         return True
     except:
-        logger.debug('failed to connect to local node %s', data, exc_info=1)
+        pass
+        #logger.debug('failed to connect to local node %s', data, exc_info=1)
     return False
 
 class LocalNodesBase(Thread):

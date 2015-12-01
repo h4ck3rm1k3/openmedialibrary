@@ -100,7 +100,7 @@ class Node(Thread):
         return url
 
     def resolve(self):
-        logger.debug('resolve node')
+        #logger.debug('resolve node %s', self.user_id)
         r = self.get_local()
         if r:
             self.local = r['host']
@@ -225,7 +225,7 @@ class Node(Thread):
                     'Accept-Encoding': 'gzip',
                 }
                 self._opener.addheaders = list(zip(headers.keys(), headers.values()))
-                self._opener.timeout = 1
+                self._opener.timeout = 2
                 r = self._opener.open(url)
                 version = r.headers.get('X-Node-Protocol', None)
                 if version != settings.NODE_PROTOCOL:
