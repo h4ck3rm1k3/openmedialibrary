@@ -618,7 +618,7 @@ oml.ui.infoView = function(identifyData) {
                                     })
                                     .bindEvent({
                                         submit: function(event) {
-                                            editMetadata(key, event.value);
+                                            editMetadata('description', event.value);
                                         }
                                     })
                             ).appendTo($info);

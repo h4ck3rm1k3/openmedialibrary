@@ -215,7 +215,11 @@ class Item(db.Model):
         else:
             self.info['mediastate'] = 'available' if settings.USER_ID in users else 'unavailable'
         if 'primaryid' in self.meta:
-            self.meta.update(Metadata.load(*self.meta['primaryid']))
+            # self.meta.update does not trigger db update!
+            m = Metadata.load(*self.meta['primaryid'])
+            for key in m:
+                self.meta[key] = m[key]
+            self.modified = datetime.utcnow()
         self.update_sort()
         self.update_find()
         #self.modified = datetime.utcnow()
@@ -233,7 +237,7 @@ class Item(db.Model):
         if commit:
             state.db.session.commit()
 
-    meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language')
+    meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language', 'description')
 
     def update_meta(self, data):
         update = False
@@ -242,8 +246,8 @@ class Item(db.Model):
             if key in data:
                 if self.meta.get(key) != data[key]:
                     record[key] = data[key]
-                self.meta[key] = data[key]
-                update = True
+                    self.meta[key] = data[key]
+                    update = True
         for key in list(self.meta.keys()):
             if key not in self.meta_keys:
                 del self.meta[key]
@@ -293,9 +297,10 @@ class Item(db.Model):
 
     def edit_metadata(self, data):
         if 'primaryid' in self.meta:
+            logger.debug('m: %s', self.meta['primaryid'])
             m = Metadata.get_or_create(*self.meta['primaryid'])
-            m.edit(data)
-            m.update_items()
+            if m.edit(data):
+                self.update()
         else:
             self.update_meta(data)
         for f in self.files.all():
@@ -686,7 +691,7 @@ class Metadata(db.Model):
     def edit(self, data):
         changed = {}
         for key in data:
-            if key not in data or data[key] != self.data.get(key):
+            if data[key] != self.data.get(key):
                 self.data[key] = data[key]
                 changed[key] = data[key]
         if changed:
