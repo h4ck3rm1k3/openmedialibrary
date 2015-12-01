@@ -54,12 +54,13 @@ def lookup(id):
         'asin': [id]
     }
     url = '%s/Lookup/Book/%s/%s/1' % (base, id, id)
+    logger.debug('%s', url)
     data = read_url(url).decode('utf-8')
     r["title"] = find_re(data, "<h2>(.*?)</h2>")
     if r["title"] == 'Error!':
         return {}
     keys = {
-        'author': 'Author(s)',
+        #'author': 'Author(s)',
         'publisher': 'Publisher',
         'date': 'Publication date',
         'edition': 'Edition',
@@ -80,10 +81,12 @@ def lookup(id):
     for key in r:
         if isinstance(r[key], str):
             r[key] = decode_html(strip_tags(r[key])).strip()
+    '''
     if 'author' in r and isinstance(r['author'], str) and r['author']:
         r['author'] = [r['author']]
     else:
         r['author'] = []
+    '''
     if r['description'].lower() == 'Description of this item is not available at this time.'.lower():
         r['description'] = ''
     return r
