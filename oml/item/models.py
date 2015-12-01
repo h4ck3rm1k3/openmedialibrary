@@ -298,6 +298,8 @@ class Item(db.Model):
             m.update_items()
         else:
             self.update_meta(data)
+        for f in self.files.all():
+            f.move()
 
     def extract_preview(self):
         path = self.get_path()
@@ -695,7 +697,8 @@ class Metadata(db.Model):
 
     def update_items(self):
         for f in Find.query.filter_by(key=self.key, value=self.value):
-            f.item.scrape()
+            if f.item:
+                f.item.scrape()
 
     @classmethod
     def load(self, key, value):
