@@ -128,12 +128,12 @@ class Changelog(db.Model):
     def action_additem(self, user, timestamp, itemid, info):
         from item.models import Item
         i = Item.get(itemid)
-        if i and i.timestamp > timestamp:
+        if i:
             if user not in i.users:
                 i.users.append(user)
                 i.update()
             return True
-        if not i:
+        else:
             i = Item.get_or_create(itemid, info)
             i.modified = ts2datetime(timestamp)
             if user not in i.users:
@@ -173,14 +173,13 @@ class Changelog(db.Model):
     def action_removeitem(self, user, timestamp, itemid):
         from item.models import Item
         i = Item.get(itemid)
-        if not i or i.timestamp > timestamp:
-            return True
-        if user in i.users:
-            i.users.remove(user)
-        if i.users:
-            i.update()
-        else:
-            i.delete()
+        if i:
+            if user in i.users:
+                i.users.remove(user)
+            if i.users:
+                i.update()
+            else:
+                i.delete()
         return True
 
     def action_addlist(self, user, timestamp, name, query=None):
