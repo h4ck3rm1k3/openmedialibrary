@@ -136,6 +136,13 @@ def format(info, return_all=False):
                 value = value[0]
             if key == 'publish_date':
                 value = parse_date(value)
+            if key == 'publish_places':
+                for i, v in enumerate(value):
+                    if v.startswith('['):
+                        v = v[1:]
+                    if v.endswith(']'):
+                        v = v[:-1]
+                    value[i] = v
             data[KEYS[key]] = value
     if 'subtitle' in info:
         data['title'] += ' ' + info['subtitle']

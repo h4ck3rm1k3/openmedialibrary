@@ -113,10 +113,11 @@ oml.ui.infoView = function(identifyData) {
 
     function formatValue(value, key) {
         return value ? (Ox.isArray(value) ? value : [value]).map(function(value) {
+            if (key == 'date' && value) {
+                value = value.slice(0, 4);
+            }
             return key && !identifyData ?
-                '<a href="/' + key + '==' + (
-                    key == 'date' ? value.slice(0, 4) : value
-                ) + '">' + value + '</a>'
+                '<a href="/' + key + '==' + value + '">' + value + '</a>'
                 : value;
         }).join('; ') : '';
     }
