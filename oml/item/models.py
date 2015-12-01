@@ -285,6 +285,8 @@ class Item(db.Model):
         self.update_icons()
         self.modified = datetime.utcnow()
         self.save()
+        for f in self.files.all():
+            f.move()
         user = state.user()
         if user in self.users:
             Changelog.record(user, 'edititem', self.id, record)
