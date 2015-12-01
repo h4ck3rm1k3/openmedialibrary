@@ -37,12 +37,20 @@ def lookup(id):
     logger.debug('lookup %s', id)
     ns = '{http://www.loc.gov/mods/v3}'
     url = 'http://lccn.loc.gov/%s/mods' % id
-    data = read_url(url).decode('utf-8')
-    mods = ET.fromstring(data)
-
     info = {
         'lccn': [id]
     }
+    try:
+        data = read_url(url).decode('utf-8')
+        mods = ET.fromstring(data)
+    except:
+        try:
+            data = read_url(url, timeout=0).decode('utf-8')
+            mods = ET.fromstring(data)
+        except:
+            logger.debug('lookup for %s url: %s failed', id, url, exc_info=1)
+            return info
+
     title = mods.findall(ns + 'titleInfo')
     if not title:
         return {}
