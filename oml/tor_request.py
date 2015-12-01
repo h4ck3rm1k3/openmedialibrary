@@ -27,7 +27,10 @@ class InvalidCertificateException(http.client.HTTPException, urllib.error.URLErr
                 (self._service_id, self._cert_service_id, self.reason))
 
 def is_local(host):
-    local_net = get_local_ipv4()[:-2]
+    local_net = get_local_ipv4()
+    if not local_net:
+        return False
+    local_net = local_net[:-2]
     return host.startswith('127.0.0.1') or host.startswith(local_net)
 
 def getaddrinfo(*args):
