@@ -47,15 +47,18 @@ def lookup(id):
     doc = lxml.html.document_fromstring(html)
     for e in doc.xpath("//*[contains(@id, 'bibtip')]"):
         key = e.attrib['id'].replace('bibtip_', '')
-        value = e.text_content()
-        data[key] = value
+        value = e.text_content().strip()
+        if value:
+            data[key] = value
     info = doc.xpath('//textarea[@id="util-em-note"]')
     if info:
         info = info[0].text
         info = dict([i.split(':', 1) for i in info.split('\n\n')[1].split('\n')])
         for key in info:
             k = key.lower()
-            data[k] = info[key].strip()
+            value = info[key].strip()
+            if value:
+                data[k] = value
     for key in ('id', 'instance', 'mediatype', 'reclist', 'shorttitle'):
         if key in data:
             del data[key]
@@ -98,6 +101,11 @@ def lookup(id):
             if m:
                 data['date'] = m[0]
 
+    if 'place' in data:
+            if data['place'][0].startswith('['):
+                data['place'] = [data['place'][0][1:]]
+            if data['place'][0].endswith(']'):
+                data['place'] = [data['place'][0][:-1]]
     logger.debug('lookup %s => %s', id, list(data.keys()))
     return data
 
