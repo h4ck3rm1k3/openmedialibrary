@@ -224,6 +224,11 @@ def upgrade_db(old, new=None):
         ]
         for sql in statements:
             run_sql(sql.format(oid=settings.OLD_USER_ID, nid=settings.USER_ID))
+    if old <= '20151201-378-75164a8':
+        import item.models
+        for i in item.models.Item.query:
+            for f in i.files.all():
+                f.move()
 
 def create_default_lists(user_id=None):
     with db.session():
