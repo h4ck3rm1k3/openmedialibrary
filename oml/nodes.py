@@ -35,6 +35,7 @@ ENCODING='base64'
 
 class Node(Thread):
     _running = True
+    _pulling = False
     host = None
     local = None
     online = False
@@ -64,8 +65,10 @@ class Node(Thread):
             elif action == 'ping':
                 self.online = self.can_connect()
             elif action == 'pull':
+                self._pulling = True
                 self.online = self.can_connect()
                 self.pullChanges()
+                self._pulling = False
             else:
                 logger.debug('unknown action %s', action)
 
@@ -75,7 +78,8 @@ class Node(Thread):
         #return Thread.join(self)
 
     def pull(self):
-        self._q.put('pull')
+        if not self._pulling:
+            self._q.put('pull')
 
     def ping(self):
         self._q.put('ping')

@@ -221,8 +221,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     logger.debug('PEER %s IS UNKNOWN SEND 403', user_id)
                     response_status = (403, 'UNKNOWN USER')
                     content = {}
-                else:
-                    logger.debug('RESPONSE %s: %s', action, content)
+                #else:
+                #    logger.debug('RESPONSE %s: %s', action, content)
         self.write_response(response_status, content)
 
     def write_response(self, response_status, content):
