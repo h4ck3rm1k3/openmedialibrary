@@ -48,7 +48,7 @@ def metadata(f, from_=None):
     ):
         if key in info:
             value = info[key]
-            if isinstance(value, str):
+            if isinstance(value, bytes):
                 try:
                     value = value.decode('utf-8')
                 except:

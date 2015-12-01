@@ -77,18 +77,20 @@ def info(epub):
         info = ET.fromstring(z.read(opf[0]))
         metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
         for e in metadata.getchildren():
-            if e.text and e.text not in ('unknown', 'none'):
+            if e.text and e.text.strip() and e.text not in ('unknown', 'none'):
                 key = e.tag.split('}')[-1]
                 key = {
                     'creator': 'author',
                 }.get(key, key)
-                value = e.text
+                value = e.text.strip()
                 if key == 'identifier':
                     value = normalize_isbn(value)
                     if stdnum.isbn.is_valid(value):
                         data['isbn'] = [value]
+                elif key == 'author':
+                    data[key] = value.split(', ')
                 else:
-                    data[key] = e.text
+                    data[key] = value
     text = extract_text(epub)
     data['textsize'] = len(text)
     if not 'isbn' in data:
