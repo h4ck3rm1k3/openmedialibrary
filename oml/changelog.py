@@ -79,7 +79,7 @@ class Changelog(db.Model):
         revision, timestamp, data = change
         last = cls.query.filter_by(user_id=user.id).order_by('-revision').first()
         next_revision = last.revision + 1 if last else 0
-        if revision == next_revision:
+        if revision >= next_revision:
             c = cls()
             c.created = datetime.utcnow()
             c.timestamp = timestamp
