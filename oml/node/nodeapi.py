@@ -65,8 +65,6 @@ def api_requestPeering(user_id, username, message):
 def api_acceptPeering(user_id, username, message):
     user = User.get(user_id)
     logger.debug('incoming acceptPeering event: pending: %s', user.pending)
-    if user and user.peered:
-        return True
     if user and user.pending == 'sent':
         if not user.info:
             user.info = {}
@@ -75,6 +73,9 @@ def api_acceptPeering(user_id, username, message):
         user.update_name()
         user.update_peering(True, username)
         state.nodes.queue('add', user.id)
+        trigger_event('peering.accept', user.json())
+        return True
+    elif user and user.peered:
         return True
     return False
 

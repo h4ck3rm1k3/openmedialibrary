@@ -45,8 +45,13 @@ class User(db.Model):
         if not user:
             user = cls(id=id, peered=False, online=False)
             user.info = {}
+            if state.nodes and state.nodes._local and id in state.nodes._local._nodes:
+                user.info['local'] = state.nodes._local._nodes[id]
+                user.info['username'] = user.info['local']['username']
             user.update_name()
             user.save()
+            if state.nodes:
+                state.nodes.queue('add', user.id)
         return user
 
     def save(self):
@@ -87,6 +92,8 @@ class User(db.Model):
     def update_peering(self, peered, username=None):
         was_peering = self.peered
         if peered:
+            logging.debug('update_peering, pending: %s queued: %s', self.pending, self.queued)
+            self.queued = self.pending != 'sent'
             self.pending = ''
             if username:
                 self.info['username'] = username
@@ -98,11 +105,11 @@ class User(db.Model):
             if not was_peering:
                 Changelog.record(state.user(), 'addpeer', self.id, self.nickname)
             self.peered = True
-            self.queued = True
             self.save()
         else:
             self.pending = ''
             self.peered = False
+            self.queued = False
             self.update_name()
             self.save()
             List.query.filter_by(user_id=self.id).delete()

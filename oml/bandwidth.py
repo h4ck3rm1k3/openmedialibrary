@@ -1,6 +1,9 @@
 import state
 from websocket import trigger_event
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Bandwidth(object):
     up = 0
     down = 0
