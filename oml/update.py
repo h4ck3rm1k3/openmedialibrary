@@ -176,6 +176,7 @@ def getVersion(data):
         'upgrade': False,
     }
     if settings.MINOR_VERSION == 'git':
+        '''
         cmd = ['git', 'rev-parse', '@']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = p.communicate()
@@ -185,6 +186,8 @@ def getVersion(data):
         stdout, stderr = p.communicate()
         new = stdout.strip()[:40]
         response['update'] = len(new) == 40 and current != new
+        '''
+        response['update'] = False
     else:
         if not os.path.exists(os.path.join(settings.updates_path, 'release.json')):
             return response
