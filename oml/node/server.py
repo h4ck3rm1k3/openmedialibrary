@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # vi:si:et:sw=4:sts=4:ts=4
+from datetime import datetime
 from socketserver import ThreadingMixIn
 from threading import Thread
 import base64
-import db
 import gzip
 import hashlib
 import http.server
@@ -21,6 +21,7 @@ from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
 )
 
+import db
 import settings
 import state
 import user
@@ -129,12 +130,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('X-Node-Protocol', settings.NODE_PROTOCOL)
                 self.send_header('Content-Length', str(os.path.getsize(path)))
                 self.end_headers()
+                ct = datetime.utcnow()
                 with open(path, 'rb') as f:
+                    size = 0
                     while 1:
                         data = f.read(16384)
                         if not data:
                             break
+                        size += len(data)
                         self.wfile.write(data)
+                        if state.bandwidth:
+                            since_ct = (datetime.utcnow() - ct).total_seconds()
+                            state.bandwidth.upload(size/since_ct)
+                            size = 0
         else:
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'text/plain')
