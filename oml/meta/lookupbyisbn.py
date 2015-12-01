@@ -60,7 +60,7 @@ def lookup(id):
     if r["title"] == 'Error!':
         return {}
     keys = {
-        #'author': 'Author(s)',
+        'author': 'Author(s)',
         'publisher': 'Publisher',
         'date': 'Publication date',
         'edition': 'Edition',
@@ -81,12 +81,12 @@ def lookup(id):
     for key in r:
         if isinstance(r[key], str):
             r[key] = decode_html(strip_tags(r[key])).strip()
-    '''
     if 'author' in r and isinstance(r['author'], str) and r['author']:
         r['author'] = [r['author']]
     else:
         r['author'] = []
-    '''
+    if not r['author'] or r['author'][0].isupper():
+        del r['author']
     if r['description'].lower() == 'Description of this item is not available at this time.'.lower():
         r['description'] = ''
     return r
