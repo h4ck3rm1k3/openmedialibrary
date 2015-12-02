@@ -74,12 +74,12 @@ class ScrapeThread(Thread):
                 return True
             logger.debug('scrape %s', s.item)
             try:
-                s.item.scrape()
-                for f in s.item.files:
-                    f.move()
-                s.item.update_icons()
-                s.remove()
-                trigger_event('change', {})
+                if s.item.scrape():
+                    for f in s.item.files:
+                        f.move()
+                    s.item.update_icons()
+                    s.remove()
+                    trigger_event('change', {})
                 scraped = True
             except:
                 logger.debug('scrape failed %s', s.item, exc_info=1)

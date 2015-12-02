@@ -353,7 +353,10 @@ class Item(db.Model):
                 m['primaryid'] = primaryid
                 self.meta = m
                 self.modified = datetime.utcnow()
-        self.update()
+                self.update()
+                return True
+            return False
+        return True
 
     def queue_download(self):
         u = state.user()

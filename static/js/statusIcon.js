@@ -42,9 +42,13 @@ oml.ui.statusIcon = function(user, index) {
     }
 
     function getStatus(data) {
-        return !oml.user.online ? 'unknown'
-        : data.online ? 'connected'
-        : 'disconnected';
+        if (!oml.user.online) {
+            return 'unknown';
+        }
+        if (user.id == data.id) {
+            return data.online ? 'connected' : 'disconnected';
+        }
+        return status || 'unknown';
     }
 
     function render() {
@@ -75,7 +79,7 @@ oml.ui.statusIcon = function(user, index) {
     }
 
     function update(data) {
-        if (data.id == user.id) {
+        if (data.id == user.id || data.id == oml.user.id) {
             var newStatus = getStatus(data);
             if (status != newStatus) {
                 status = newStatus;

@@ -9,6 +9,7 @@ import json
 from oxtornado import json_dumps
 
 import state
+import settings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -33,6 +34,13 @@ class Handler(WebSocketHandler):
             self.close()
         if self not in state.websockets:
             state.websockets.append(self)
+        trigger_event('status', {
+            'id': settings.USER_ID,
+            'online': state.online
+        })
+        if state.nodes:
+            for node in state.nodes._nodes.values():
+                node.trigger_status()
 
 
     #websocket calls

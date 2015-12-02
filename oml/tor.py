@@ -8,6 +8,7 @@ from stem.control import Controller
 import settings
 
 import state
+import utils
 
 import logging
 logger = logging.getLogger(__name__)
@@ -127,7 +128,7 @@ class Tor(object):
         self.connected = True
         self.socks_port = int(self.controller.get_conf('SocksPort').split(' ')[0])
         self.publish()
-        state.online = True
+        state.online = self.is_online()
         return True
 
     def reconnect(self):
@@ -193,4 +194,4 @@ class Tor(object):
         state.online = False
 
     def is_online(self):
-        return self.connected and self.controller.is_alive()
+        return self.connected and self.controller.is_alive() and utils.can_connect_dns()

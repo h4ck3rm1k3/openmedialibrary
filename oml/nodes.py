@@ -38,7 +38,7 @@ class Node(Thread):
     _pulling = False
     host = None
     local = None
-    online = False
+    _online = None
     download_speed = 0
     TIMEOUT = 5
 
@@ -78,11 +78,12 @@ class Node(Thread):
         #return Thread.join(self)
 
     def pull(self):
-        if not self._pulling:
+        if state.online and not self._pulling:
             self._q.put('pull')
 
     def ping(self):
-        self._q.put('ping')
+        if state.online:
+            self._q.put('ping')
 
     def go_online(self):
         self._q.put('go_online')
@@ -98,6 +99,18 @@ class Node(Thread):
         elif len(self.user_id) == 16:
             url = 'https://%s.onion:9851' % self.user_id
         return url
+
+    @property
+    def online(self):
+        return self._online
+
+    @online.setter
+    def online(self, online):
+        if self._online != online:
+            self._online = online
+            self.trigger_status()
+        else:
+            self._online = online
 
     def resolve(self):
         #logger.debug('resolve node %s', self.user_id)
@@ -263,13 +276,13 @@ class Node(Thread):
                 self.online = False
         else:
             self.online = False
-        self.trigger_status()
 
     def trigger_status(self):
-        trigger_event('status', {
-            'id': self.user_id,
-            'online': self.online
-        })
+        if self.online is not None:
+            trigger_event('status', {
+                'id': self.user_id,
+                'online': self.online
+            })
 
     def pullChanges(self):
         if not self.online or not self.user.peered:
@@ -280,7 +293,6 @@ class Node(Thread):
             changes = self.request('pullChanges', from_revision)
         except:
             self.online = False
-            self.trigger_status()
             logger.debug('%s went offline', self.user.name)
             return False
         if not changes:
@@ -296,7 +308,6 @@ class Node(Thread):
                 r = self.request('pushChanges', changes)
             except:
                 self.online = False
-                self.trigger_status()
                 r = False
             logger.debug('pushedChanges %s %s', r, self.user_id)
 
@@ -407,6 +418,15 @@ class Nodes(Thread):
     def __init__(self):
         self._q = Queue()
         self._running = True
+        with db.session():
+            for u in user.models.User.query.filter_by(peered=True):
+                if 'local' in u.info:
+                    del u.info['local']
+                    u.save()
+                self.queue('add', u.id)
+            for u in user.models.User.query.filter_by(queued=True):
+                logger.debug('adding queued node... %s', u.id)
+                self.queue('add', u.id)
         self._local = LocalNodes()
         self._cleanup = PeriodicCallback(lambda: self.queue('cleanup'), 120000)
         self._cleanup.start()

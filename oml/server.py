@@ -53,6 +53,7 @@ def log_request(handler):
         request_time = 1000.0 * handler.request.request_time()
         log_method("%d %s %.2fms", handler.get_status(),
                    handler._request_summary(), request_time)
+
 def run():
     setup.create_db()
     PID = sys.argv[2] if len(sys.argv) > 2 else None
@@ -106,7 +107,6 @@ def run():
     state.tasks = tasks.Tasks()
 
     def start_node():
-        import user
         import downloads
         import nodes
         import tor
@@ -117,21 +117,12 @@ def run():
         state.downloads = downloads.Downloads()
         state.scraping = downloads.ScrapeThread()
         state.nodes = nodes.Nodes()
-        def add_users():
+        def publish():
             if not state.tor.is_online():
-                state.main.add_callback(add_users)
+                state.main.call_later(1, publish)
             else:
-                with db.session():
-                    for u in user.models.User.query.filter_by(peered=True):
-                        if 'local' in u.info:
-                            del u.info['local']
-                            u.save()
-                        state.nodes.queue('add', u.id)
-                    for u in user.models.User.query.filter_by(queued=True):
-                        logger.debug('adding queued node... %s', u.id)
-                        state.nodes.queue('add', u.id)
                 nodes.publish_node()
-        state.main.add_callback(add_users)
+        state.main.add_callback(publish)
     state.main.add_callback(start_node)
     if ':' in settings.server['address']:
         host = '[%s]' % settings.server['address']

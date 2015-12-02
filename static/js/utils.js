@@ -890,11 +890,17 @@ oml.renameUser = function(data) {
 
     var ui = oml.user.ui,
         index = Ox.getIndexById(ui._users, data.id),
-        name = ui._users[index].name,
+        name,
         set = {},
-        oldFind = Ox.clone(ui.find, true),
-        newFind = Ox.clone(ui.find, true);
+        oldFind,
+        newFind;
+    if (index == -1) {
+        return;
+    }
 
+    name = ui._users[index].name;
+    oldFind = Ox.clone(ui.find, true);
+    newFind = Ox.clone(ui.find, true);
     ui._users[index].name = data.name;
     ui._users[index].nickname = data.nickname;
     set['showFolder.' + name] = null;

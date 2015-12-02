@@ -344,7 +344,12 @@ oml.ui.folders = function() {
             Ox.print('peering.remove reload list')
             Ox.Request.clearCache('getUsers');
             that.updateElement();
-        }
+        },
+        status: function(data) {
+            if (data.id == oml.user.id) {
+                oml.user.online = data.online;
+            }
+        },
     });
 
     return that.updateElement();

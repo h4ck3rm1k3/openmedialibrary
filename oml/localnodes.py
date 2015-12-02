@@ -148,6 +148,7 @@ class LocalNodesBase(Thread):
                     state.nodes.queue('add', u.id)
             self.send()
 
+
     def get_ip(self):
         pass
 
