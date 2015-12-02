@@ -133,14 +133,14 @@ class Node(Thread):
         return None
 
     def request(self, action, *args):
-        logger.debug('request %s%s', action, args)
+        logger.debug('request[%s] %s%s', self.user_id, action, args)
         self.resolve()
         url = self.url
         if not url:
             logger.debug('unable to find host %s', self.user_id)
             self.online = False
             return None
-        logger.debug('url=%s', url)
+        #logger.debug('url=%s', url)
         content = json.dumps([action, args]).encode()
         #sig = settings.sk.sign(content, encoding=ENCODING).decode()
         headers = {
@@ -151,7 +151,7 @@ class Node(Thread):
             'Content-Type': 'application/json',
         }
         self._opener.addheaders = list(zip(headers.keys(), headers.values()))
-        logger.debug('headers: %s', self._opener.addheaders)
+        #logger.debug('headers: %s', self._opener.addheaders)
         try:
             self._opener.timeout = self.TIMEOUT
             r = self._opener.open(url, data=content)
@@ -196,7 +196,6 @@ class Node(Thread):
             response = None
         '''
         response = json.loads(data.decode('utf-8'))
-        logger.debug('response: %s', response)
         return response
 
     def _valid(self, data, sig):
@@ -284,7 +283,6 @@ class Node(Thread):
             self.trigger_status()
             logger.debug('%s went offline', self.user.name)
             return False
-        logger.debug('changes: %s', changes)
         if not changes:
             return False
         with db.session():

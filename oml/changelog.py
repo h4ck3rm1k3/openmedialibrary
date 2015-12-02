@@ -156,11 +156,11 @@ class Changelog(db.Model):
             primary = [key, meta[key]]
             if not meta[key] and i.meta.get('primaryid', [''])[0] == key:
                 logger.debug('remove id mapping %s %s', i.id, primary)
-                i.update_primaryid(*primary)
+                i.update_primaryid(*primary, scrape=False)
                 i.modified = ts2datetime(timestamp)
             elif meta[key] and i.meta.get('primaryid') != primary:
                 logger.debug('edit mapping %s %s', i.id, primary)
-                i.update_primaryid(*primary)
+                i.update_primaryid(*primary, scrape=False)
                 i.modified = ts2datetime(timestamp)
         else:
             if 'primaryid' in i.meta:

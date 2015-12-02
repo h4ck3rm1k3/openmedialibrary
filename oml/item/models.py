@@ -260,7 +260,7 @@ class Item(db.Model):
             if record and user in self.users:
                 Changelog.record(user, 'edititem', self.id, record)
 
-    def update_primaryid(self, key=None, id=None):
+    def update_primaryid(self, key=None, id=None, scrape=True):
         if key is None and id is None:
             if 'primaryid' not in self.meta:
                 return
@@ -285,10 +285,13 @@ class Item(db.Model):
         logger.debug('set primaryid %s %s', key, id)
 
         # get metadata from external resources
-        self.scrape()
+        if scrape:
+            self.scrape()
         self.update_icons()
         self.modified = datetime.utcnow()
         self.save()
+        if not scrape:
+            Scrape.get_or_create(self.id)
         for f in self.files.all():
             f.move()
         user = state.user()

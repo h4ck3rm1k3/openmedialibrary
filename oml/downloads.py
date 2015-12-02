@@ -77,6 +77,7 @@ class ScrapeThread(Thread):
                 s.item.scrape()
                 for f in s.item.files:
                     f.move()
+                s.item.update_icons()
                 s.remove()
                 trigger_event('change', {})
                 scraped = True
