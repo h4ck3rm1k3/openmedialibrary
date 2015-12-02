@@ -9,6 +9,9 @@ import tarfile
 from urllib.request import urlopen
 from threading import Thread
 import subprocess
+if sys.platform.startswith('linux'):
+    import platform
+
 
 def makefolder(path):
     dirname = os.path.dirname(path)
@@ -58,12 +61,16 @@ class Install(Thread):
             except:
                 apt_packages += ' python3.4 python3-pil python3-lxml'
                 dnf_packages += ' python3-pillow python3-lxml'
+            version = '4.0'
+            distro = platform.linux_distribution()
+            if distro[0] == 'Ubuntu' and distro[1] <= '14.04':
+                version = '3.0'
             try:
                 import gi
-                gi.require_version('WebKit2', '4.0')
+                gi.require_version('WebKit2', version)
                 from gi.repository import WebKit2, Gtk
             except:
-                apt_packages += ' gir1.2-webkit2-4.0'
+                apt_packages += ' gir1.2-webkit2-' + version
                 dnf_packages += ' webkitgtk4'
             try:
                 import OpenSSL
