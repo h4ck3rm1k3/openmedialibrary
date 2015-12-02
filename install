@@ -9,9 +9,6 @@ import tarfile
 from urllib.request import urlopen
 from threading import Thread
 import subprocess
-if sys.platform.startswith('linux'):
-    import platform
-
 
 def makefolder(path):
     dirname = os.path.dirname(path)
@@ -148,6 +145,18 @@ if __name__ == '__main__':
     if os.path.exists(target):
         print('%s exists, remove it before re-installing Open Media Library' % target)
         sys.exit(1)
+
+    if sys.platform.startswith('linux'):
+        import platform
+        distro = platform.linux_distribution()
+        if distro[0] == 'Ubuntu' and distro[1] < '14.10':
+            try:
+                from OpenSSL.SSL import TLSv1_2_METHOD
+            except:
+                print("Open Media Library currently only works on Ubuntu 14.10 and later")
+                print("You can also install a current version of pyOpenSSL:\n\tsudo apt-get install python3-pip\n\tsudo pip3 install pyOpenSSL")
+                sys.exit(1)
+
     install = Install(target)
     install.join()
     subprocess.call([os.path.join(target, 'ctl'), 'open'])
