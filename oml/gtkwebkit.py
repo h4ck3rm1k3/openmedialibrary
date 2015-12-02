@@ -5,7 +5,10 @@ import subprocess
 import webbrowser
 
 import gi
-gi.require_version('WebKit2', '4.0')
+try:
+    gi.require_version('WebKit2', '4.0')
+except:
+    gi.require_version('WebKit2', '3.0')
 from gi.repository import WebKit2, Gtk, Gdk
 
 
