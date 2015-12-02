@@ -20,6 +20,73 @@
                 user-select: text;
 
             }
+            #metainfo {
+                display: none !important;
+            }
+            #main {
+              border-radius: 0px;
+              -webkit-transition: -webkit-transform .4s, width .2s;
+              -moz-transition: -webkit-transform .4s, width .2s;
+              -ms-transition: -webkit-transform .4s, width .2s;
+
+              -moz-box-shadow:    none;
+              -webkit-box-shadow: none;
+              -ms-box-shadow: none;
+              box-shadow: none;
+            }
+            #sidebar {
+              background: #fff;
+            }
+#panels a {
+  visibility: hidden;
+  width: 18px;
+  height: 20px;
+  overflow: hidden;
+  display: inline-block;
+  color: #444;
+  margin-left: 6px;
+}
+
+#panels a::before {
+  visibility: visible;
+}
+
+#panels a:hover {
+  color: #999;
+}
+
+#panels a:active {
+  color: #999;
+  margin: 1px 0 -1px 6px;
+}
+
+#panels a.active,
+#panels a.active:hover {
+  color: #999;
+}
+.list_item a {
+  color: #999;
+}
+
+.list_item.currentChapter > a,
+.list_item a:hover {
+  color: #333;
+}
+
+/* #tocView li.openChapter > a, */
+.list_item a:hover {
+  color: #333;
+}
+#panels {
+  padding-left: 14px;
+  background: #eee;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  -ms-box-shadow: none;
+  box-shadow: none; //0px 1px 3px rgba(0,0,0,.3);
+
+}
+
         </style>
 
         <script src="/static/epub.js/libs/jquery-2.1.0.min.js"></script>
@@ -49,27 +116,37 @@
         <script src="/static/epub.js/reader.js"></script>
         
         <!-- Plugins -->
+        <!--
         <script src="/static/epub.js/plugins/search.js"></script>
+        -->
         
         <!-- Highlights -->
+        <!-- 
         <script src="/static/epub.js/libs/jquery.highlight.js"></script>
         <script src="/static/epub.js/hooks/extensions/highlight.js"></script>
+        -->
         
         <!-- File Storage -->
         <!-- <script src="/static/epub.js/libs/fileStorage.min.js"></script> -->
 
         <!-- Full Screen -->
+        <!-- 
         <script src="/static/epub.js/libs/screenfull.min.js"></script>
+        -->
     </head>
     <body>
       <div id="sidebar">
         <div id="panels">
+            <!--
           <input id="searchBox" placeholder="search" type="search">
           
           <a id="show-Search" class="show_view icon-search" data-view="Search">Search</a>
+            -->
           <a id="show-Toc" class="show_view icon-list-1 active" data-view="Toc">TOC</a>
           <a id="show-Bookmarks" class="show_view icon-bookmark" data-view="Bookmarks">Bookmarks</a>
+            <!--
           <a id="show-Notes" class="show_view icon-edit" data-view="Notes">Notes</a>
+            -->
          
         </div>
         <div id="tocView" class="view">
@@ -101,8 +178,6 @@
           </div>
           <div id="title-controls">
             <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
-            <a id="setting" class="icon-cog">Settings</a>
-            <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
           </div>
         </div>
         
