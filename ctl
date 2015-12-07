@@ -118,7 +118,15 @@ if [ "$1" == "open" ]; then
         open "/Applications/Open Media Library.app"
     fi
     if [ $SYSTEM == "Linux" ]; then
-        exec python3 "$NAME/oml/gtkwebkit.py" $@
+        if [ -e $PID ]; then
+            if ps -p `cat "$PID"` > /dev/null; then
+                xdg-open "file://${BASE}/openmedialibrary/static/html/load.html"
+            else
+                exec python3 "$NAME/oml/gtkstatus.py" $@
+            fi
+        else
+            exec python3 "$NAME/oml/gtkstatus.py" $@
+        fi
     fi
     exit 0
 fi
