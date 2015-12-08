@@ -10,10 +10,17 @@ from utils import normalize_isbn
 from ox import strip_tags
 import ox.iso
 
+import logging
+logger = logging.getLogger(__name__)
+
 def info(opf):
     data = {}
-    with open(opf) as fd:
-        opf = ET.fromstring(fd.read())
+    try:
+        with open(opf, 'rb') as fd:
+            opf = ET.fromstring(fd.read().decode())
+    except:
+        logger.debug('failed to load opf %s', opf, exc_info=1)
+        return data
     ns = '{http://www.idpf.org/2007/opf}'
     metadata = opf.findall(ns + 'metadata')[0]
     for e in metadata.getchildren():
