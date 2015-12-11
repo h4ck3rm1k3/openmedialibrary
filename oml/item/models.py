@@ -321,7 +321,11 @@ class Item(db.Model):
         key = 'cover:%s'%self.id
         cover = None
         if 'cover' in self.meta and self.meta['cover']:
-            cover = ox.cache.read_url(self.meta['cover'])
+            try:
+                cover = ox.cache.read_url(self.meta['cover'])
+            except:
+                logger.debug('unable to read cover url %s', self.meta['cover'])
+                cover = None
             if cover:
                 icons[key] = cover
                 self.info['coverRatio'] = get_ratio(cover)
