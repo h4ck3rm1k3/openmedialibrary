@@ -156,7 +156,7 @@ def get_app_version(app):
 def upgrade_app():
     if sys.platform == 'darwin':
         base = os.path.dirname(settings.base_dir)
-        bundled_app = base + 'platform/Darwin/Applications/Open Media Library.app'
+        bundled_app = os.path.join(base, 'platform/Darwin/Applications/Open Media Library.app')
         app = '/Applications/Open Media Library.app'
         version = get_app_version(app)
         current_version = get_app_version(bundled_app)
