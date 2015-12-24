@@ -8,7 +8,9 @@ import subprocess
 import os
 import shutil
 from glob import glob
+from datetime import datetime
 
+import ox
 from PyPDF2 import PdfFileReader
 import stdnum.isbn
 
@@ -108,9 +110,15 @@ def info(pdf):
                 for key in info:
                     if info[key]:
                         try:
-                            if isinstance(info[key], bytes):
-                                info[key] = info[key].decode('utf-16')
-                            data[key[1:].lower()] = info[key]
+                            value = info[key]
+                            if len(value) == 1:
+                                value = value[0]
+                            if isinstance(value, bytes):
+                                value = value.decode('utf-16')
+                            if value in ('Unknown',):
+                                value = None
+                            if value:
+                                data[key[1:].lower()] = value
                         except:
                             pass
 
@@ -122,9 +130,16 @@ def info(pdf):
                         if isinstance(value, dict) and 'x-default' in value:
                             value = value['x-default']
                         elif isinstance(value, list):
-                            value = [v.strip() if isinstance(v, str) else v for v in value if v.strip()]
+                            value = [v.strip() if isinstance(v, str) else v for v in value if v]
+                            value = [v.strftime('%Y-%m-%d') if isinstance(v, datetime) else v for v in value]
+                            if len(value) == 1:
+                                value = value[0]
+                            if value in ('Unknown',):
+                                value = None
                         _key = key[3:]
                         if value and _key not in data:
+                            if _key == 'language':
+                                value = ox.iso.codeToLang(value)
                             data[_key] = value
         except:
             logger.debug('FAILED TO PARSE %s', pdf, exc_info=1)
