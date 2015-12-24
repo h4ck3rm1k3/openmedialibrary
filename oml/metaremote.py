@@ -19,6 +19,7 @@ def request(action, data):
         try:
             return json.loads(read_url(url, data, timeout=60).decode('utf-8'))['data']
         except:
+            logger.debug('metadata request failed', exc_info=1)
             return {}
 
 def find(query):

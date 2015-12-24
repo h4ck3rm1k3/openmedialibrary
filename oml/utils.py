@@ -353,8 +353,9 @@ def can_connect_dns(host="8.8.8.8", port=53):
         port: 53/tcp
     """
     try:
-        socket.setdefaulttimeout(1)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect((host, port))
         return True
     except:
         pass
