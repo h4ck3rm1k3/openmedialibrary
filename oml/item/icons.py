@@ -123,7 +123,7 @@ def get_icon_app(id, type_, size, callback):
         from item.models import Item
         item = Item.get(id)
         if not item:
-            callback('')
+            data = ''
         else:
             if type_ == 'cover' and not item.meta.get('cover'):
                 type_ = 'preview'
@@ -145,7 +145,7 @@ def get_icon_app(id, type_, size, callback):
             if size:
                 data = icons[skey] = resize_image(data, size=size)
             data = bytes(data) or ''
-            callback(data)
+    callback(data)
 
 class IconHandler(tornado.web.RequestHandler):
 

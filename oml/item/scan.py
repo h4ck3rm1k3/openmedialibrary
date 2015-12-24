@@ -65,31 +65,31 @@ def add_file(id, f, prefix, from_=None):
 
 def run_scan():
     remove_missing()
-    with db.session():
-        prefs = settings.preferences
-        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-        if not prefix[-1] == '/':
-            prefix += '/'
-        assert isinstance(prefix, str)
-        books = []
-        for root, folders, files in os.walk(prefix):
-            for f in files:
-                if not state.tasks.connected:
-                    return
-                #if f.startswith('._') or f == '.DS_Store':
-                if f.startswith('.'):
-                    continue
-                f = os.path.join(root, f)
-                ext = f.split('.')[-1]
-                if ext in extensions:
-                    books.append(f)
-
-        position = 0
-        added = 0
-        for f in ox.sorted_strings(books):
+    prefs = settings.preferences
+    prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+    if not prefix[-1] == '/':
+        prefix += '/'
+    assert isinstance(prefix, str)
+    books = []
+    for root, folders, files in os.walk(prefix):
+        for f in files:
             if not state.tasks.connected:
                 return
-            position += 1
+            #if f.startswith('._') or f == '.DS_Store':
+            if f.startswith('.'):
+                continue
+            f = os.path.join(root, f)
+            ext = f.split('.')[-1]
+            if ext in extensions:
+                books.append(f)
+
+    position = 0
+    added = 0
+    for f in ox.sorted_strings(books):
+        if not state.tasks.connected:
+            return
+        position += 1
+        with db.session():
             id = media.get_id(f)
             file = File.get(id)
             if not file:
@@ -100,73 +100,73 @@ def run_scan():
 def run_import(options=None):
     options = options or {}
 
-    with db.session():
-        logger.debug('run_import')
-        prefs = settings.preferences
-        prefix = os.path.expanduser(options.get('path', prefs['importPath']))
-        if os.path.islink(prefix):
-            prefix = os.path.realpath(prefix)
-        if not prefix[-1] == '/':
-            prefix += '/'
-        prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-        prefix_imported = os.path.join(prefix_books, 'Imported/')
-        if prefix_books.startswith(prefix) or prefix.startswith(prefix_books):
-            error = 'invalid path'
-        elif not os.path.exists(prefix):
-            error = 'path not found'
-        elif not os.path.isdir(prefix):
-            error = 'path must be a folder'
-        else:
-            error = None
-        if error:
-            trigger_event('activity', {
-                'activity': 'import',
-                'progress': [0, 0],
-                'status': {'code': 404, 'text': error}
-            })
-            state.activity = {}
-            return
-        listname = options.get('list')
-        if listname:
-            listitems = []
-        assert isinstance(prefix, str)
-        books = []
-        count = 0
-        for root, folders, files in os.walk(prefix):
-            for f in files:
-                if not state.tasks.connected:
-                    return
-                #if f.startswith('._') or f == '.DS_Store':
-                if f.startswith('.'):
-                    continue
-                f = os.path.join(root, f)
-                ext = f.split('.')[-1]
-                if ext in extensions:
-                    books.append(f)
-                    count += 1
-                    if state.activity.get('cancel'):
-                        state.activity = {}
-                        return
-                    if count % 1000 == 0:
-                        state.activity = {
-                            'activity': 'import',
-                            'path': prefix,
-                            'progress': [0, count],
-                        }
-                        trigger_event('activity', state.activity)
-        state.activity = {
+    logger.debug('run_import')
+    prefs = settings.preferences
+    prefix = os.path.expanduser(options.get('path', prefs['importPath']))
+    if os.path.islink(prefix):
+        prefix = os.path.realpath(prefix)
+    if not prefix[-1] == '/':
+        prefix += '/'
+    prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+    prefix_imported = os.path.join(prefix_books, 'Imported/')
+    if prefix_books.startswith(prefix) or prefix.startswith(prefix_books):
+        error = 'invalid path'
+    elif not os.path.exists(prefix):
+        error = 'path not found'
+    elif not os.path.isdir(prefix):
+        error = 'path must be a folder'
+    else:
+        error = None
+    if error:
+        trigger_event('activity', {
             'activity': 'import',
-            'path': prefix,
-            'progress': [0, len(books)],
-        }
-        trigger_event('activity', state.activity)
-        position = 0
-        added = 0
-        last = 0
-        for f in ox.sorted_strings(books):
-            position += 1
-            if not os.path.exists(f):
+            'progress': [0, 0],
+            'status': {'code': 404, 'text': error}
+        })
+        state.activity = {}
+        return
+    listname = options.get('list')
+    if listname:
+        listitems = []
+    assert isinstance(prefix, str)
+    books = []
+    count = 0
+    for root, folders, files in os.walk(prefix):
+        for f in files:
+            if not state.tasks.connected:
+                return
+            #if f.startswith('._') or f == '.DS_Store':
+            if f.startswith('.'):
                 continue
+            f = os.path.join(root, f)
+            ext = f.split('.')[-1]
+            if ext in extensions:
+                books.append(f)
+                count += 1
+                if state.activity.get('cancel'):
+                    state.activity = {}
+                    return
+                if count % 1000 == 0:
+                    state.activity = {
+                        'activity': 'import',
+                        'path': prefix,
+                        'progress': [0, count],
+                    }
+                    trigger_event('activity', state.activity)
+    state.activity = {
+        'activity': 'import',
+        'path': prefix,
+        'progress': [0, len(books)],
+    }
+    trigger_event('activity', state.activity)
+    position = 0
+    added = 0
+    last = 0
+    for f in ox.sorted_strings(books):
+        position += 1
+        if not os.path.exists(f):
+            continue
+        with db.session():
             id = media.get_id(f)
             file = File.get(id)
             if not file:
@@ -180,33 +180,34 @@ def run_import(options=None):
                 file = add_file(id, f, prefix_books, f_import)
                 file.move()
                 added += 1
-            if listname:
-                listitems.append(file.item.id)
-            if time.time() - last > 5:
-                last = time.time()
-                state.activity = {
-                    'activity': 'import',
-                    'progress': [position, len(books)],
-                    'path': prefix,
-                    'added': added,
-                }
-                trigger_event('activity', state.activity)
+        if listname:
+            listitems.append(file.item.id)
+        if time.time() - last > 5:
+            last = time.time()
+            state.activity = {
+                'activity': 'import',
+                'progress': [position, len(books)],
+                'path': prefix,
+                'added': added,
+            }
+            trigger_event('activity', state.activity)
 
-            if state.activity.get('cancel'):
-                state.activity = {}
-                return
+        if state.activity.get('cancel'):
+            state.activity = {}
+            return
+    with db.session():
         if listname and listitems:
             l = List.get(settings.USER_ID, listname)
             if l:
                 l.add_items(listitems)
-        trigger_event('activity', {
-            'activity': 'import',
-            'progress': [position, len(books)],
-            'path': prefix,
-            'status': {'code': 200, 'text': ''},
-            'added': added,
-        })
-        state.activity = {}
-        remove_empty_folders(prefix_books)
-        if options.get('mode') == 'move':
-            remove_empty_folders(prefix)
+    trigger_event('activity', {
+        'activity': 'import',
+        'progress': [position, len(books)],
+        'path': prefix,
+        'status': {'code': 200, 'text': ''},
+        'added': added,
+    })
+    state.activity = {}
+    remove_empty_folders(prefix_books)
+    if options.get('mode') == 'move':
+        remove_empty_folders(prefix)

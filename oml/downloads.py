@@ -47,10 +47,10 @@ class Downloads(Thread):
 
     def run(self):
         time.sleep(2)
-        with db.session():
-            while self._running:
+        while self._running:
+            with db.session():
                 self.download_next()
-                time.sleep(0.5)
+            time.sleep(0.5)
 
     def join(self):
         self._running = False
@@ -87,10 +87,13 @@ class ScrapeThread(Thread):
 
     def run(self):
         time.sleep(2)
-        with db.session():
-            while self._running:
+        while self._running:
+            wait = False
+            with db.session():
                 if not self.scrape_queue():
-                    time.sleep(1)
+                    wait = True
+            if wait:
+                time.sleep(1)
 
     def join(self):
         self._running = False

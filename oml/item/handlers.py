@@ -37,22 +37,22 @@ class EpubHandler(OMLHandler):
         with db.session():
             item = Item.get(id)
             path = item.get_path()
-            if not item or item.info['extension'] != 'epub' or not path:
+        if not item or item.info['extension'] != 'epub' or not path:
+            self.set_status(404)
+            self.write('')
+        else:
+            z = zipfile.ZipFile(path)
+            if filename == '':
+                self.write('<br>\n'.join([f.filename for f in z.filelist]))
+            elif filename not in [f.filename for f in z.filelist]:
                 self.set_status(404)
                 self.write('')
             else:
-                z = zipfile.ZipFile(path)
-                if filename == '':
-                    self.write('<br>\n'.join([f.filename for f in z.filelist]))
-                elif filename not in [f.filename for f in z.filelist]:
-                    self.set_status(404)
-                    self.write('')
-                else:
-                    content_type = {
-                        'xpgt': 'application/vnd.adobe-page-template+xml'
-                    }.get(filename.split('.')[0], mimetypes.guess_type(filename)[0]) or 'text/plain'
-                    self.set_header('Content-Type', content_type)
-                    self.write(z.read(filename))
+                content_type = {
+                    'xpgt': 'application/vnd.adobe-page-template+xml'
+                }.get(filename.split('.')[0], mimetypes.guess_type(filename)[0]) or 'text/plain'
+                self.set_header('Content-Type', content_type)
+                self.write(z.read(filename))
 
 def serve_static(handler, path, mimetype, include_body=True, disposition=None):
     handler.set_header('Content-Type', mimetype)
@@ -112,7 +112,7 @@ class FileHandler(OMLHandler):
                 disposition = os.path.basename(path)
             else:
                 disposition = None
-            return serve_static(self, path, mimetype, include_body, disposition=disposition)
+        return serve_static(self, path, mimetype, include_body, disposition=disposition)
 
 class ReaderHandler(OMLHandler):
 
@@ -137,7 +137,8 @@ class ReaderHandler(OMLHandler):
             item.timesaccessed = (item.timesaccessed or 0) + 1
             item.update_sort()
             item.save()
-            return serve_static(self, os.path.join(settings.static_path, html), 'text/html')
+            path = os.path.join(settings.static_path, html)
+        return serve_static(self, path, 'text/html')
 
 class UploadHandler(tornado.web.RequestHandler):
 
