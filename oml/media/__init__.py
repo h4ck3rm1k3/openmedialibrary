@@ -72,8 +72,8 @@ def metadata(f, from_=None):
                 data['author'] = data['author'].strip().split('; ')
             else:
                 del data['author']
-        if data['author'] in (['Administrator'], ['Default'], ['user']):
-            del data['author']
+    if 'author' in data and data['author'] in (['Administrator'], ['Default'], ['user']):
+        del data['author']
     if not 'title' in data:
         data['title'] = os.path.splitext(os.path.basename(f))[0]
         if data['title'].startswith('Microsoft Word - '):
