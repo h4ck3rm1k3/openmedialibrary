@@ -297,7 +297,8 @@ class Node(Thread):
             return False
         if not changes:
             return False
-        r = Changelog.apply_changes(self.user, changes)
+        with db.session():
+            r = Changelog.apply_changes(self.user, changes)
         return r
 
     def pushChanges(self, changes):
