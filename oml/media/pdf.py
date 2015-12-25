@@ -175,6 +175,8 @@ def info(pdf):
     if 'date' in data and len(data['date']) == 8 and data['date'].isdigit():
         d = data['date']
         data['date'] = '%s-%s-%s' % (d[:4], d[4:6], d[6:])
+    if 'author' in data and isinstance(data['author'], str):
+        data['author'] = data['author'].split(', ')
     return data
 
 '''
