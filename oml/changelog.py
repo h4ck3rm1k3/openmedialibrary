@@ -65,11 +65,12 @@ class Changelog(db.Model):
     def apply_changes(cls, user, changes):
         trigger = changes
         for change in changes:
-            if not cls.apply_change(user, change, trigger=False):
-                logger.debug('FAIL %s', change)
-                trigger = False
-                break
-                return False
+            with db.session():
+                if not cls.apply_change(user, change, trigger=False):
+                    logger.debug('FAIL %s', change)
+                    trigger = False
+                    break
+                    return False
         if trigger:
             trigger_event('change', {});
         return True
