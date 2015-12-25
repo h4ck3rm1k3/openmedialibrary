@@ -22,8 +22,8 @@ class Bandwidth(object):
         state.main.call_later(1, self.update)
 
     def download(self, amount):
-        self.down += amount * 8
+        self.down += amount
 
     def upload(self, amount):
-        self.up += amount * 8
+        self.up += amount
 
