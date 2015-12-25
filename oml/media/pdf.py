@@ -115,10 +115,7 @@ def info(pdf):
                                 value = value[0]
                             if isinstance(value, bytes):
                                 value = value.decode('utf-16')
-                            if value in ('Unknown',):
-                                value = None
-                            if value:
-                                data[key[1:].lower()] = value
+                            data[key[1:].lower()] = value
                         except:
                             pass
 
@@ -134,15 +131,12 @@ def info(pdf):
                             value = [v.strftime('%Y-%m-%d') if isinstance(v, datetime) else v for v in value]
                             if len(value) == 1:
                                 value = value[0]
-                            if value in ('Unknown',):
-                                value = None
                         _key = key[3:]
                         if value and _key not in data:
-                            if _key == 'language':
-                                value = ox.iso.codeToLang(value)
                             data[_key] = value
         except:
             logger.debug('FAILED TO PARSE %s', pdf, exc_info=1)
+
     '''
     cmd = ['pdfinfo', pdf]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
@@ -164,7 +158,12 @@ def info(pdf):
     for key, value in data.items():
         if isinstance(value, dict):
             value = ' '.join(list(value.values()))
-            data[key] = value
+            data[key] = value.strip()
+    for key in list(data):
+        if data[key] in ('Unknown',):
+            del data[key]
+        if key == 'language':
+            data[key] = ox.iso.codeToLang(data[key])
     text = extract_text(pdf)
     data['textsize'] = len(text)
     if settings.server['extract_text']:
