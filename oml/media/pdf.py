@@ -10,12 +10,11 @@ import shutil
 from glob import glob
 from datetime import datetime
 
-import ox
 from PyPDF2 import PdfFileReader
 import stdnum.isbn
 
 import settings
-from utils import normalize_isbn, find_isbns
+from utils import normalize_isbn, find_isbns, get_language
 
 import logging
 logger = logging.getLogger(__name__)
@@ -163,7 +162,7 @@ def info(pdf):
         if data[key] in ('Unknown',):
             del data[key]
         if key == 'language':
-            data[key] = ox.iso.codeToLang(data[key])
+            data[key] = get_language(data[key])
     text = extract_text(pdf)
     data['textsize'] = len(text)
     if settings.server['extract_text']:

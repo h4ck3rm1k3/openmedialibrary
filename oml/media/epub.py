@@ -12,7 +12,7 @@ from urllib.parse import unquote
 from PIL import Image
 import stdnum.isbn
 
-from utils import normalize_isbn, find_isbns
+from utils import normalize_isbn, find_isbns, get_language
 
 import logging
 logger = logging.getLogger(__name__)
@@ -99,6 +99,8 @@ def info(epub):
             data['isbn'] = [isbn]
     if 'date' in data and 'T' in data['date']:
         data['date'] = data['date'].split('T')[0]
+    if 'language' in data and isinstance(data['language'], str):
+        data['language'] = get_language(data['language'])
     return data
 
 def extract_text(path):

@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import stdnum.isbn
 
-from utils import normalize_isbn
+from utils import normalize_isbn, get_language
 from ox import strip_tags
 import ox.iso
 
@@ -48,5 +48,5 @@ def info(opf):
     if 'date' in data and len(data['date']) > 10:
         data['date'] =data['date'][:10]
     if 'language' in data:
-        data['language'] = ox.iso.codeToLang(data['language'])
+        data['language'] = get_language(data['language'])
     return data

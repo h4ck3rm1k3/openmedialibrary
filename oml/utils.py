@@ -121,6 +121,9 @@ def get_position_by_id(list, key):
             return i
     return -1
 
+def get_language(lang):
+    return ox.iso.codeToLang(lang.split('-')[0]) or lang
+
 def valid(key, value, sig):
     '''
     validate that value was signed by key
