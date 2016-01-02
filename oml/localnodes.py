@@ -46,6 +46,7 @@ def can_connect(data):
         #logger.debug('failed to connect to local node %s', data, exc_info=1)
     return False
 
+
 class LocalNodesBase(Thread):
 
     _PORT = 9851 
@@ -99,10 +100,12 @@ class LocalNodesBase(Thread):
                             self.update_node(data)
             except socket.timeout:
                 pass
+            except OSError: # no local interface exists
+                self.wait(60)
             except:
                 if self._active:
                     logger.debug('receive failed. restart later', exc_info=1)
-                    time.sleep(10)
+                self.wait(60)
             finally:
                 if self._active:
                     now = time.mktime(time.localtime())
@@ -165,6 +168,12 @@ class LocalNodesBase(Thread):
                 pass
             self._socket.close()
         return Thread.join(self)
+
+    def wait(self, timeout):
+        step = min(timeout, 1)
+        while self._active and timeout > 0:
+            time.sleep(step)
+            timeout -= step
 
 class LocalNodes4(LocalNodesBase):
 
