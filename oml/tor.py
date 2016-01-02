@@ -72,13 +72,15 @@ DirReqStatistics 0
             self._status.append('No tor binary found. Please install TorBrowser or tor')
         else:
             cmd = [tor, '--defaults-torrc', defaults, '-f', torrc]
-            self.p = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
+            self.p = subprocess.Popen(cmd,
+                stdout=subprocess.PIPE, bufsize=1, universal_newlines=True, close_fds=True)
             for line in self.p.stdout:
                 self._status.append(line)
                 logger.debug(line)
             self.p = None
 
     def shutdown(self):
+        print('kill tor')
         if self.p:
             self.p.kill()
 
@@ -151,7 +153,7 @@ class Tor(object):
     def shutdown(self):
         self._shutdown = True
         try:
-            self.unpublish()
+            #self.unpublish()
             if self.controller:
                 #self.controller.remove_event_listener(self.connection_change)
                 self.controller.close()
@@ -190,7 +192,10 @@ class Tor(object):
         if not self.connected:
             return False
         if self.controller:
-            self.controller.remove_hidden_service(self.dir)
+            try:
+                self.controller.remove_hidden_service(self.dir)
+            except:
+                logger.debug('self.controller.remove_hidden_service fail', exc_info=1)
         state.online = False
 
     def is_online(self):
