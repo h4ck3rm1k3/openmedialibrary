@@ -12,6 +12,7 @@ import utils
 
 import logging
 logger = logging.getLogger(__name__)
+logging.getLogger('stem').setLevel(logging.ERROR)
 
 class TorDaemon(Thread):
     def __init__(self):
@@ -72,8 +73,8 @@ DirReqStatistics 0
             self._status.append('No tor binary found. Please install TorBrowser or tor')
         else:
             cmd = [tor, '--defaults-torrc', defaults, '-f', torrc]
-            self.p = subprocess.Popen(cmd,
-                stdout=subprocess.PIPE, bufsize=1, universal_newlines=True, close_fds=True)
+            self.p = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1,
+                universal_newlines=True, close_fds=True, start_new_session=True)
             for line in self.p.stdout:
                 self._status.append(line)
                 logger.debug(line)
@@ -153,7 +154,7 @@ class Tor(object):
     def shutdown(self):
         self._shutdown = True
         try:
-            #self.unpublish()
+            self.depublish()
             if self.controller:
                 #self.controller.remove_event_listener(self.connection_change)
                 self.controller.close()
@@ -188,7 +189,7 @@ class Tor(object):
                      settings.USER_ID, settings.server_defaults['node_port'])
         '''
 
-    def unpublish(self):
+    def depublish(self):
         if not self.connected:
             return False
         if self.controller:
