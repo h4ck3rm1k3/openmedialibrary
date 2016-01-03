@@ -239,6 +239,10 @@ def upgrade_db(old, new=None):
                 if 'id' in i.meta:
                     del i.meta['id']
                     i.save()
+            for m in item.models.Metadata.query:
+                if 'id' in m.data:
+                    del m.data['id']
+                    m.save()
 
 def create_default_lists(user_id=None):
     with db.session():
