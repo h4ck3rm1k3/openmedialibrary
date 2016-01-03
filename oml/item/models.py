@@ -239,7 +239,10 @@ class Item(db.Model):
         if commit:
             state.db.session.commit()
 
-    meta_keys = ('title', 'author', 'date', 'publisher', 'edition', 'language', 'description')
+    meta_keys = (
+        'title', 'author', 'date', 'publisher', 'edition',
+        'language', 'description', 'classification'
+    )
 
     def update_meta(self, data):
         update = False
