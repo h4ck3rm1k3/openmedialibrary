@@ -218,6 +218,8 @@ class Item(db.Model):
             # self.meta.update does not trigger db update!
             m = Metadata.load(*self.meta['primaryid'])
             for key in m:
+                if key == 'id':
+                    continue
                 self.meta[key] = m[key]
             self.modified = datetime.utcnow()
         self.update_sort()
@@ -701,6 +703,8 @@ class Metadata(db.Model):
     def edit(self, data):
         changed = {}
         for key in data:
+            if key == 'id':
+                continue
             if data[key] != self.data.get(key):
                 self.data[key] = data[key]
                 changed[key] = data[key]
@@ -719,5 +723,7 @@ class Metadata(db.Model):
     def load(self, key, value):
         m = self.get(key, value)
         if m:
+            if 'id' in m.data:
+                del m.data['id']
             return m.data
         return {}

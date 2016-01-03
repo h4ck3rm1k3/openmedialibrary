@@ -232,6 +232,13 @@ def upgrade_db(old, new=None):
             for i in item.models.Item.query:
                 for f in i.files.all():
                     f.move()
+    if old <= '20160103-423-05ca6c9':
+        with db.session():
+            import item.models
+            for i in item.models.Item.query:
+                if 'id' in i.meta:
+                    del i.meta['id']
+                    i.save()
 
 def create_default_lists(user_id=None):
     with db.session():
