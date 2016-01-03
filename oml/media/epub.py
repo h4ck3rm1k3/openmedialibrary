@@ -46,7 +46,7 @@ def cover(path):
                 elif 'html' in e.attrib['media-type']:
                     filename = unquote(e.attrib['href'])
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                    html = z.read(filename).decode('utf-8')
+                    html = z.read(filename).decode('utf-8', 'ignore')
                     img = re.compile('<img.*?src="(.*?)"').findall(html)
                     #svg image
                     img += re.compile('<image.*?href="(.*?)"').findall(html)
@@ -110,7 +110,7 @@ def extract_text(path):
         if '/._' in f.filename or f.filename.startswith('._'):
             continue
         if f.filename.endswith('html'):
-            data += z.read(f.filename).decode()
+            data += z.read(f.filename).decode('utf-8', 'ignore')
     return data
 
 def extract_isbn(data):
