@@ -163,8 +163,6 @@ class Changelog(db.Model):
                 i.update_primaryid(*primary, scrape=False)
                 i.modified = ts2datetime(timestamp)
         else:
-            if 'primaryid' in i.meta:
-                return True
             i.update_meta(meta)
             i.modified = ts2datetime(timestamp)
         i.save()
