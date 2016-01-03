@@ -587,13 +587,24 @@ oml.ui.infoView = function(identifyData) {
 
                     // -------- Classification
 
-                    if (data.classification) {
+                    if (data.classification || isEditable) {
                         $('<div>')
                             .css({
                                 marginTop: '8px',
                             })
-                            .html(
-                                formatValue(data.classification, 'classification')
+                            .append(
+                                Ox.EditableContent({
+                                        clickLink: oml.clickLink,
+                                        editable: isEditable,
+                                        placeholder: formatLight('No Classification'),
+                                        tooltip: isEditable ? oml.getEditTooltip() : '',
+                                        value: data.classification || '',
+                                    })
+                                    .bindEvent({
+                                        submit: function(event) {
+                                            editMetadata('classification', event.value);
+                                        }
+                                    })
                             )
                             .appendTo($info);
                     }
