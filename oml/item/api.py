@@ -3,6 +3,7 @@
 import json
 import hashlib
 import os
+import unicodedata
 
 from sqlalchemy.orm import load_only
 from sqlalchemy import func
@@ -48,7 +49,7 @@ def find(data):
         if g is None:
             items = q['qs'].options(load_only('id'))
             qs = models.Find.query.filter_by(key=q['group'])
-            if items.count():
+            if items.first():
                 qs = qs.filter(models.Find.item_id.in_(items))
                 for f in qs.values('value', 'findvalue'):
                     value = f[0]
@@ -64,12 +65,13 @@ def find(data):
                 sort_type = utils.get_by_id(settings.config['itemKeys'], q['group']).get('sortType')
                 def _sort_key(k):
                     if sort_type == 'person' and q['sort'][0]['key'] == 'name':
-                        return get_sort_name(k[q['sort'][0]['key']])
+                        v = get_sort_name(k[q['sort'][0]['key']])
                     else:
-                        return k[q['sort'][0]['key']]
-                g.sort(key=_sort_key)
-                if q['sort'][0]['operator'] == '-':
-                    g.reverse()
+                        v = k[q['sort'][0]['key']]
+                    if isinstance(v, str):
+                        v = unicodedata.normalize('NFKD', v).lower()
+                    return v
+                g.sort(key=_sort_key, reverse=q['sort'][0]['operator'] == '-')
             state.cache.set(key, g)
         if 'positions' in data:
             response['positions'] = {}
@@ -86,12 +88,11 @@ def find(data):
         ids = [i.id for i in q['qs'].options(load_only('id'))]
         response['positions'] = utils.get_positions(ids, data['positions'])
     elif 'keys' in data:
-        response['items'] = []
-        for i in q['qs'][q['range'][0]:q['range'][1]]:
-            j = i.json()
-            response['items'].append({k:j[k] for k in j if not data['keys'] or k in data['keys']})
+        response['items'] = [
+            i.json(data['keys']) for i in q['qs'][q['range'][0]:q['range'][1]]
+        ]
     else:
-        size = [i.info.get('size', 0) for i in q['qs'].join(models.Sort).options(load_only('id', 'info'))]
+        size = [i.info.get('size', 0) for i in q['qs'].options(load_only('id', 'info'))]
         response['items'] = len(size)
         response['size'] = sum(size)
     return response
