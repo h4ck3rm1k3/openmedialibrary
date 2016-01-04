@@ -2,7 +2,7 @@ import time
 
 class Cache(dict):
 
-    def __init__(self, ttl=10):
+    def __init__(self, ttl=60):
         self._ttl = ttl
         self._added = {}
 

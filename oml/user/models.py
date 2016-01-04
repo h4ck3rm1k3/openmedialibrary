@@ -282,7 +282,7 @@ class List(db.Model):
             id += self.user_id
         id = '%s:%s' % (id, self.id)
         return id
-    
+
     def __repr__(self):
         return self.public_id
 
@@ -296,7 +296,7 @@ class List(db.Model):
                 value = Parser(Item).find({'query': data}).count()
             else:
                 value = len(self.items)
-            state.cache.set(key, value)
+            state.cache.set(key, value, ttl=90)
         return value
 
     def json(self):
