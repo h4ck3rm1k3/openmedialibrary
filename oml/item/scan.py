@@ -28,7 +28,7 @@ def remove_missing():
     dirty = False
     with db.session():
         prefs = settings.preferences
-        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
+        prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books' + os.sep)
         if os.path.exists(prefix):
             for f in File.query:
                 if not state.tasks.connected:
@@ -66,9 +66,9 @@ def add_file(id, f, prefix, from_=None):
 def run_scan():
     remove_missing()
     prefs = settings.preferences
-    prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-    if not prefix[-1] == '/':
-        prefix += '/'
+    prefix = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books' + os.sep)
+    if not prefix[-1] == os.sep:
+        prefix += os.sep
     assert isinstance(prefix, str)
     books = []
     for root, folders, files in os.walk(prefix):
@@ -105,10 +105,10 @@ def run_import(options=None):
     prefix = os.path.expanduser(options.get('path', prefs['importPath']))
     if os.path.islink(prefix):
         prefix = os.path.realpath(prefix)
-    if not prefix[-1] == '/':
-        prefix += '/'
-    prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books/')
-    prefix_imported = os.path.join(prefix_books, 'Imported/')
+    if not prefix[-1] == os.sep:
+        prefix += os.sep
+    prefix_books = os.path.join(os.path.expanduser(prefs['libraryPath']), 'Books' + os.sep)
+    prefix_imported = os.path.join(prefix_books, 'Imported' + os.sep)
     if prefix_books.startswith(prefix) or prefix.startswith(prefix_books):
         error = 'invalid path'
     elif not os.path.exists(prefix):
