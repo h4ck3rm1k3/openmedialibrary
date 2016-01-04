@@ -56,7 +56,7 @@ oml.ui.appDialog = function() {
                                             disabled: true,
                                             title: 'Installing...'
                                         });
-                                        oml.api.restart(function(response) {
+                                        oml.api.restart({update: true},function(response) {
                                             if (response.status.code == 200) {
                                                 setTimeout(reload, 500);
                                             }
@@ -66,9 +66,9 @@ oml.ui.appDialog = function() {
                             }
                         } else {
                             if (response.data.current == 'git') {
-                                $update.html(Ox._('No updates available'));
+                                $update.html(Ox._('You\'re up to date'));
                             } else {
-                                $update.html(Ox._('You are running Version {0}. No updates available', [response.data.current]));
+                                $update.html(Ox._('You are running Version {0}. You\'re up to date.', [response.data.current]));
                             }
                         }
                     });

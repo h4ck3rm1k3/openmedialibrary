@@ -75,12 +75,19 @@ def current_version(module):
         version = ''
     return version
 
-def download():
-    if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
-        return True
+def get_latest_release():
     release_data = get(settings.server.get('release_url'))
     release = json.loads(release_data.decode('utf-8'))
     if verify(release):
+        with open(os.path.join(settings.updates_path, 'release.json'), 'wb') as fd:
+            fd.write(release_data)
+        return release
+
+def download():
+    if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
+        return True
+    release = get_latest_release()
+    if release:
         ox.makedirs(settings.updates_path)
         os.chdir(os.path.dirname(settings.base_dir))
         current_files = {'release.json'}
@@ -90,14 +97,13 @@ def download():
                 base_url = settings.server.get('release_url').rsplit('/', 1)[0]
                 url = '/'.join([base_url, release['modules'][module]['name']])
                 if not os.path.exists(module_tar):
-                    print('downloading', os.path.basename(module_tar))
+                    logger.debug('download', os.path.basename(module_tar))
                     get(url, module_tar)
                     if ox.sha1sum(module_tar) != release['modules'][module]['sha1']:
+                        logger.debug('invalid checksum', os.path.basename(module_tar))
                         os.unlink(module_tar)
                         return False
                 current_files.add(os.path.basename(module_tar))
-        with open(os.path.join(settings.updates_path, 'release.json'), 'wb') as fd:
-            fd.write(release_data)
         for f in set(next(os.walk(settings.updates_path))[2])-current_files:
             os.unlink(os.path.join(settings.updates_path, f))
         return True
@@ -189,6 +195,7 @@ def getVersion(data):
         '''
         response['update'] = False
     else:
+        get_latest_release()
         if not os.path.exists(os.path.join(settings.updates_path, 'release.json')):
             return response
         if not os.path.exists(os.path.join(settings.config_path, 'release.json')):
@@ -207,6 +214,8 @@ def restart(data):
     '''
         restart (and upgrade if upgrades are available)
     '''
+    if data.get('update'):
+        download()
     subprocess.Popen([os.path.join(settings.base_dir, 'ctl'), 'restart'], close_fds=True)
     return {}
 actions.register(restart, cache=False)
