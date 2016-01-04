@@ -113,7 +113,7 @@ class Item(db.Model):
             if key not in self.meta and key in j:
                 del j[key]
         if keys:
-            for k in list(j.keys()):
+            for k in list(j):
                 if k not in keys:
                     del j[k]
         return j
@@ -253,7 +253,7 @@ class Item(db.Model):
                     record[key] = data[key]
                     self.meta[key] = data[key]
                     update = True
-        for key in list(self.meta.keys()):
+        for key in list(self.meta):
             if key not in self.meta_keys:
                 del self.meta[key]
                 update = True
