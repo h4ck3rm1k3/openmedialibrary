@@ -57,7 +57,7 @@ oml.ui.filter = function(id) {
                 that.setColumnTitle(
                     'name',
                     Ox._(filter.title)
-                    + '<div class="OxColumnStatus OxLight">'
+                    + '<div class="OxColumnStatus OxLight" style="right: 52px">'
                     + Ox.formatNumber(data.items) + '</div>'
                 );
             },
