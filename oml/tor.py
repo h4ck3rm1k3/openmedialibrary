@@ -81,7 +81,6 @@ DirReqStatistics 0
             self.p = None
 
     def shutdown(self):
-        print('kill tor')
         if self.p:
             self.p.kill()
 
