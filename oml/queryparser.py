@@ -228,9 +228,13 @@ class Parser(object):
         self._joins = []
         conditions = self.parse_conditions(data.get('query', {}).get('conditions', []),
                                      data.get('query', {}).get('operator', '&'))
+        n = len(self._joins)
         for c in conditions:
             if self._joins:
                 qs = qs.join(self._joins.pop(0))
             qs = qs.filter(c)
-        qs = qs.group_by(self._model.id)
+        # FIXME: group_by needed here to avoid
+        #        duplicates due to joins
+        #if n:
+        #    qs = qs.group_by(self._model.id)
         return qs
