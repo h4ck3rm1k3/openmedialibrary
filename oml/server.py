@@ -103,7 +103,7 @@ def run():
             pid.write('%s' % os.getpid())
 
     state.main = IOLoop.instance()
-    state.cache = Cache(ttl=10)
+    state.cache = Cache(ttl=60)
     state.tasks = tasks.Tasks()
 
     def start_node():
