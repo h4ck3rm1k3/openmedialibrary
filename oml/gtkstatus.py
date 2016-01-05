@@ -22,10 +22,11 @@ class OMLIcon:
         self.icon.set_from_file(icon)
         self.icon.set_title(title)
         self.icon.connect("activate", self._click)
+        self.icon.connect("popup-menu", self._click)
         p = subprocess.Popen([ctl, 'start'])
         GLib.timeout_add_seconds(1, self._open, None)
 
-    def _click(self, icon):
+    def _click(self, icon, button=None, time=None):
         if self.menu:
             self.menu.destroy()
             self.menu = None
