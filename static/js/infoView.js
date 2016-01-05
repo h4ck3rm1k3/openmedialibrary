@@ -730,6 +730,10 @@ oml.ui.infoView = function(identifyData) {
                         edit[key] = value;
                     }
                     oml.api.edit(edit, function(result) {
+                        Ox.Request.clearCache();
+                        if (Ox.contains(['title', 'author', 'descriptiopm'], key)) {
+                            oml.$ui.info.updateElement();
+                        }
                         oml.$ui.browser.value(
                             result.data.id, key, result.data[key]
                         );
