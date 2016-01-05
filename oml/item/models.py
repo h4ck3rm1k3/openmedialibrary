@@ -116,6 +116,9 @@ class Item(db.Model):
             for k in list(j):
                 if k not in keys:
                     del j[k]
+        for key in [k['id'] for k in settings.config['itemKeys'] if isinstance(k['type'], list)]:
+            if key in j and not isinstance(j[key], list):
+                j[key] = [j[key]]
         return j
 
     def get_path(self):
