@@ -52,10 +52,11 @@ oml.ui.editDialog = function() {
         }
         oml.api.edit(edit, function(result) {
             Ox.Request.clearCache();
+            oml.$ui.info.updateElement();
             oml.$ui.filters.forEach(function($filter) {
                 $filter.reloadList();
             });
-            oml.$ui.list.reloadList();
+            oml.$ui.list.reloadList(true);
         });
     }
 
