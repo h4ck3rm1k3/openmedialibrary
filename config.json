@@ -53,6 +53,7 @@
             "title": "Place",
             "type": ["string"],
             "columnWidth": 128,
+            "filter": true,
             "sort": true
         },
         {
