@@ -87,7 +87,7 @@ oml.ui.identifyDialog = function(data) {
                 label: Ox._('Title, Author etc.'),
                 labelWidth: 128,
                 width: 608,
-                value: [data.title].concat(data.author || []).join(' ')
+                value: Ox.decodeHTMLEntities([data.title].concat(data.author || []).join(' '))
             })
             .bindEvent({
                 submit: findMetadata

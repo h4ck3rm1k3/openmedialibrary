@@ -170,7 +170,7 @@ oml.ui.infoView = function(identifyData) {
                                 id: ui.item,
                                 primaryid: data.value ? data.value.split(':') : ''
                             }, function(result) {
-                                that.updateElement(result.data, [$data]);
+                                that.updateElement(result.data, [$info, $data]);
                             });
                         }
                     })
@@ -724,6 +724,9 @@ oml.ui.infoView = function(identifyData) {
                         oml.$ui.browser.value(
                             result.data.id, key, result.data[key]
                         );
+                        if (Ox.contains(['title', 'author'], key)) {
+                            that.updateElement(result.data, [$data]);
+                        }
                     });
                 }
             }
