@@ -6,7 +6,7 @@ from ox.cache import get_json, store
 import ox.web.google
 import stdnum.isbn
 
-from utils import get_language
+from oml.utils import get_language
 from .utils import find_isbns
 
 import logging
