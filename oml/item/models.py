@@ -732,7 +732,7 @@ class Metadata(db.Model):
     def update_items(self):
         for f in Find.query.filter_by(key=self.key, value=self.value):
             if f.item:
-                f.item.scrape()
+                f.item.update()
 
     @classmethod
     def load(self, key, value):
