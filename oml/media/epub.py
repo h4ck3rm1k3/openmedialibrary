@@ -40,13 +40,16 @@ def cover(path):
         #logger.debug('opf: %s', z.read(opf[0]).decode())
         info = ET.fromstring(z.read(opf[0]))
         metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
-        for e in metadata.getchildren():
-            if e.tag == '{http://www.idpf.org/2007/opf}meta' and e.attrib['name'] == 'cover':
-                filename = e.attrib['content']
-                filename = [f for f in files if filename in f]
-                if filename:
-                    return use(filename[0])
         manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
+        for e in metadata.getchildren():
+            if e.tag == '{http://www.idpf.org/2007/opf}meta' and e.attrib.get('name') == 'cover':
+                cover_id = e.attrib['content']
+                for e in manifest.getchildren():
+                    if e.attrib['id'] == cover_id:
+                        filename = unquote(e.attrib['href'])
+                        filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                        if filename in files:
+                            return use(filename)
         images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
         if images:
             image_data = []
