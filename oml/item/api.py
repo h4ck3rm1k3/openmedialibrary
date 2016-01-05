@@ -128,6 +128,7 @@ def edit(data):
     ids = data['id']
     if isinstance(ids, str):
         ids = [ids]
+    edited = []
     for id in ids:
         item = models.Item.get(id)
         if item and item.json()['mediastate'] == 'available':
@@ -143,8 +144,12 @@ def edit(data):
             else:
                 item.edit_metadata(data)
                 response = item.json()
+            edited.append(id)
         else:
             logger.info('can only edit available items %s', id)
+    if len(ids) > 1:
+        response = data
+        response['id'] = edited
     return response
 actions.register(edit, cache=False)
 
