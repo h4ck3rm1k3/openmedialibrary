@@ -224,7 +224,7 @@ class Item(db.Model):
                 if key == 'id':
                     continue
                 self.meta[key] = m[key]
-            self.modified = datetime.utcnow()
+        self.modified = datetime.utcnow()
         self.update_sort()
         self.update_find()
         #self.modified = datetime.utcnow()
@@ -298,8 +298,8 @@ class Item(db.Model):
         self.update_icons()
         self.modified = datetime.utcnow()
         self.save()
-        if not scrape:
-            Scrape.get_or_create(self.id)
+        #if not scrape:
+        #    Scrape.get_or_create(self.id)
         for f in self.files.all():
             f.move()
         user = state.user()
@@ -307,6 +307,7 @@ class Item(db.Model):
             Changelog.record(user, 'edititem', self.id, record)
 
     def edit_metadata(self, data):
+        Scrape.query.filter_by(item_id=self.id).delete()
         if 'primaryid' in self.meta:
             logger.debug('m: %s', self.meta['primaryid'])
             m = Metadata.get_or_create(*self.meta['primaryid'])

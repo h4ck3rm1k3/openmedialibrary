@@ -4,6 +4,8 @@ main = None
 nodes = False
 online = False
 tasks = False
+scraping = False
+downloads = False
 tor = False
 websockets = []
 

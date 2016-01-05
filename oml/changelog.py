@@ -150,7 +150,10 @@ class Changelog(db.Model):
         if i.timestamp > timestamp:
             logger.debug('ignore edititem change %s %s %s', timestamp, itemid, meta)
             return True
-        keys = [k for k in list(meta.keys()) if k in Item.id_keys]
+        if 'primaryid' in meta:
+            keys = [meta['primaryid'][0]]
+        else:
+            keys = [k for k in meta if k in Item.id_keys]
         if keys:
             key = keys[0]
             primary = [key, meta[key]]

@@ -54,13 +54,15 @@ def add_file(id, f, prefix, from_=None):
         state.db.session.add(item)
     item.users.append(user)
     Changelog.record(user, 'additem', item.id, file.info)
-    if item.meta.get('primaryid'):
-        Changelog.record(user, 'edititem', item.id, dict([item.meta['primaryid']]))
     item.added = datetime.utcnow()
+    if state.online:
+        item.scrape()
+    #Changelog.record(user, 'edititem', item.id, dict([item.meta['primaryid']]))
+    Changelog.record(user, 'edititem', item.id, item.meta)
     item.update_icons()
     item.modified = datetime.utcnow()
     item.update()
-    Scrape.get_or_create(item.id)
+    #Scrape.get_or_create(item.id)
     return file
 
 def run_scan():

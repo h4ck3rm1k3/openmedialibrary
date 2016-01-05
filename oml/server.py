@@ -115,7 +115,7 @@ def run():
         state.tor = tor.Tor()
         state.node = node.server.start()
         state.downloads = downloads.Downloads()
-        state.scraping = downloads.ScrapeThread()
+        #state.scraping = downloads.ScrapeThread()
         state.nodes = nodes.Nodes()
         def publish():
             if not state.tor.is_online():
