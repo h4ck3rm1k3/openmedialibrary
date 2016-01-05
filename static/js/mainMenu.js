@@ -610,8 +610,9 @@ oml.ui.mainMenu = function() {
             selectionItemName = (
                 selectionItems > 1 ? Ox.formatNumber(selectionItems) + ' ' : ''
             ) + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
-            editItemName = Ox.formatNumber(selectionItems) + ' '
-                + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
+            editItemName = (
+                selectionItems > 0 ? Ox.formatNumber(selectionItems) + ' ' : ''
+            ) + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
             clipboardItems = oml.clipboard.items(),
             clipboardType = oml.clipboard.type(),
             clipboardItemName = !clipboardItems ? ''
