@@ -46,7 +46,7 @@ oml.ui.appDialog = function() {
                                     + Ox._('A newer version of Open Media Library is available in git.')
                                     + '<br><br>'
                                     + Ox._('To update run:')
-                                    + ' <code>./ctl update</code>')
+                                    + ' <code>./ctl update</code>'
                                 );
                             } else {
                                 $content.html(
