@@ -44,9 +44,21 @@ oml.ui.appDialog = function() {
                     oml.api.getVersion(function(response) {
                         if (response.data.update) {
                             if (response.data.current == 'git') {
-                                $update.html(Ox._('A new version of Open Media Library is available in git.<br>To update run: <code>./ctl update</code>'));
+                                $update.html(
+                                    '<p>'
+                                    + Ox._('A new version of Open Media Library is available in git.')
+                                    + '<br><br>'
+                                    + Ox._('To update run:')
+                                    + ' <code>./ctl update</code>')
+                                );
                             } else {
-                                $update.html(Ox._('A new version of Open Media Library is available'));
+                                $update.html(
+                                    '<p>'
+                                    + Ox._('You are running Version {0}.', [response.data.current])
+                                    + '<br><br>'
+                                    + Ox._('A new version of Open Media Library is available.')
+                                    + '</p>'
+                                );
                                 Ox.Button({
                                     id: 'update',
                                     title: Ox._('Install Now')
@@ -54,7 +66,7 @@ oml.ui.appDialog = function() {
                                     click: function() {
                                         this.options({
                                             disabled: true,
-                                            title: 'Installing...'
+                                            title: Ox._('Installing...')
                                         });
                                         oml.api.restart({update: true},function(response) {
                                             if (response.status.code == 200) {
@@ -66,9 +78,19 @@ oml.ui.appDialog = function() {
                             }
                         } else {
                             if (response.data.current == 'git') {
-                                $update.html(Ox._('You\'re up to date'));
+                                $update.html(
+                                    '<p>'
+                                    + Ox._('You are up to date.')
+                                    + '</p>'
+                                );
                             } else {
-                                $update.html(Ox._('You are running Version {0}. You\'re up to date.', [response.data.current]));
+                                $update.html(
+                                    '<p>'
+                                    + Ox._('You are running Version {0}.', [response.data.current])
+                                    + '<br><br>'
+                                    + Ox._('You are up to date.')
+                                    + '</p>'
+                                );
                             }
                         }
                     });
