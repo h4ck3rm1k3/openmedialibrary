@@ -52,7 +52,9 @@ oml.ui.editDialog = function() {
         }
         oml.api.edit(edit, function(result) {
             Ox.Request.clearCache();
-            oml.$ui.info.updateElement();
+            if (Ox.contains(['author', 'place', 'description'], key)) {
+                oml.$ui.info.updateElement();
+            }
             oml.$ui.filters.forEach(function($filter) {
                 $filter.reloadList();
             });
