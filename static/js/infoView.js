@@ -4,9 +4,11 @@ oml.ui.infoView = function(identifyData) {
 
     var ui = oml.user.ui,
 
-        iconSize = identifyData ? 256 : ui.iconSize,
+        arrayKeys = ['author', 'place', 'publisher', 'language'],
 
         css = getCSS(iconSize, oml.config.iconRatio),
+
+        iconSize = identifyData ? 256 : ui.iconSize,
 
         ids = [
             {key: 'isbn', url: 'https://google.com/search?q=ISBN+{0}'},
@@ -526,9 +528,10 @@ oml.ui.infoView = function(identifyData) {
                                 },
                                 placeholder: formatLight(Ox._('unknown')),
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
-                                value: key == 'place'
-                                    ? (data[key] ? data[key].join('; ') : [''])
-                                    : data[key] || ''
+                                value: data[key] ? (
+                                    Ox.contains(arrayKeys, key)
+                                    ? data[key].join('; ') : data[key]
+                                ) : ''
                             })
                             .bindEvent({
                                 submit: function(event) {
@@ -562,9 +565,10 @@ oml.ui.infoView = function(identifyData) {
                                 },
                                 placeholder: formatLight('unknown'),
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
-                                value: data[key]
-                                    ? key == 'language' && Ox.isArray(data[key])
-                                        ? data[key].join('; ') : data[key] : ''
+                                value: data[key] ? (
+                                    Ox.contains(arrayKeys, key)
+                                    ? data[key].join('; ') : data[key]
+                                ) : ''
                             })
                             .bindEvent({
                                 submit: function(event) {
@@ -718,7 +722,7 @@ oml.ui.infoView = function(identifyData) {
             function editMetadata(key, value) {
                 if (value != data[key]) {
                     var edit = {id: data.id};
-                    if (Ox.contains(['author', 'place'], key)) {
+                    if (Ox.contains(arrayKeys, key)) {
                         edit[key] = value ? value.split('; ') : [];
                     } else {
                         edit[key] = value;
