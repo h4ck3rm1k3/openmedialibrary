@@ -51,7 +51,7 @@ oml.ui.editDialog = function() {
             edit[key] = value;
         }
         oml.api.edit(edit, function(result) {
-            Ox.Request.clearCache('find');
+            Ox.Request.clearCache();
             oml.$ui.filters.forEach(function($filter) {
                 $filter.reloadList();
             });
