@@ -44,7 +44,7 @@ oml.ui.appDialog = function() {
                                     titleHTML
                                     + '<p>'
                                     + Ox._('A newer version of Open Media Library is available in git.')
-                                    + '<br>'
+                                    + '</p><p>'
                                     + Ox._('To update run:')
                                     + ' <code>./ctl update</code>'
                                 );
@@ -53,7 +53,7 @@ oml.ui.appDialog = function() {
                                     titleHTML
                                     + '<p>'
                                     + Ox._('You are running Open Media Library version {0}.', [response.data.current])
-                                    + '<br>'
+                                    + '</p><p>'
                                     + Ox._('A newer version is available.')
                                     + '</p>'
                                 );
@@ -88,7 +88,7 @@ oml.ui.appDialog = function() {
                                     titleHTML
                                     + '<p>'
                                     + Ox._('You are running Open Media Library version {0}.', [response.data.current])
-                                    + '<br>'
+                                    + '</p><p>'
                                     + Ox._('You are up to date.')
                                     + '</p>'
                                 );
@@ -97,7 +97,7 @@ oml.ui.appDialog = function() {
                     });
                 } else {
                     $content.html('<h1><b>' + title + '</b></h1>'
-                        + '<p>The lazy brown fox jumped over the lazy black fox, but otherwise not really much happened here since you last checked.');
+                        + '<p>The lazy brown fox jumped over the lazy black fox, but other than that not really much happened here since you last checked.');
                 }
                 $('<div>')
                     .css({
