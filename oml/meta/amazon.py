@@ -13,12 +13,13 @@ def info(key, value):
         value = stdnum.isbn.to_isbn10(value)
     if len(value) != 10:
         raise IOError('invalid isbn %s' % value)
-
     url = 'http://www.amazon.com/dp/' + value
     data = read_url(url).decode()
     doc = lxml.html.document_fromstring(data)
     info = {}
     if '<title>404 - Document Not Found</title>' in data:
+        return info
+    if 'To discuss automated access to Amazon data please' in data:
         return info
     for l in doc.xpath('//link[@rel="canonical" and @href]'):
         info['asin'] = [l.get('href').rpartition('/')[-1]]
