@@ -431,9 +431,7 @@ oml.ui.mainMenu = function() {
                         oml.reloadList();
                     });
                 } else if (data.id == 'editmetadata') {
-                    (oml.$ui.editDialog || (
-                        oml.$ui.editDialog = oml.ui.editDialog()
-                    )).open();
+                    oml.$ui.editDialog = oml.ui.editDialog().open();
                 } else if (data.id == 'undo') {
                     fromMenu = true;
                     oml.undoHistory();
@@ -536,6 +534,15 @@ oml.ui.mainMenu = function() {
         key_control_comma: function() {
             if (!oml.hasDialogOrScreen()) {
                 oml.UI.set({page: 'preferences'});
+            }
+        },
+        key_control_e: function() {
+            if (
+                !oml.hasDialogOrScreen()
+                && ui.listSelection.length
+                && !oml.getListData().user
+            ) {
+                oml.$ui.editDialog = oml.ui.editDialog().open()
             }
         },
         key_control_f: function() {
