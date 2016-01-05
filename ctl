@@ -11,6 +11,12 @@ BASE=`pwd`
 SYSTEM=`uname -s`
 PLATFORM=`uname -m`
 
+if [ -e "$BASE/config/tor/hostname" ]; then
+    onion=$(cat "$BASE/config/tor/hostname")
+    id=${onion/.onion/}
+    PID="/tmp/$NAME.$USER.$id.pid"
+fi
+
 if [ -e "$BASE/local_platform" ]; then
     export PLATFORM_ENV="$BASE/local_platform"
 else
