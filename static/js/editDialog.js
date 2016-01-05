@@ -262,7 +262,9 @@ oml.ui.editDialog = function() {
                 Ox.EditableContent({
                         editable: true,
                         format: function(value) {
-                            return formatValue(Ox.encodeHTMLEntities(value));
+                            return formatValue(
+                                Ox.encodeHTMLEntities(value), 'description'
+                            );
                         },
                         placeholder: formatLight('No Description'),
                         tooltip: tooltip,
