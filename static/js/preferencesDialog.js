@@ -430,6 +430,7 @@ oml.ui.preferencesDialog = function() {
                     value = data.data.value[0];
                 if (key == 'username') {
                     value = oml.getValidName(value, [], ':');
+                    oml.$ui.folder[0].options('title', Ox.encodeHTMLEntities(value));
                 }
                 if (key in oml.config.user.preferences) {
                     oml.Preferences.set(key, value);
