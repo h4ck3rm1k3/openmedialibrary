@@ -26,50 +26,59 @@ def cover(path):
     except zipfile.BadZipFile:
         logger.debug('invalid epub file %s', path)
         return data
+
+    def use(filename):
+        logger.debug('using %s', filename)
+        return z.read(filename)
+
     for f in z.filelist:
         if 'cover' in f.filename.lower() and f.filename.split('.')[-1] in ('jpg', 'jpeg', 'png'):
-            logger.debug('using %s', f.filename)
-            data = z.read(f.filename)
-            break
-    if not data:
-        files = [f.filename for f in z.filelist]
-        opf = [f for f in files if f.endswith('opf')]
-        if opf:
-            info = ET.fromstring(z.read(opf[0]))
-            manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
-            images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
-            if images:
-                image_data = []
-                for e in images:
-                    filename = unquote(e.attrib['href'])
-                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                    if filename in files:
-                        image_data.append((filename, z.read(filename)))
-                if image_data:
-                    image_data.sort(key=lambda i: len(i[1]))
-                    data = image_data[-1][1]
-            if not data:
-                for e in manifest.getchildren():
-                    if 'html' in e.attrib['media-type']:
-                        filename = unquote(e.attrib['href'])
-                        filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                        html = z.read(filename).decode('utf-8', 'ignore')
-                        img = re.compile('<img.*?src="(.*?)"').findall(html)
-                        #svg image
-                        img += re.compile('<image.*?href="(.*?)"').findall(html)
-                        if img:
-                            img = unquote(img[0])
-                            img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
-                            if img in files:
-                                logger.debug('using %s', img)
-                                data = z.read(img)
-                                break
-    if not data:
-        img = Image.new('RGB', (80, 128))
-        o = BytesIO()
-        img.save(o, format='jpeg')
-        data = o.getvalue()
-        o.close()
+            return use(f.filename)
+    files = [f.filename for f in z.filelist]
+    opf = [f for f in files if f.endswith('opf')]
+    if opf:
+        #logger.debug('opf: %s', z.read(opf[0]).decode())
+        info = ET.fromstring(z.read(opf[0]))
+        metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
+        for e in metadata.getchildren():
+            if e.tag == '{http://www.idpf.org/2007/opf}meta' and e.attrib['name'] == 'cover':
+                filename = e.attrib['content']
+                filename = [f for f in files if filename in f]
+                if filename:
+                    return use(filename[0])
+        manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
+        images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
+        if images:
+            image_data = []
+            for e in images:
+                filename = unquote(e.attrib['href'])
+                filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                if filename in files:
+                    image_data.append((filename, z.read(filename)))
+            if image_data:
+                image_data.sort(key=lambda i: len(i[1]))
+                data = image_data[-1][1]
+                logger.debug('using %s', image_data[-1][0])
+                return data
+        for e in manifest.getchildren():
+            if 'html' in e.attrib['media-type']:
+                filename = unquote(e.attrib['href'])
+                filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                html = z.read(filename).decode('utf-8', 'ignore')
+                img = re.compile('<img.*?src="(.*?)"').findall(html)
+                #svg image
+                img += re.compile('<image.*?href="(.*?)"').findall(html)
+                if img:
+                    img = unquote(img[0])
+                    img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
+                    if img in files:
+                        return use(img)
+    # fallback return black cover
+    img = Image.new('RGB', (80, 128))
+    o = BytesIO()
+    img.save(o, format='jpeg')
+    data = o.getvalue()
+    o.close()
     return data
 
 def info(epub):
