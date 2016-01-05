@@ -2,7 +2,10 @@
 
 oml.ui.editDialog = function() {
 
-    var ids = oml.user.ui.listSelection,
+    var arrayKeys = [
+            'author', 'place', 'publisher', 'language'
+        ],
+        ids = oml.user.ui.listSelection,
         keys = [
             'title', 'author', 'place', 'publisher', 'date',
             'edition', 'language', 'pages', 'description'
@@ -28,7 +31,7 @@ oml.ui.editDialog = function() {
             ],
             closeButton: true,
             content: Ox.LoadingScreen().start(),
-            height: 384,
+            height: 256,
             removeOnClose: true,
             title: Ox._('Edit Metadata for {0}', [
                 Ox.formatNumber(ids.length) + ' ' + (
@@ -48,6 +51,10 @@ oml.ui.editDialog = function() {
             edit[key] = value;
         }
         oml.api.edit(edit, function(result) {
+            Ox.Request.clearCache('find');
+            oml.$ui.filters.forEach(function($filter) {
+                $filter.reloadList();
+            });
             oml.$ui.list.reloadList();
         });
     }
@@ -63,9 +70,13 @@ oml.ui.editDialog = function() {
     }
 
     function formatValue(value, key) {
-        return value === mixed ? formatLight(Ox._(
+        var isMixed = value === mixed || (
+            Ox.isArray(value) && value.length == 1 && value[0] === mixed
+        );
+        return isMixed ? formatLight(Ox._(
             key == 'title' ? 'Mixed Title'
                 : key == 'author' ? 'Mixed Author'
+                : key == 'description' ? 'Mixed Description'
                 : 'mixed'
         )) : value ? (Ox.isArray(value) ? value : [value]).map(function(value) {
             return key == 'date' && value ? value.slice(0, 4) : value;
@@ -184,13 +195,17 @@ oml.ui.editDialog = function() {
             Ox.EditableContent({
                     editable: true,
                     format: function(value) {
-                        return formatValue(value.split(separator), key)
+                        return formatValue(
+                            key == 'place' ? value.split(separator) : value,
+                            key
+                        );
                     },
                     placeholder: formatLight(Ox._('unknown')),
                     tooltip: tooltip,
-                    value: key == 'place'
-                        ? (data[key] ? data[key].join(separator) : [''])
-                        : data[key] || ''
+                    value: data[key] ? (
+                        Ox.contains(arrayKeys, key) && Ox.isArray(data[key])
+                        ? data[key].join('; ') : data[key]
+                    ) : ''
                 })
                 .bindEvent({
                     submit: function(event) {
@@ -199,6 +214,69 @@ oml.ui.editDialog = function() {
                 })
                 .appendTo($div);
         });
+
+        // Edition, Language, Pages
+
+        $div = $('<div>')
+            .css({
+                marginTop: '4px'
+            })
+            .appendTo($info);
+        ['edition', 'language', 'pages'].forEach(function(key, index) {
+            if (index) {
+                $('<span>').html(', ').appendTo($div);
+            }
+            $('<span>')
+                .html(formatKey(key))
+                .appendTo($div);
+            Ox.EditableContent({
+                    editable: true,
+                    format: function(value) {
+                        return formatValue(
+                            key == 'language' ? value.split(separator) : value,
+                            key
+                        );
+                    },
+                    placeholder: formatLight(Ox._('unknown')),
+                    tooltip: tooltip,
+                    value: data[key] ? (
+                        Ox.contains(arrayKeys, key) && Ox.isArray(data[key])
+                        ? data[key].join(separator) : data[key]
+                    ) : ''
+                })
+                .bindEvent({
+                    submit: function(event) {
+                        editMetadata(key, event.value);
+                    }
+                })
+                .appendTo($div);
+        });
+
+        // Description
+
+        $('<div>')
+            .css({
+                marginTop: '8px',
+                textAlign: 'justify'
+            }).append(
+                Ox.EditableContent({
+                        editable: true,
+                        format: function(value) {
+                            return formatValue(Ox.encodeHTMLEntities(value));
+                        },
+                        placeholder: formatLight('No Description'),
+                        tooltip: tooltip,
+                        type: 'textarea',
+                        value: data.description || ''
+                    })
+                    .bindEvent({
+                        submit: function(event) {
+                            editMetadata('description', event.value);
+                        }
+                    })
+            ).appendTo($info);
+
+        $('<div>').css({height: '16px'}).appendTo($info);
 
         that.options({content: $info});
 
