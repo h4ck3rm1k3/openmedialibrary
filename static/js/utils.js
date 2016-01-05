@@ -313,7 +313,7 @@ oml.enableDragAndDrop = function($list, canMove) {
             drag.action = 'copy';
             drag.ids = $list.options('selected');
             drag.item = drag.ids.length == 1
-                ? $list.value(drag.ids[0], 'title')
+                ? Ox.decodeHTMLEntities($list.value(drag.ids[0], 'title'))
                 : drag.ids.length;
             drag.source = oml.getListData();
             drag.targets = {};
