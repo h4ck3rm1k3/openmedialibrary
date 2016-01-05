@@ -11,8 +11,8 @@ import state
 import utils
 
 import logging
-logger = logging.getLogger(__name__)
 logging.getLogger('stem').setLevel(logging.ERROR)
+logger = logging.getLogger(__name__)
 
 class TorDaemon(Thread):
     def __init__(self):
@@ -200,3 +200,29 @@ class Tor(object):
 
     def is_online(self):
         return self.connected and self.controller.is_alive() and utils.can_connect_dns()
+
+def torbrowser_url():
+    import re
+    import sys
+    from ox.cache import read_url
+
+    base_url = 'https://dist.torproject.org/torbrowser/'
+    r = re.compile('href="(\d\.\d\.\d/)"')
+    current = sorted(r.findall(read_url(base_url).decode()))[-1]
+    url = base_url + current
+    if sys.platform.startswith('linux'):
+        osname = 'linux64'
+        ext = 'xz'
+    elif sys.platform == 'darwin':
+        osname = 'osx64'
+        ext = 'dmg'
+    elif sys.platform == 'win32':
+        osname = 'install'
+        ext = 'exe'
+    else:
+        logger.debug('no way to get torbrowser url for %s', sys.platform)
+        return None
+    r = re.compile('href="(.*?{osname}.*?en.*?{ext})"'.format(osname=osname,ext=ext))
+    torbrowser = sorted(r.findall(read_url(url).decode()))[-1]
+    url += torbrowser
+    return url
