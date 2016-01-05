@@ -185,6 +185,7 @@ oml.ui.infoView = function(identifyData) {
         })
         .css({marginTop: '16px'});
     }
+
     function renderOpenButton(data) {
         return data.mediastate == 'available'
             ? Ox.Button({
