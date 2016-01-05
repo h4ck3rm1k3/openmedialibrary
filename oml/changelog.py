@@ -132,13 +132,13 @@ class Changelog(db.Model):
             if user not in i.users:
                 i.users.append(user)
                 i.update()
-            return True
         else:
             i = Item.get_or_create(itemid, info)
             i.modified = ts2datetime(timestamp)
             if user not in i.users:
                 i.users.append(user)
             i.update()
+        user.clear_smart_list_cache()
         return True
 
     def action_edititem(self, user, timestamp, itemid, meta):
@@ -166,6 +166,7 @@ class Changelog(db.Model):
             i.update_meta(meta)
             i.modified = ts2datetime(timestamp)
         i.save()
+        user.clear_smart_list_cache()
         return True
 
     def action_removeitem(self, user, timestamp, itemid):
@@ -178,6 +179,8 @@ class Changelog(db.Model):
                 i.update()
             else:
                 i.delete()
+        user.clear_list_cache()
+        user.clear_smart_list_cache()
         return True
 
     def action_addlist(self, user, timestamp, name, query=None):
@@ -191,6 +194,7 @@ class Changelog(db.Model):
         if 'name' in new:
             l.name = new['name']
         l.save()
+        user.clear_list_cache()
         return True
 
     def action_orderlists(self, user, timestamp, lists):
@@ -208,12 +212,15 @@ class Changelog(db.Model):
         l = List.get(user.id, name)
         if l:
             l.remove()
+        user.clear_list_cache()
         return True
 
     def action_addlistitems(self, user, timestamp, name, ids):
         from user.models import List
         l = List.get_or_create(user.id, name)
         l.add_items(ids)
+        user.clear_list_cache()
+        user.clear_smart_list_cache()
         return True
 
     def action_removelistitems(self, user, timestamp, name, ids):
@@ -221,6 +228,8 @@ class Changelog(db.Model):
         l = List.get(user.id, name)
         if l:
             l.remove_items(ids)
+        user.clear_list_cache()
+        user.clear_smart_list_cache()
         return True
 
     def action_editusername(self, user, timestamp, username):
@@ -267,6 +276,7 @@ class Changelog(db.Model):
                 m = Metadata.get_or_create(key, value)
             if m.edit(data):
                 m.update_items()
+        user.clear_smart_list_cache()
         return True
 
     def action_resetmeta(self, user, timestamp, key, value):
@@ -274,4 +284,5 @@ class Changelog(db.Model):
         m = Metadata.get(key, value)
         if m and m.timestamp < timestamp:
             m.reset()
+        user.clear_smart_list_cache()
         return True

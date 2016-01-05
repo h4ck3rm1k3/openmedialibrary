@@ -34,6 +34,7 @@ else:
 
 preferences = pdict(os.path.join(config_path, 'preferences.json'), config['user']['preferences'])
 ui = pdict(os.path.join(config_path, 'ui.json'), config['user']['ui'])
+lists_cache = pdict(os.path.join(config_path, 'lists_cache.json'), {})
 
 server = pdict(os.path.join(config_path, 'server.json'))
 server_defaults = {

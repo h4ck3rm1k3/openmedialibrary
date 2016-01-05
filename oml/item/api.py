@@ -153,6 +153,7 @@ def edit(data):
     for key in list(state.cache):
         if key.startswith('group:'):
             state.cache.delete(key)
+    state.user().clear_smart_list_cache()
     return response
 actions.register(edit, cache=False)
 
@@ -167,6 +168,7 @@ def remove(data):
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
             i.remove_file()
+    state.user().clear_smart_list_cache()
     return {
         'items': []
     }

@@ -89,6 +89,17 @@ class User(db.Model):
             'user': self.name
         }] + [l.json() for l in self.lists.order_by('index_')]
 
+    def clear_list_cache(self):
+        for key in list(settings.list_cache):
+            if key.startswith(self.id + ':'):
+                del settings.list_cache[key]
+
+    def clear_smart_list_cache(self):
+        smart_lists = [':' + l.name for l in List.query.filter_by(type='smart')]
+        for key in list(settings.list_cache):
+            if key in smart_lists:
+                del settings.list_cache[key]
+
     def update_peering(self, peered, username=None):
         was_peering = self.peered
         if peered:
@@ -118,6 +129,9 @@ class User(db.Model):
                 if not i.users:
                     i.delete()
             Changelog.query.filter_by(user_id=self.id).delete()
+            if self.id in settings.ui['showFolder']:
+                del settings.ui['showFolder'][self.id]
+            self.clear_list_cache()
             self.save()
             if was_peering:
                 Changelog.record(state.user(), 'removepeer', self.id)
@@ -287,16 +301,17 @@ class List(db.Model):
         return self.public_id
 
     def items_count(self):
-        key = 'list:' + self.public_id
-        value = state.cache.get(key)
-        if value is None:
+        key = self.find_id
+        if key in settings.lists_cache:
+            value = settings.lists_cache[key]
+        else:
             from item.models import Item
             if self._query:
                 data = self._query
                 value = Parser(Item).find({'query': data}).count()
             else:
                 value = len(self.items)
-            state.cache.set(key, value, ttl=90)
+            settings.lists_cache[key] = value
         return value
 
     def json(self):
