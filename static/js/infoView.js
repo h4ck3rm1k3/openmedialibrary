@@ -731,7 +731,7 @@ oml.ui.infoView = function(identifyData) {
                     }
                     oml.api.edit(edit, function(result) {
                         Ox.Request.clearCache();
-                        if (Ox.contains(['title', 'author', 'descriptiopm'], key)) {
+                        if (Ox.contains(['title', 'author', 'description'], key)) {
                             oml.$ui.info.updateElement();
                         }
                         oml.$ui.browser.value(
