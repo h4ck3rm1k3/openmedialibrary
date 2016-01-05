@@ -35,25 +35,23 @@ oml.ui.appDialog = function() {
                     })
                     .appendTo($logo);
                 if (id == 'update') {
-                    $content.html('<h1><b>' + title + '</b></h1>');
-                    var $update = Ox.Element()
-                        .css({
-                            paddingTop: '4px',
-                            paddingBottom: '16px'
-                        }).appendTo($content);
+                    var titleHTML = '<h1><b>' + title + '</b></h1>'
+                    $content.html(titleHTML);
                     oml.api.getVersion(function(response) {
                         if (response.data.update) {
                             if (response.data.current == 'git') {
-                                $update.html(
-                                    '<p>'
+                                $content.html(
+                                    titleHTML
+                                    + '<p>'
                                     + Ox._('A new version of Open Media Library is available in git.')
                                     + '<br><br>'
                                     + Ox._('To update run:')
                                     + ' <code>./ctl update</code>')
                                 );
                             } else {
-                                $update.html(
-                                    '<p>'
+                                $content.html(
+                                    titleHTML
+                                    + '<p>'
                                     + Ox._('You are running Version {0}.', [response.data.current])
                                     + '<br><br>'
                                     + Ox._('A new version of Open Media Library is available.')
@@ -78,14 +76,16 @@ oml.ui.appDialog = function() {
                             }
                         } else {
                             if (response.data.current == 'git') {
-                                $update.html(
-                                    '<p>'
+                                $content.html(
+                                    titleHTML
+                                    + '<p>'
                                     + Ox._('You are up to date.')
                                     + '</p>'
                                 );
                             } else {
-                                $update.html(
-                                    '<p>'
+                                $content.html(
+                                    titleHTML
+                                    + '<p>'
                                     + Ox._('You are running Version {0}.', [response.data.current])
                                     + '<br><br>'
                                     + Ox._('You are up to date.')
