@@ -11,6 +11,7 @@ from urllib.parse import unquote
 
 from PIL import Image
 import stdnum.isbn
+from ox import strip_tags, decode_html
 
 from utils import normalize_isbn, find_isbns, get_language
 
@@ -36,27 +37,33 @@ def cover(path):
         if opf:
             info = ET.fromstring(z.read(opf[0]))
             manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
-            for e in manifest.getchildren():
-                if 'image' in e.attrib['media-type']:
+            images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
+            if images:
+                image_data = []
+                for e in images:
                     filename = unquote(e.attrib['href'])
                     filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
                     if filename in files:
-                        data = z.read(filename)
-                        break
-                elif 'html' in e.attrib['media-type']:
-                    filename = unquote(e.attrib['href'])
-                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                    html = z.read(filename).decode('utf-8', 'ignore')
-                    img = re.compile('<img.*?src="(.*?)"').findall(html)
-                    #svg image
-                    img += re.compile('<image.*?href="(.*?)"').findall(html)
-                    if img:
-                        img = unquote(img[0])
-                        img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
-                        if img in files:
-                            logger.debug('using %s', img)
-                            data = z.read(img)
-                            break
+                        image_data.append((filename, z.read(filename)))
+                if image_data:
+                    image_data.sort(key=lambda i: len(i[1]))
+                    data = image_data[-1][1]
+            if not data:
+                for e in manifest.getchildren():
+                    if 'html' in e.attrib['media-type']:
+                        filename = unquote(e.attrib['href'])
+                        filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                        html = z.read(filename).decode('utf-8', 'ignore')
+                        img = re.compile('<img.*?src="(.*?)"').findall(html)
+                        #svg image
+                        img += re.compile('<image.*?href="(.*?)"').findall(html)
+                        if img:
+                            img = unquote(img[0])
+                            img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
+                            if img in files:
+                                logger.debug('using %s', img)
+                                data = z.read(img)
+                                break
     if not data:
         img = Image.new('RGB', (80, 128))
         o = BytesIO()
@@ -91,6 +98,8 @@ def info(epub):
                     data[key] = value.split(', ')
                 else:
                     data[key] = value
+    if 'description' in data:
+        data['description'] = strip_tags(decode_html(data['description']))
     text = extract_text(epub)
     data['textsize'] = len(text)
     if not 'isbn' in data:
