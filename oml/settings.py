@@ -5,8 +5,8 @@ import json
 import os
 import ed25519
 
-from pdict import pdict
-from utils import get_user_id
+from oml.pdict import pdict
+from oml.utils import get_user_id
 
 base_dir = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 static_path = os.path.join(base_dir, 'static')
@@ -34,7 +34,7 @@ else:
 
 preferences = pdict(os.path.join(config_path, 'preferences.json'), config['user']['preferences'])
 ui = pdict(os.path.join(config_path, 'ui.json'), config['user']['ui'])
-lists_cache = pdict(os.path.join(config_path, 'lists_cache.json'), {})
+list_cache = pdict(os.path.join(config_path, 'list_cache.json'), {})
 
 server = pdict(os.path.join(config_path, 'server.json'))
 server_defaults = {

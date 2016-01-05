@@ -302,8 +302,8 @@ class List(db.Model):
 
     def items_count(self):
         key = self.find_id
-        if key in settings.lists_cache:
-            value = settings.lists_cache[key]
+        if key in settings.list_cache:
+            value = settings.list_cache[key]
         else:
             from item.models import Item
             if self._query:
@@ -311,7 +311,7 @@ class List(db.Model):
                 value = Parser(Item).find({'query': data}).count()
             else:
                 value = len(self.items)
-            settings.lists_cache[key] = value
+            settings.list_cache[key] = value
         return value
 
     def json(self):

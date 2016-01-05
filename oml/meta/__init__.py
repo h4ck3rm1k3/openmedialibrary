@@ -13,6 +13,8 @@ from . import worldcat
 from . import google
 from . import duckduckgo
 
+from oml import settings
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -84,6 +86,9 @@ def lookup(key, value):
             data[k] = []
         if v not in data[k]:
             data[k].append(v)
+    for key in [k['id'] for k in settings.config['itemKeys'] if isinstance(k['type'], list)]:
+        if key in data and not isinstance(data[key], list):
+            data[key] = [data[key]]
     return data
 
 def isvalid_id(key, value):

@@ -7,6 +7,8 @@ from urllib.parse import urlencode
 
 from ox.cache import read_url
 
+import settings
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -28,4 +30,8 @@ def find(query):
 
 def lookup(key, value):
     logger.debug('lookup %s %s', key, value)
-    return request('getMetadata', {key: value})
+    data = request('getMetadata', {key: value})
+    for key in [k['id'] for k in settings.config['itemKeys'] if isinstance(k['type'], list)]:
+        if key in data and not isinstance(data[key], list):
+            data[key] = [data[key]]
+    return data
