@@ -43,7 +43,7 @@ oml.ui.appDialog = function() {
                                 $content.html(
                                     titleHTML
                                     + '<p>'
-                                    + Ox._('A new version of Open Media Library is available in git.')
+                                    + Ox._('A newer version of Open Media Library is available in git.')
                                     + '<br><br>'
                                     + Ox._('To update run:')
                                     + ' <code>./ctl update</code>')
@@ -52,9 +52,9 @@ oml.ui.appDialog = function() {
                                 $content.html(
                                     titleHTML
                                     + '<p>'
-                                    + Ox._('You are running Version {0}.', [response.data.current])
+                                    + Ox._('You are running Open Media Library version {0}.', [response.data.current])
                                     + '<br><br>'
-                                    + Ox._('A new version of Open Media Library is available.')
+                                    + Ox._('A newer version is available.')
                                     + '</p>'
                                 );
                                 Ox.Button({
@@ -86,7 +86,7 @@ oml.ui.appDialog = function() {
                                 $content.html(
                                     titleHTML
                                     + '<p>'
-                                    + Ox._('You are running Version {0}.', [response.data.current])
+                                    + Ox._('You are running Open Media Library version {0}.', [response.data.current])
                                     + '<br><br>'
                                     + Ox._('You are up to date.')
                                     + '</p>'
