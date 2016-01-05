@@ -107,7 +107,7 @@ oml.ui.editDialog = function() {
                     });
                 if (isArray) {
                     values = values.map(function(value) {
-                        return value.join(separator);
+                        return (value || []).join(separator);
                     });
                 }
                 data[key] = Ox.unique(values).length == 1
