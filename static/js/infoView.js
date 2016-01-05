@@ -485,7 +485,7 @@ oml.ui.infoView = function(identifyData) {
                                     clickLink: oml.clickLink,
                                     editable: isEditable,
                                     format: function(value) {
-                                        return formatValue(value.split('; '), 'author');
+                                        return formatValue(splitValue(value), 'author');
                                     },
                                     placeholder: formatLight(Ox._('Unknown Author')),
                                     tooltip: isEditable ? oml.getEditTooltip() : '',
@@ -524,7 +524,7 @@ oml.ui.infoView = function(identifyData) {
                                 format: function(value) {
                                     return formatValue(
                                         Ox.contains(arrayKeys, key)
-                                        ? value.split('; ') : value,
+                                        ? splitValue(value) : value,
                                         key
                                     );
                                 },
@@ -562,7 +562,7 @@ oml.ui.infoView = function(identifyData) {
                                 editable: isEditable,
                                 format: function(value) {
                                     return key == 'language'
-                                        ? formatValue(value.split('; '), key)
+                                        ? formatValue(splitValue(value), key)
                                         : value;
                                 },
                                 placeholder: formatLight('unknown'),
@@ -725,7 +725,7 @@ oml.ui.infoView = function(identifyData) {
                 if (value != data[key]) {
                     var edit = {id: data.id};
                     if (Ox.contains(arrayKeys, key)) {
-                        edit[key] = value ? value.split('; ') : [];
+                        edit[key] = value ? splitValue(value) : [];
                     } else {
                         edit[key] = value;
                     }
@@ -745,6 +745,10 @@ oml.ui.infoView = function(identifyData) {
             }
 
         });
+
+        function splitValue(value) {
+            return Ox.decodeHTMLEntities(value).split('; ');
+        }
 
     };
 
