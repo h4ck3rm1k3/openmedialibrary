@@ -20,6 +20,6 @@ class Cache(dict):
         dict.__setitem__(self, key, value)
 
     def delete(self, key):
-        if key in self._addedd:
+        if key in self._added:
             del self._added[key]
             del self[key]
