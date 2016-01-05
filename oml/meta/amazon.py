@@ -1,5 +1,5 @@
 from ox.cache import read_url
-from ox import decode_html, strip_tags, find_re
+from ox import decode_html, strip_tags, find_re, fix_bad_unicode
 import json
 import re
 from urllib.parse import unquote
@@ -24,7 +24,10 @@ def info(key, value):
         info['asin'] = [l.get('href').rpartition('/')[-1]]
         break
     info['title'] = strip_tags(decode_html(doc.xpath('//span[@id="productTitle"]')[0].text))
+    info['title'] = re.sub(' \([^\)]+? Classics\)', '', info['title'])
+    info['title'] = re.sub(' \([^\)]+? Collection\)', '', info['title'])
     info['description'] = strip_tags(decode_html(unquote(re.compile('encodedDescription\' : "(.*?)",').findall(data)[0])))
+    info['description'] = fix_bad_unicode(info['description'])
     content = doc.xpath('//div[@class="content"]')[0]
     content_info = {}
     for li in content.xpath('.//li'):
@@ -52,19 +55,13 @@ def info(key, value):
     if a:
         for span in a:
             r = span.getchildren()[0].text.strip()
-            if 'Translator' in r:
-                role = 'translator'
-            else:
-                role = 'author'
+            role = get_role(r)
             if not role in info: info[role] = []
             info[role].append(span.text.strip())
     else:
         for span in doc.xpath('//span[@class="author notFaded"]'):
             author = [x.strip() for x in span.text_content().strip().split('\n') if x.strip()]
-            if 'Translator' in author[-1]:
-                role = 'translator'
-            else:
-                role = 'author'
+            role = get_role(author[-1])
             if not role in info: info[role] = []
             info[role].append(author[0])
 
@@ -76,3 +73,12 @@ def info(key, value):
             last = covers[url]
             info['cover'] = re.sub('(\._SX.+?_\.)', '.', url)
     return info
+
+def get_role(value):
+    if 'Translator' in value:
+        role = 'translator'
+    elif 'Editor' in value:
+        role = 'editor'
+    else:
+        role = 'author'
+    return role
