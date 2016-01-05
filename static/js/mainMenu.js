@@ -430,6 +430,10 @@ oml.ui.mainMenu = function() {
                         oml.UI.set({listSelection: []});
                         oml.reloadList();
                     });
+                } else if (data.id == 'editmetadata') {
+                    (oml.$ui.editDialog || (
+                        oml.$ui.editDialog = oml.ui.editDialog()
+                    )).open();
                 } else if (data.id == 'undo') {
                     fromMenu = true;
                     oml.undoHistory();
@@ -599,6 +603,8 @@ oml.ui.mainMenu = function() {
             selectionItemName = (
                 selectionItems > 1 ? Ox.formatNumber(selectionItems) + ' ' : ''
             ) + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
+            editItemName = Ox.formatNumber(selectionItems) + ' '
+                + Ox._(selectionItems == 1 ? 'Book' : 'Books'),
             clipboardItems = oml.clipboard.items(),
             clipboardType = oml.clipboard.type(),
             clipboardItemName = !clipboardItems ? ''
@@ -612,6 +618,7 @@ oml.ui.mainMenu = function() {
             canPaste = listData.editable && clipboardItems,
             canAdd = canCopy && clipboardItems && clipboardType == 'book',
             canDelete = listData.user == '' && selectionItems,
+            canEdit = listData.user == '' && selectionItems,
             historyItems = oml.history.items(),
             undoText = oml.history.undoText(),
             redoText = oml.history.redoText();
@@ -700,6 +707,13 @@ oml.ui.mainMenu = function() {
                     title: Ox._('Delete {0} from Library...', [selectionItemName]),
                     disabled: !canDelete,
                     keyboard: 'control delete'
+                },
+                {},
+                {
+                    id: 'editmetadata',
+                    title: Ox._('Edit Metadata for {0}', [editItemName]),
+                    disabled: !canEdit,
+                    keyboard: 'control e'
                 },
                 {},
                 {
