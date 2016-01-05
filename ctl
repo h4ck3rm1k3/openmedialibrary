@@ -11,8 +11,7 @@ BASE=`pwd`
 SYSTEM=`uname -s`
 PLATFORM=`uname -m`
 
-if [ -e $PID ]; then
-else
+if [ ! -e $PID ]; then
 if [ -e "$BASE/config/tor/hostname" ]; then
     onion=$(cat "$BASE/config/tor/hostname")
     id=${onion/.onion/}
