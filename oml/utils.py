@@ -276,7 +276,7 @@ def get_local_ipv4():
 
 def update_dict(root, data):
     for key in data:
-        keys = [part.replace('\0', '\\.') for part in key.replace('\\.', '\0').split('.')]
+        keys = [part.replace('\0', '.') for part in key.replace('\\.', '\0').split('.')]
         value = data[key]
         p = root
         while len(keys)>1:
@@ -291,6 +291,8 @@ def update_dict(root, data):
             del p[keys[0]]
         else:
             p[keys[0]] = value
+    if hasattr(root, '_save'):
+        root._save()
 
 def remove_empty_folders(prefix):
     empty = []
