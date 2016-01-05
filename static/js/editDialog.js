@@ -63,7 +63,7 @@ oml.ui.editDialog = function() {
     }
 
     function formatValue(value, key) {
-        return value === mixed ? Ox.formatLight(Ox._(
+        return value === mixed ? formatLight(Ox._(
             key == 'title' ? 'Mixed Title'
                 : key == 'author' ? 'Mixed Author'
                 : 'mixed'
@@ -89,7 +89,7 @@ oml.ui.editDialog = function() {
             var data = {},
                 items = result.data.items;
             keys.forEach(function(key) {
-                values = items.map(function(item) {
+                var values = items.map(function(item) {
                     return item[key];
                 });
                 var isArray = Ox.isArray(values[0])
@@ -100,7 +100,7 @@ oml.ui.editDialog = function() {
                 }
                 data[key] = Ox.unique(values).length == 1
                     ? (isArray ? values[0].split(separator) : values[0])
-                    : mixed;
+                    : isArray ? [mixed] : mixed;
             });
             callback(data);
         });
@@ -169,7 +169,7 @@ oml.ui.editDialog = function() {
 
         // Place, Publisher, Date
 
-        $div = $('<div')
+        $div = $('<div>')
             .css({
                 marginTop: '4px'
             })
