@@ -59,7 +59,8 @@ oml.ui.appDialog = function() {
                                 );
                                 Ox.Button({
                                     id: 'update',
-                                    title: Ox._('Install Now')
+                                    title: Ox._('Install Now'),
+                                    width: 128
                                 }).bindEvent({
                                     click: function() {
                                         this.options({
