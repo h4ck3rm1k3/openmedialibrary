@@ -121,24 +121,30 @@ def edit(data):
             ...
         }
         setting identifier or base metadata is possible not both at the same time
+
+        id can be one id or list of ids
     '''
     response = {}
-    item = models.Item.get(data['id'])
-    if item and item.json()['mediastate'] == 'available':
-        if 'primaryid' in data:
-            if data['primaryid']:
-                key, value = data['primaryid']
-                logger.debug('update primaryid %s %s', key, value)
-                value = cleanup_id(key, value)
-                item.update_primaryid(key, value)
+    ids = data['id']
+    if isinstance(ids, str):
+        ids = [ids]
+    for id in ids:
+        item = models.Item.get(id)
+        if item and item.json()['mediastate'] == 'available':
+            if 'primaryid' in data:
+                if data['primaryid']:
+                    key, value = data['primaryid']
+                    logger.debug('update primaryid %s %s', key, value)
+                    value = cleanup_id(key, value)
+                    item.update_primaryid(key, value)
+                else:
+                    item.update_primaryid()
+                response = item.json()
             else:
-                item.update_primaryid()
-            response = item.json()
+                item.edit_metadata(data)
+                response = item.json()
         else:
-            item.edit_metadata(data)
-            response = item.json()
-    else:
-        logger.info('can only edit available items')
+            logger.info('can only edit available items %s', id)
     return response
 actions.register(edit, cache=False)
 
