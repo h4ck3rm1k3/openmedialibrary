@@ -41,7 +41,7 @@
         {
             "id": "publisher",
             "title": "Publisher",
-            "type": "string",
+            "type": ["string"],
             "autocomplete": true,
             "columnWidth": 128,
             "filter": true,
