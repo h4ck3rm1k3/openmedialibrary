@@ -522,9 +522,11 @@ oml.ui.infoView = function(identifyData) {
                                 clickLink: oml.clickLink,
                                 editable: isEditable,
                                 format: function(value) {
-                                    return key == 'place'
-                                        ? formatValue(value.split('; '), key)
-                                        : value
+                                    return formatValue(
+                                        Ox.contains(arrayKeys, key)
+                                        ? value.split('; ') : value,
+                                        key
+                                    );
                                 },
                                 placeholder: formatLight(Ox._('unknown')),
                                 tooltip: isEditable ? oml.getEditTooltip() : '',
