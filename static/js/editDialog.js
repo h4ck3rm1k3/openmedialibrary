@@ -52,9 +52,7 @@ oml.ui.editDialog = function() {
         }
         oml.api.edit(edit, function(result) {
             Ox.Request.clearCache();
-            if (Ox.contains(['author', 'place', 'description'], key)) {
-                oml.$ui.info.updateElement();
-            }
+            oml.$ui.info.updateElement();
             oml.$ui.filters.forEach(function($filter) {
                 $filter.reloadList();
             });
@@ -103,10 +101,10 @@ oml.ui.editDialog = function() {
             var data = {},
                 items = result.data.items;
             keys.forEach(function(key) {
-                var values = items.map(function(item) {
-                    return item[key];
-                });
-                var isArray = Ox.isArray(values[0])
+                var isArray = Ox.contains(arrayKeys, key),
+                    values = items.map(function(item) {
+                        return item[key];
+                    });
                 if (isArray) {
                     values = values.map(function(value) {
                         return value.join(separator);
