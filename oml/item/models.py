@@ -243,8 +243,16 @@ class Item(db.Model):
             state.db.session.commit()
 
     meta_keys = (
-        'title', 'author', 'date', 'publisher', 'edition',
-        'language', 'description', 'classification'
+        'author',
+        'classification',
+        'date',
+        'description',
+        'edition',
+        'language',
+        'pages',
+        'place',
+        'publisher',
+        'title'
     )
 
     def update_meta(self, data):
