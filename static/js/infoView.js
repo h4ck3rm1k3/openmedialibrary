@@ -6,9 +6,9 @@ oml.ui.infoView = function(identifyData) {
 
         arrayKeys = ['author', 'place', 'publisher', 'language'],
 
-        css = getCSS(iconSize, oml.config.iconRatio),
-
         iconSize = identifyData ? 256 : ui.iconSize,
+
+        css = getCSS(iconSize, oml.config.iconRatio),
 
         ids = [
             {key: 'isbn', url: 'https://google.com/search?q=ISBN+{0}'},
