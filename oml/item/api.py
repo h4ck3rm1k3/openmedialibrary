@@ -150,6 +150,9 @@ def edit(data):
     if len(ids) > 1:
         response = data
         response['id'] = edited
+    for key in list(state.cache):
+        if key.startswith('group:'):
+            state.cache.delete(key)
     return response
 actions.register(edit, cache=False)
 
