@@ -149,7 +149,7 @@ oml.ui.folders = function() {
                     })
                     .bindEvent({
                         toggle: function(data) {
-                            oml.UI.set('showFolder.' + user.name, !data.collapsed);
+                            oml.UI.set('showFolder.' + oml.UI.encode(user.name), !data.collapsed);
                         }
                     })
                     .bindEvent(
@@ -196,7 +196,7 @@ oml.ui.folders = function() {
                                         !userLists.length ? user + ':'
                                         : Ox.last(userLists).id
                                     )};
-                                    Ox.extend(set, 'showFolder.' + user, true);
+                                    Ox.extend(set, 'showFolder.' + oml.UI.encode(user), true);
                                 }
                                 oml.UI.set(set);
                             }
@@ -241,7 +241,7 @@ oml.ui.folders = function() {
                                 if (index < users.length - 1) {
                                     oml.UI.set(Ox.extend(
                                         {find: getFind(users[index + 1].name + ':')},
-                                        'showFolder.' + users[index + 1].name,
+                                        'showFolder.' + oml.UI.encode(users[index + 1].name),
                                         true
                                     ));
                                 }

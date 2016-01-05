@@ -903,15 +903,15 @@ oml.renameUser = function(data) {
     newFind = Ox.clone(ui.find, true);
     ui._users[index].name = data.name;
     ui._users[index].nickname = data.nickname;
-    set['showFolder.' + name] = null;
-    set['showFolder.' + data.name] = ui.showFolder[name];
+    set['showFolder.' + oml.UI.encode(name)] = null;
+    set['showFolder.' + oml.UI.encode(data.name)] = ui.showFolder[name];
     Ox.forEach(ui.lists, function(value, key) {
         var split = key.split(':'),
             username = split[0],
             listname = split.slice(1).join(':');
         if (username == name) {
-            set['lists.' + key] = null;
-            set['lists.' + data.name + ':' + listname] = value;
+            set['lists.' + oml.UI.encode(key)] = null;
+            set['lists.' + oml.UI.encode(data.name + ':' + listname)] = value;
         }
     });
 
