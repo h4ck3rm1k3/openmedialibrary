@@ -181,6 +181,8 @@ def editList(data):
         l._query = data['query']
     if l.type == 'static' and name != l.name:
         Changelog.record(state.user(), 'editlist', name, {'name': l.name})
+    else:
+        l.user.clear_smart_list_cache()
     l.save()
     return l.json()
 actions.register(editList, cache=False)
