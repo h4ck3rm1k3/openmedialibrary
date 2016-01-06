@@ -39,43 +39,49 @@ def cover(path):
     if opf:
         #logger.debug('opf: %s', z.read(opf[0]).decode())
         info = ET.fromstring(z.read(opf[0]))
-        metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
-        manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')[0]
-        for e in metadata.getchildren():
-            if e.tag == '{http://www.idpf.org/2007/opf}meta' and e.attrib.get('name') == 'cover':
-                cover_id = e.attrib['content']
-                for e in manifest.getchildren():
-                    if e.attrib['id'] == cover_id:
-                        filename = unquote(e.attrib['href'])
-                        filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                        if filename in files:
-                            return use(filename)
-        images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
-        if images:
-            image_data = []
-            for e in images:
-                filename = unquote(e.attrib['href'])
-                filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                if filename in files:
-                    image_data.append((filename, z.read(filename)))
-            if image_data:
-                image_data.sort(key=lambda i: len(i[1]))
-                data = image_data[-1][1]
-                logger.debug('using %s', image_data[-1][0])
-                return data
-        for e in manifest.getchildren():
-            if 'html' in e.attrib['media-type']:
-                filename = unquote(e.attrib['href'])
-                filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
-                html = z.read(filename).decode('utf-8', 'ignore')
-                img = re.compile('<img.*?src="(.*?)"').findall(html)
-                #svg image
-                img += re.compile('<image.*?href="(.*?)"').findall(html)
-                if img:
-                    img = unquote(img[0])
-                    img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
-                    if img in files:
-                        return use(img)
+        metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')
+        if metadata:
+            metadata = metadata[0]
+        manifest = info.findall('{http://www.idpf.org/2007/opf}manifest')
+        if manifest:
+            manifest = manifest[0]
+        if metadata and manifest:
+            for e in metadata.getchildren():
+                if e.tag == '{http://www.idpf.org/2007/opf}meta' and e.attrib.get('name') == 'cover':
+                    cover_id = e.attrib['content']
+                    for e in manifest.getchildren():
+                        if e.attrib['id'] == cover_id:
+                            filename = unquote(e.attrib['href'])
+                            filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                            if filename in files:
+                                return use(filename)
+        if manifest:
+            images = [e for e in manifest.getchildren() if 'image' in e.attrib['media-type']]
+            if images:
+                image_data = []
+                for e in images:
+                    filename = unquote(e.attrib['href'])
+                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                    if filename in files:
+                        image_data.append((filename, z.read(filename)))
+                if image_data:
+                    image_data.sort(key=lambda i: len(i[1]))
+                    data = image_data[-1][1]
+                    logger.debug('using %s', image_data[-1][0])
+                    return data
+            for e in manifest.getchildren():
+                if 'html' in e.attrib['media-type']:
+                    filename = unquote(e.attrib['href'])
+                    filename = os.path.normpath(os.path.join(os.path.dirname(opf[0]), filename))
+                    html = z.read(filename).decode('utf-8', 'ignore')
+                    img = re.compile('<img.*?src="(.*?)"').findall(html)
+                    #svg image
+                    img += re.compile('<image.*?href="(.*?)"').findall(html)
+                    if img:
+                        img = unquote(img[0])
+                        img = os.path.normpath(os.path.join(os.path.dirname(filename), img))
+                        if img in files:
+                            return use(img)
     # fallback return black cover
     img = Image.new('RGB', (80, 128))
     o = BytesIO()
@@ -94,22 +100,24 @@ def info(epub):
     opf = [f.filename for f in z.filelist if f.filename.endswith('opf')]
     if opf:
         info = ET.fromstring(z.read(opf[0]))
-        metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')[0]
-        for e in metadata.getchildren():
-            if e.text and e.text.strip() and e.text not in ('unknown', 'none'):
-                key = e.tag.split('}')[-1]
-                key = {
-                    'creator': 'author',
-                }.get(key, key)
-                value = e.text.strip()
-                if key == 'identifier':
-                    value = normalize_isbn(value)
-                    if stdnum.isbn.is_valid(value):
-                        data['isbn'] = [value]
-                elif key == 'author':
-                    data[key] = value.split(', ')
-                else:
-                    data[key] = value
+        metadata = info.findall('{http://www.idpf.org/2007/opf}metadata')
+        if metadata:
+            metadata = metadata[0]
+            for e in metadata.getchildren():
+                if e.text and e.text.strip() and e.text not in ('unknown', 'none'):
+                    key = e.tag.split('}')[-1]
+                    key = {
+                        'creator': 'author',
+                    }.get(key, key)
+                    value = e.text.strip()
+                    if key == 'identifier':
+                        value = normalize_isbn(value)
+                        if stdnum.isbn.is_valid(value):
+                            data['isbn'] = [value]
+                    elif key == 'author':
+                        data[key] = value.split(', ')
+                    else:
+                        data[key] = value
     if 'description' in data:
         data['description'] = strip_tags(decode_html(data['description']))
     text = extract_text(epub)
