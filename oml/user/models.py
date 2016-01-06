@@ -95,7 +95,7 @@ class User(db.Model):
                 del settings.list_cache[key]
 
     def clear_smart_list_cache(self):
-        smart_lists = [':' + l.name for l in List.query.filter_by(type='smart')]
+        smart_lists = [':%d' % l.id for l in List.query.filter_by(type='smart')]
         for key in list(settings.list_cache):
             if key in smart_lists:
                 del settings.list_cache[key]
@@ -258,6 +258,7 @@ class List(db.Model):
         state.db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)
+        self.clear_smart_list_cache()
 
     def remove_items(self, items):
         from item.models import Item
@@ -305,10 +306,10 @@ class List(db.Model):
         if key in settings.list_cache:
             value = settings.list_cache[key]
         else:
-            from item.models import Item
+            from item.models import Item, user_items
             if self._query:
                 data = self._query
-                value = Parser(Item).find({'query': data}).count()
+                value = Parser(Item, user_items).find({'query': data}).count()
             else:
                 value = len(self.items)
             settings.list_cache[key] = value

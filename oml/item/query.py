@@ -19,7 +19,7 @@ def parse(data):
         if key in data:
             query[key] = data[key]
     #print data
-    query['qs'] = Parser(models.Item).find(data)
+    query['qs'] = Parser(models.Item, models.user_items).find(data)
     if not 'group' in query:
         query['qs'] = order(query['qs'], query['sort'])
     return query

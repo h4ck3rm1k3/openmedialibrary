@@ -37,11 +37,12 @@ def get_operator(op, type='str'):
 
 class Parser(object):
 
-    def __init__(self, model):
+    def __init__(self, model, user_items):
         self._model = model
         self._find = model.find.mapper.class_
         self._sort = model.sort.mapper.class_
         self._user = model.users.mapper.class_
+        self._user_items = user_items
         self._list = model.lists.mapper.class_
         self.item_keys = model.item_keys
         self.filter_keys = model.filter_keys
@@ -115,19 +116,19 @@ class Parser(object):
         elif k == 'list':
             nickname, name = v.split(':', 1)
             if nickname:
-                u = self._user.query.filter_by(nickname=nickname).first()
+                u = self._user.query.filter_by(nickname=nickname).one()
             else:
-                u = self._user.query.filter_by(id=settings.USER_ID).first()
+                u = self._user.query.filter_by(id=settings.USER_ID).one()
             if name:
-                l = self._list.query.filter_by(user_id=u.id, name=name).first()
+                l = self._list.query.filter_by(user_id=u.id, name=name).one()
             else:
                 l = None
             if not l:
                 if not u:
-                    q = (self._user.id == 0)
+                    q = (self._user_items.columns['user_id'] == 0)
                 else:
-                    q = (self._user.id == u.id)
-                self._joins.append(self._model.users)
+                    q = (self._user_items.columns['user_id'] == u.id)
+                self._joins.append(self._user_items)
             elif l.type == 'smart':
                 data = l._query
                 q = self.parse_conditions(data.get('conditions', []),
@@ -235,4 +236,5 @@ class Parser(object):
         # FIXME: group_by needed here to avoid
         #        duplicates due to joins.
         qs = qs.group_by(self._model.id)
+        #print(qs)
         return qs

@@ -243,6 +243,8 @@ def upgrade_db(old, new=None):
                 if 'id' in m.data:
                     del m.data['id']
                     m.save()
+    if old <= '20160106-495-d1b9e96':
+        run_sql('CREATE INDEX ix_useritem_user ON useritem ("user_id")')
 
 def create_default_lists(user_id=None):
     with db.session():
