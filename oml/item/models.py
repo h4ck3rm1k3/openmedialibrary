@@ -586,11 +586,21 @@ class File(db.Model):
 
         title = format_underscores(title)
         author = format_underscores(author)
-
+        publisher = j.get('publisher')
+        if publisher:
+            extra = ', '.join(publisher)
+        else:
+            extra = ''
+        date = j.get('date')
+        if date and len(date) >= 4:
+            extra += ' ' + date[:4]
+        if extra:
+            title = '%s (%s)' % (title, extra.strip())
         filename = '%s.%s' % (title, extension)
         first = unicodedata.normalize('NFD', author[0].upper())[0].upper()
         new_path = os.path.join(first, author, filename)
         new_path = new_path.replace('\x00', '')
+        new_path = ox.decode_html(new_path)
         if self.path == new_path:
             return
         h = ''
