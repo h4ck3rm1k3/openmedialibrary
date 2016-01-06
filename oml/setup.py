@@ -245,6 +245,24 @@ def upgrade_db(old, new=None):
                     m.save()
     if old <= '20160106-495-d1b9e96':
         run_sql('CREATE INDEX ix_useritem_user ON useritem ("user_id")')
+    if old <= '20160106-497-c86ba8a':
+        with db.session() as session:
+            u = User.get(settings.USER_ID)
+            l = u.library
+            for i in u.items.all():
+                if not i in l.items:
+                    l.items.append(i)
+            session.add(l)
+            u.clear_list_cache()
+            for u in User.query.filter_by(peered=True):
+                l = u.library
+                for i in u.items.all():
+                    if not i in l.items:
+                        l.items.append(i)
+                session.add(l)
+                u.clear_list_cache()
+                l.items_count()
+            session.commit()
 
 def create_default_lists(user_id=None):
     with db.session():

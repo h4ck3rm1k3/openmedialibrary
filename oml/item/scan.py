@@ -52,7 +52,7 @@ def add_file(id, f, prefix, from_=None):
     if 'primaryid' in item.info:
         item.meta['primaryid'] = item.info.pop('primaryid')
         state.db.session.add(item)
-    item.users.append(user)
+    item.add_user(user)
     Changelog.record(user, 'additem', item.id, file.info)
     item.added = datetime.utcnow()
     if state.online:

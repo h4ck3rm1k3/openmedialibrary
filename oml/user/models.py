@@ -50,8 +50,6 @@ class User(db.Model):
                 user.info['username'] = user.info['local']['username']
             user.update_name()
             user.save()
-            if state.nodes:
-                state.nodes.queue('add', user.id)
         return user
 
     def save(self):
@@ -62,7 +60,15 @@ class User(db.Model):
     def name(self):
         name = self.nickname if self.id != settings.USER_ID else ''
         return name
- 
+
+    @property
+    def library(self):
+        l = List.get_or_create(self.id, '')
+        if l.index_ != -1:
+            l.index_ = -1
+            l.save()
+        return l
+
     def json(self):
         j = {}
         if self.info:
@@ -81,21 +87,21 @@ class User(db.Model):
         return state.nodes and state.nodes.is_online(self.id)
 
     def lists_json(self):
-        return [{
-            'id': '%s:' % ('' if self.id == settings.USER_ID else self.nickname),
-            'name': 'Library',
-            'type': 'library',
-            'items': self.items.count(),
-            'user': self.name
-        }] + [l.json() for l in self.lists.order_by('index_')]
+        self.library
+        return [l.json() for l in self.lists.order_by('index_')]
 
     def clear_list_cache(self):
+        if self.id == settings.USER_ID:
+            prefix = ':'
+        else:
+            prefix = self.id + ':'
         for key in list(settings.list_cache):
-            if key.startswith(self.id + ':'):
+            if key.startswith(prefix):
                 del settings.list_cache[key]
 
     def clear_smart_list_cache(self):
-        smart_lists = [':%d' % l.id for l in List.query.filter_by(type='smart')]
+        qs = List.query.filter_by(type='smart')
+        smart_lists = [':%d' % l.id for l in qs]
         for key in list(settings.list_cache):
             if key in smart_lists:
                 del settings.list_cache[key]
@@ -258,7 +264,15 @@ class List(db.Model):
         state.db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'addlistitems', self.name, items)
-        self.clear_smart_list_cache()
+        self.user.clear_smart_list_cache()
+        self.user.clear_list_cache()
+
+    def get_items(self):
+        if self.type == 'smart':
+            from item.models import Item, user_items
+            return Parser(Item, user_items).find({'query': self._query})
+        else:
+            return self.items
 
     def remove_items(self, items):
         from item.models import Item
@@ -271,6 +285,8 @@ class List(db.Model):
         state.db.session.commit()
         if self.user_id == settings.USER_ID:
             Changelog.record(self.user, 'removelistitems', self.name, items)
+        self.user.clear_smart_list_cache()
+        self.user.clear_list_cache()
 
     def remove(self):
         if not self._query:
@@ -306,10 +322,8 @@ class List(db.Model):
         if key in settings.list_cache:
             value = settings.list_cache[key]
         else:
-            from item.models import Item, user_items
-            if self._query:
-                data = self._query
-                value = Parser(Item, user_items).find({'query': data}).count()
+            if self.type == 'smart':
+                value = self.get_items().count()
             else:
                 value = len(self.items)
             settings.list_cache[key] = value
@@ -324,6 +338,10 @@ class List(db.Model):
             'items': self.items_count(),
             'type': self.type
         }
+        if self.name == '':
+            r['name'] = 'Library'
+            r['type'] = 'library'
+            del r['index']
         if self.type == 'smart':
             r['query'] = self._query
         return r

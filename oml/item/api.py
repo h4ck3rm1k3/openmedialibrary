@@ -168,7 +168,9 @@ def remove(data):
     if 'ids' in data and data['ids']:
         for i in models.Item.query.filter(models.Item.id.in_(data['ids'])):
             i.remove_file()
-    state.user().clear_smart_list_cache()
+    u = state.user()
+    u.clear_smart_list_cache()
+    u.clear_list_cache()
     return {
         'items': []
     }

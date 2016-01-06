@@ -130,13 +130,13 @@ class Changelog(db.Model):
         i = Item.get(itemid)
         if i:
             if user not in i.users:
-                i.users.append(user)
+                i.add_user(user)
                 i.update()
         else:
             i = Item.get_or_create(itemid, info)
             i.modified = ts2datetime(timestamp)
             if user not in i.users:
-                i.users.append(user)
+                i.add_user(user)
             i.update()
         user.clear_smart_list_cache()
         return True
@@ -150,13 +150,16 @@ class Changelog(db.Model):
         if i.timestamp > timestamp:
             logger.debug('ignore edititem change %s %s %s', timestamp, itemid, meta)
             return True
+        primary = None
         if 'primaryid' in meta:
-            keys = [meta['primaryid'][0]]
+            primary = meta['primaryid']
+            key = primary[0]
         else:
             keys = [k for k in meta if k in Item.id_keys]
-        if keys:
-            key = keys[0]
-            primary = [key, meta[key]]
+            if keys:
+                key = keys[0]
+                primary = [key, meta[key]]
+        if primary:
             if not meta[key] and i.meta.get('primaryid', [''])[0] == key:
                 logger.debug('remove id mapping %s %s', i.id, primary)
                 i.update_primaryid(*primary, scrape=False)
@@ -222,8 +225,6 @@ class Changelog(db.Model):
         from user.models import List
         l = List.get_or_create(user.id, name)
         l.add_items(ids)
-        user.clear_list_cache()
-        user.clear_smart_list_cache()
         return True
 
     def action_removelistitems(self, user, timestamp, name, ids):
@@ -231,8 +232,6 @@ class Changelog(db.Model):
         l = List.get(user.id, name)
         if l:
             l.remove_items(ids)
-        user.clear_list_cache()
-        user.clear_smart_list_cache()
         return True
 
     def action_editusername(self, user, timestamp, username):

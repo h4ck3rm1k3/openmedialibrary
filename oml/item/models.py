@@ -90,6 +90,12 @@ class Item(db.Model):
             state.db.session.commit()
         return item
 
+    def add_user(self, user):
+        self.users.append(user)
+        l = user.library
+        l.items.append(self)
+        state.db.session.add(l)
+
     def json(self, keys=None):
         j  = {}
         j['id'] = self.id
@@ -384,7 +390,7 @@ class Item(db.Model):
         if not u in self.users:
             t = Transfer.get_or_create(self.id)
             logger.debug('queue %s for download', self.id)
-            self.users.append(u)
+            self.add_user(u)
 
     def save_file(self, content):
         u = state.user()
@@ -406,7 +412,7 @@ class Item(db.Model):
                 with open(path, 'wb') as fd:
                     fd.write(content)
                 if u not in self.users:
-                    self.users.append(u)
+                    self.add_user(u)
                 t = Transfer.get_or_create(self.id)
                 t.progress = 1
                 t.save()
