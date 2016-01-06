@@ -216,6 +216,7 @@ def restart(data):
     '''
     if data.get('update'):
         download()
-    subprocess.Popen([os.path.join(settings.base_dir, 'ctl'), 'restart'], close_fds=True)
+    subprocess.Popen([os.path.join(settings.base_dir, 'ctl'), 'restart'],
+            close_fds=True, start_new_session=True)
     return {}
 actions.register(restart, cache=False)
