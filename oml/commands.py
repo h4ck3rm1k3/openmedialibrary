@@ -229,6 +229,28 @@ def command_shell(*args):
         # Use basic python shell
         code.interact(banner, local=context)
 
+def command_dump_json(*args):
+    """
+        Dump items to json
+    """
+    if not args:
+        print('usage: ./ctl json_dump dump.json')
+        sys.exit(1)
+    import json
+    from ox.django.shortcuts import _to_json
+    import item.models
+    import db
+    with db.session():
+        items = []
+        for i in item.models.Item.query:
+            j = i.json()
+            for f in i.files:
+                j['path'] = f.fullpath()
+                break
+            items.append(j)
+    with open(args[0], 'w') as f:
+        json.dump(items, f, indent=1, default=_to_json, ensure_ascii=False, sort_keys=True)
+
 def main():
     actions = globals()
     commands = [c[8:] for c in actions if  c.startswith('command_')]
@@ -236,7 +258,7 @@ def main():
     if command and command in commands:
         globals()["command_%s"%command](*sys.argv[2:])
     else:
-        print("usage: ctl [action]")
+        print("usage: ./ctl [action]")
         indent = max([len(command) for command in commands]) + 4
         for command in sorted(commands):
             space = ' ' * (indent - len(command))
