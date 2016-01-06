@@ -575,7 +575,7 @@ class File(db.Model):
         if not os.path.exists(current_path):
             logger.debug('file is missing. %s', current_path)
             return
-        author = '; '.join([ox.canonical_name(a) for a in j.get('author', [])])
+        author = '; '.join([get_sort_name(a) for a in j.get('author', [])])
         if not author:
             author = 'Unknown Author'
         title = j.get('title', 'Untitled')
