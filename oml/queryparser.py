@@ -4,6 +4,7 @@
 from datetime import datetime
 import unicodedata
 from sqlalchemy.sql import operators
+from sqlalchemy.orm import load_only
 
 import utils
 import settings
@@ -121,7 +122,7 @@ class Parser(object):
                 u = self._user.query.filter_by(id=settings.USER_ID).one()
             l = self._list.query.filter_by(user_id=u.id, name=name).one()
             if exclude:
-                ids = [i.id for i in l.get_items()]
+                ids = l.user.items.filter(self._list.id==l.id).options(load_only('id'))
                 q = operators.notin_op(self._model.id, ids)
             else:
                 if l.type == 'smart':
