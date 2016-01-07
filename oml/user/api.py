@@ -131,7 +131,7 @@ def validate_conditions(conditions):
         if 'conditions' in c:
             if list(sorted(c.keys())) != ['conditions', 'operator']:
                 raise Exception('invalid query condition', c)
-            validate_conditions(c)
+            validate_conditions(c['conditions'])
         else:
             if list(sorted(c.keys())) != ['key', 'operator', 'value']:
                 raise Exception('invalid query condition', c)
