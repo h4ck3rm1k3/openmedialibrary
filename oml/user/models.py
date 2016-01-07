@@ -229,7 +229,7 @@ class List(db.Model):
         state.db.session.add(l)
         state.db.session.commit()
         if user_id == settings.USER_ID:
-            if not l._query:
+            if not l._query and name != '':
                 Changelog.record(state.user(), 'addlist', l.name)
         return l
 
@@ -262,17 +262,17 @@ class List(db.Model):
                 i.update()
         state.db.session.add(self)
         state.db.session.commit()
-        if self.user_id == settings.USER_ID:
+        if self.user_id == settings.USER_ID and self.name != '':
             Changelog.record(self.user, 'addlistitems', self.name, items)
         self.user.clear_smart_list_cache()
         self.user.clear_list_cache()
 
     def get_items(self):
+        from item.models import Item, user_items
         if self.type == 'smart':
-            from item.models import Item, user_items
             return Parser(Item, user_items).find({'query': self._query})
         else:
-            return self.items
+            return self.user.items.join(Item.lists, aliased=True).filter(List.id == self.id)
 
     def remove_items(self, items):
         from item.models import Item
@@ -283,7 +283,7 @@ class List(db.Model):
             i.update()
         state.db.session.add(self)
         state.db.session.commit()
-        if self.user_id == settings.USER_ID:
+        if self.user_id == settings.USER_ID and self.name != '':
             Changelog.record(self.user, 'removelistitems', self.name, items)
         self.user.clear_smart_list_cache()
         self.user.clear_list_cache()
@@ -293,7 +293,7 @@ class List(db.Model):
             for i in self.items:
                 self.items.remove(i)
         if not self._query:
-            if self.user_id == settings.USER_ID:
+            if self.user_id == settings.USER_ID and self.name != '':
                 Changelog.record(self.user, 'removelist', self.name)
         state.db.session.delete(self)
         state.db.session.commit()
@@ -318,14 +318,12 @@ class List(db.Model):
         return self.public_id
 
     def items_count(self):
+        return self.get_items().count()
         key = self.find_id
         if key in settings.list_cache:
             value = settings.list_cache[key]
         else:
-            if self.type == 'smart':
-                value = self.get_items().count()
-            else:
-                value = len(self.items)
+            value = self.get_items().count()
             settings.list_cache[key] = value
         return value
 
@@ -336,7 +334,7 @@ class List(db.Model):
             'name': self.name,
             'index': self.index_,
             # to slow for many smart lists
-            'items': 0, #self.items_count(),
+            'items': self.items_count(),
             'type': self.type
         }
         if self.name == '':

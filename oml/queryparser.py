@@ -121,17 +121,9 @@ class Parser(object):
             else:
                 u = self._user.query.filter_by(id=settings.USER_ID).one()
             l = self._list.query.filter_by(user_id=u.id, name=name).one()
-            if exclude:
-                ids = l.user.items.filter(self._list.id==l.id).options(load_only('id'))
-                q = operators.notin_op(self._model.id, ids)
-            else:
-                if l.type == 'smart':
-                    data = l._query
-                    q = self.parse_conditions(data.get('conditions', []),
-                                              data.get('operator', '&'))
-                else:
-                    q = (self._list.id == l.id)
-                    self._joins.append(self._list.items)
+            ids = l.get_items().options(load_only('id'))
+            in_op = operators.notin_op if exclude else operators.in_op
+            q = in_op(self._model.id, ids)
             return q
         elif key_type == 'date':
             def parse_date(d):
