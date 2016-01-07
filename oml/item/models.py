@@ -108,7 +108,9 @@ class Item(db.Model):
         if t:
             j['transferadded'] = t.added
             j['transferprogress'] = t.progress
-        j['users'] = list(map(str, list(self.users)))
+
+        # unused and slow
+        #j['users'] = list(map(str, list(self.users)))
 
         if self.info:
             j.update(self.info)
