@@ -9,7 +9,9 @@ oml.ui.notificationsButton = function() {
             marginRight: '3px'
         })
         .bindEvent({
-            // ...
+            click: function() {
+                // ...
+            }
         });
 
     Ox.Button({
