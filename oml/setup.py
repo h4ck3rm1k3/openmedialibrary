@@ -268,6 +268,11 @@ def upgrade_db(old, new=None):
             l = user.models.List.query.filter_by(name=' [2]', user_id=settings.USER_ID).first()
             if l and not len(l.items):
                 l.delete()
+    if old <= '20160106-505-9689439':
+        with db.session() as session:
+            for l in user.models.List.query.filter_by(name=' [2]'):
+                if not len(l.items):
+                    l.delete()
 
 def create_default_lists(user_id=None):
     with db.session():
