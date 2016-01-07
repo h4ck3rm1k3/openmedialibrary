@@ -76,6 +76,12 @@ oml.ui.browser = function() {
             'overflow-y': 'hidden'
         })
         .bindEvent({
+            key_control_delete: function() {
+                var listData = oml.getListData();
+                if (listData.own) {
+                    oml.ui.deleteItemsDialog().open();
+                }
+            },
             open: function(data) {
                 if (that.value(data.ids[0], 'mediastate') == 'available') {
                     oml.UI.set({itemView: 'book'});

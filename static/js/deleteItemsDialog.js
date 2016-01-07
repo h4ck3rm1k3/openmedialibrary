@@ -19,14 +19,17 @@ oml.ui.deleteItemsDialog = function() {
                     title: Ox._('Yes, Delete {0}', [itemsName])
                 })
             ],
-            content: Ox._('Are you sure that you want to permanently delete {0}?', [theseItemsName]),
+            content: Ox._(
+                'Are you sure that you want to permanently delete {0}?',
+                [theseItemsName]
+            ),
             title: Ox._('Delete {0}', [itemsName])
         }, function() {
             oml.api.remove({
                 ids: items
             }, function() {
                 oml.UI.set({listSelection: []});
-                Ox.Request.clearCache(); // to much?
+                Ox.Request.clearCache(); // too much?
                 oml.$ui.list.updateElement();
                 oml.user.ui.item && oml.UI.set({
                     item: '',
