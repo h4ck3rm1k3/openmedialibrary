@@ -263,9 +263,9 @@ def upgrade_db(old, new=None):
                 u.clear_list_cache()
                 l.items_count()
             session.commit()
-    if old <= '20160107-507-16c9807':
+    if old <= '20160107-508-a0c1970':
         with db.session() as session:
-            for l in user.models.List.query.filter_by(name=' [2]'):
+            for l in List.query.filter_by(name=' [2]'):
                 if not len(l.items):
                     l.remove()
 
