@@ -268,6 +268,33 @@ def upgrade_db(old, new=None):
             for l in List.query.filter_by(name=' [2]'):
                 if not len(l.items):
                     l.remove()
+    if old <= '20160107-509-e0857fc':
+        with db.session() as session:
+            sql = "SELECT COUNT(*) AS c,list_id,item_id FROM listitem GROUP BY list_id, item_id HAVING c>1"
+            doubles = [r for r in session.execute(sql)]
+            for r in doubles:
+                params = {'list_id': r[1], 'item_id': r[2]}
+                sql = "DELETE FROM listitem WHERE list_id = :list_id AND item_id = :item_id"
+                session.execute(sql, params)
+                sql = "INSERT INTO listitem (list_id, item_id) VALUES (:list_id, :item_id)"
+                session.execute(sql, params)
+            session.commit()
+            sql = 'CREATE UNIQUE INDEX IF NOT EXISTS listitem_index on listitem(list_id,item_id)'
+            session.execute(sql)
+            session.commit()
+
+            sql = "SELECT COUNT(*) AS c,user_id,item_id FROM useritem GROUP BY user_id, item_id HAVING c>1"
+            doubles = [r for r in session.execute(sql)]
+            for r in doubles:
+                params = {'user_id': r[1], 'item_id': r[2]}
+                sql = "DELETE FROM useritem WHERE user_id = :user_id AND item_id = :item_id"
+                session.execute(sql, params)
+                sql = "INSERT INTO useritem (user_id, item_id) VALUES (:user_id, :item_id)"
+                session.execute(sql, params)
+            session.commit()
+            sql = 'CREATE UNIQUE INDEX IF NOT EXISTS useritem_index on useritem(user_id,item_id)'
+            session.execute(sql)
+            session.commit()
 
 def create_default_lists(user_id=None):
     with db.session():
