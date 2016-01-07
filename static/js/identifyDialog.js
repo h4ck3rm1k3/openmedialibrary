@@ -238,6 +238,7 @@ oml.ui.identifyDialog = function(data) {
                             ? oml.api.resetMetadata : Ox.noop
                         )({id: ui.item}, function(result) {
                             Ox.Request.clearCache('find');
+                            oml.$ui.info.updateElement();
                             oml.$ui.browser.reloadList(true);
                             oml.$ui.list.reloadList(true);
                             Ox.Request.clearCache(data.id);
