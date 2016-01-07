@@ -335,7 +335,8 @@ class List(db.Model):
             'user': self.user.name,
             'name': self.name,
             'index': self.index_,
-            'items': self.items_count(),
+            # to slow for many smart lists
+            'items': 0, #self.items_count(),
             'type': self.type
         }
         if self.name == '':
