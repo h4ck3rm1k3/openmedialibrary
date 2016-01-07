@@ -110,9 +110,9 @@ class Parser(object):
             q = get_operator(op)(self._find.findvalue, v)
             if k != '*':
                 q &= (self._find.key == k)
-            self._joins.append(self._find)
-            if exclude:
-                q = ~q
+            ids = self._model.query.join(self._find).filter(q).options(load_only('id'))
+            in_op = operators.notin_op if exclude else operators.in_op
+            q = in_op(self._model.id, ids)
             return q
         elif k == 'list':
             nickname, name = v.split(':', 1)
@@ -134,15 +134,15 @@ class Parser(object):
             v = parse_date(v.split('-'))
             vk = getattr(self._sort, k)
             q = get_operator(op, 'int')(vk, v)
-            self._joins.append(self._sort)
-            if exclude:
-                q = ~q
+            ids = self._model.query.join(self._find).filter(q).options(load_only('id'))
+            in_op = operators.notin_op if exclude else operators.in_op
+            q = in_op(self._model.id, ids)
             return q
         else: #integer, float, time
             q = get_operator(op, 'int')(getattr(self._sort, k), v)
-            self._joins.append(self._sort)
-            if exclude:
-                q = ~q
+            ids = self._model.query.join(self._find).filter(q).options(load_only('id'))
+            in_op = operators.notin_op if exclude else operators.in_op
+            q = in_op(self._model.id, ids)
             return q
 
     def parse_conditions(self, conditions, operator):
@@ -212,15 +212,9 @@ class Parser(object):
         #join query with operator
         qs = self._model.query
         #only include items that have hard metadata
-        self._joins = []
         conditions = self.parse_conditions(data.get('query', {}).get('conditions', []),
                                      data.get('query', {}).get('operator', '&'))
         for c in conditions:
-            if self._joins:
-                qs = qs.join(self._joins.pop(0))
             qs = qs.filter(c)
-        # FIXME: group_by needed here to avoid
-        #        duplicates due to joins.
-        qs = qs.group_by(self._model.id)
         #print(qs)
         return qs
